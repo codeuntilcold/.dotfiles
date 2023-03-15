@@ -1,0 +1,11 @@
+# ~/work/.gitconfig.work
+ 
+[user]
+email = dung.ngo@eastagile.com
+name = Dung Ngo
+ 
+[github]
+user = ea-dungn
+ 
+[core]
+sshCommand = ssh -i ~/.ssh/something

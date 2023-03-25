@@ -1,9 +1,0 @@
----
-keystore:
-  File: /home/dunix/.sui/sui_config/sui.keystore
-envs:
-  - alias: devnet
-    rpc: "https://fullnode.devnet.sui.io:443"
-    ws: ~
-active_env: devnet
-active_address: "0x22b224df4afea8aec7531fdd143e0c85bfbfa2f5"

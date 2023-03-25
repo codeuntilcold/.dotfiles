@@ -160,6 +160,9 @@ require('lazy').setup({
     end,
   },
 
+  'tpope/vim-dadbod',
+  'kristijanhusak/vim-dadbod-ui',
+
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
@@ -180,11 +183,19 @@ require('lazy').setup({
 -- [[ Setting options ]]
 -- See `:help vim.o`
 
+-- Vim dadbod config
+vim.g.db_ui_winwidth = 30
+
+-- Set default tab
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 4
+
 -- Set highlight on search
 vim.o.hlsearch = false
 
 -- Make line numbers default
 vim.wo.number = true
+vim.o.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'

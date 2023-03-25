@@ -122,17 +122,15 @@ function killport() {
 }
 alias lg='lazygit'
 alias tmux='tmux -2'
-alias zl='zellij a'
+alias zl='zellij'
+
+# Project specific
+alias mvtl='heroku logs -ta movey-app-test'
+alias mvtd='heroku pg:psql -a movey-app-test'
 
 export HELIX_RUNTIME=~/personal/helix/runtime
 
 source /home/dunix/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-export FZF_CTRL_R_OPTS="
-  --preview 'echo {}' --preview-window up:3:hidden:wrap
-  --bind 'ctrl-/:toggle-preview'
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-  --color header:italic
-  --header 'Press CTRL-Y to copy command into clipboard'"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

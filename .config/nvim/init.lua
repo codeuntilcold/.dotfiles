@@ -162,6 +162,8 @@ require('lazy').setup({
 
   'tpope/vim-dadbod',
   'kristijanhusak/vim-dadbod-ui',
+  'xiyaowong/transparent.nvim',
+  -- 'dstein64/vim-startuptime',
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
@@ -203,7 +205,7 @@ vim.o.mouse = 'a'
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.o.clipboard = 'unnamedplus'
+-- vim.o.clipboard = 'unnamedplus'
 
 -- Enable break indent
 vim.o.breakindent = true

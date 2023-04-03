@@ -14,6 +14,9 @@ render = true
 character = "╎" # Some characters that work well: "▏", "┆", "┊", "⸽"
 skip-levels = 1
 
+# [editor.lsp]
+# display-inlay-hints = true
+
 # https://github.com/LGUG2Z/helix-vim/blob/master/config.toml
 
 [keys.normal]
@@ -33,6 +36,7 @@ C-l = "select_next_sibling"
 0 = "goto_line_start"
 "$" = "goto_line_end"
 "^" = "goto_first_nonwhitespace"
+"_" = "goto_first_nonwhitespace"
 G = "goto_file_end"
 "%" = "match_brackets"
 V = ["select_mode", "extend_to_line_bounds"]

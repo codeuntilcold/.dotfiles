@@ -123,6 +123,7 @@ function killport() {
 alias lg='lazygit'
 alias tmux='tmux -2'
 alias zl='zellij'
+alias dbui='nvim -c "DBUI"'
 
 # Project specific
 alias mvtl='heroku logs -ta movey-app-test'

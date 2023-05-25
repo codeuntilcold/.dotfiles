@@ -192,6 +192,9 @@ vim.g.db_ui_winwidth = 30
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 
+-- Smart paste from ThePrimeagen
+vim.keymap.set('v', '<leader>p', '\"_dp', { desc = 'Smart [p]aste' })
+
 -- Set highlight on search
 vim.o.hlsearch = false
 
@@ -205,7 +208,7 @@ vim.o.mouse = 'a'
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
--- vim.o.clipboard = 'unnamedplus'
+vim.o.clipboard = 'unnamedplus'
 
 -- Enable break indent
 vim.o.breakindent = true

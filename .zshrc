@@ -110,25 +110,18 @@ export PATH="$PATH:/home/dunix/.cargo/bin:/home/dunix/.local/bin"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # My custom stuffs
-alias fork='/mnt/c/Windows/System32/cmd.exe /c "%USERPROFILE%\\AppData\Local\Fork\Fork.exe "$(wslpath -w -a .)'
-alias venv='source ./venv/Scripts/activate'
-function gitall() {
-	git add .
-	git commit -m "$1"
-	git push
-}
+# alias fork='/mnt/c/Windows/System32/cmd.exe /c "%USERPROFILE%\\AppData\Local\Fork\Fork.exe "$(wslpath -w -a .)'
+# alias venv='source ./venv/bin/activate'
+
 function killport() {
 	fuser -k $1/tcp
 }
+
 alias lg='lazygit'
+alias ldk='lazydocker'
 alias tmux='tmux -2'
 alias zl='zellij'
 alias dbui='nvim -c "DBUI"'
-
-# Project specific
-alias mvtl='heroku logs -ta movey-app-test'
-alias mvtd='heroku pg:psql -a movey-app-test'
-alias mvcl='heroku logs -ta movey-sui-crawler'
 
 export HELIX_RUNTIME=~/personal/helix/runtime
 source /home/dunix/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

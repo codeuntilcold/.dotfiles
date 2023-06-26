@@ -8,4 +8,4 @@ name = Dung Ngo
 user = ea-dungn
  
 [core]
-sshCommand = ssh -i ~/.ssh/something
+sshCommand = ssh -i ~/.ssh/id_ea-dungn_ed25519

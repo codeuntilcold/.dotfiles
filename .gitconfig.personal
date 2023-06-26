@@ -1,0 +1,11 @@
+# ~/Dev/personal/.gitconfig.personal
+
+[user]
+email = quocdungngole@gmail.com
+name = Dung Ngo
+ 
+[github]
+user = codeuntilcold
+ 
+[core]
+sshCommand = ssh -i ~/.ssh/id_code_ed25519

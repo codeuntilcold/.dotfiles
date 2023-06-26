@@ -1,8 +1,8 @@
-[includeIf "gitdir:~/personal/"]
-path = ~/personal/.gitconfig.personal
+[includeIf "gitdir:~/Dev/personal/"]
+path = ~/Dev/personal/.gitconfig.personal
 
-[includeIf "gitdir:~/work/"]
-path = ~/work/.gitconfig.work
+[includeIf "gitdir:~/Dev/work/"]
+path = ~/Dev/work/.gitconfig.work
 
 [core]
 excludesfile = ~/.gitignore

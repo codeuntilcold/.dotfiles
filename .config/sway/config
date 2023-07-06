@@ -1,16 +1,18 @@
 # Default config for sway
 
+#
 ### Variables
 #
 # Logo key. Use Mod1 for Alt.
 set $mod Mod4
-# Home row direction keys, like vim
 set $left h
 set $down j
 set $up k
 set $right l
+
 # Your preferred terminal emulator
 set $term alacritty
+
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
@@ -19,10 +21,23 @@ set $menu wofi --show run
 
 include /etc/sway/config-vars.d/*
 
+include "$HOME/.cache/wal/colors-sway"
+
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
-output * bg /usr/share/backgrounds/pop/nick-nazzaro-desert.png fill
+# output * bg /usr/share/backgrounds/pop/nick-nazzaro-desert.png fill
+output * background $wallpaper fill
+client.focused $color0 $background $foreground $color7 $background
+
+# Window borders
+default_border pixel 1
+default_floating_border normal
+hide_edge_borders smart
+
+smart_gaps on
+gaps inner 10
+
 #
 # Example configuration:
 #
@@ -151,7 +166,7 @@ output * bg /usr/share/backgrounds/pop/nick-nazzaro-desert.png fill
     bindsym $mod+f fullscreen
 
     # Toggle the current focus between tiling and floating mode
-    bindsym $mod+Shift+space floating toggle
+    bindsym $mod+Shift+t floating toggle
 
     # Swap focus between the tiling area and the floating area
     bindsym $mod+space focus mode_toggle
@@ -170,6 +185,7 @@ output * bg /usr/share/backgrounds/pop/nick-nazzaro-desert.png fill
     # Show the next scratchpad window or hide the focused scratchpad window.
     # If there are multiple scratchpad windows, this command cycles through them.
     bindsym $mod+minus scratchpad show
+
 #
 # Resizing containers:
 #
@@ -178,16 +194,16 @@ mode "resize" {
     # right will grow the containers width
     # up will shrink the containers height
     # down will grow the containers height
-    bindsym $left resize shrink width 10px
-    bindsym $down resize grow height 10px
-    bindsym $up resize shrink height 10px
-    bindsym $right resize grow width 10px
+    bindsym $left resize shrink width 70px
+    bindsym $down resize grow height 70px
+    bindsym $up resize shrink height 70px
+    bindsym $right resize grow width 70px
 
     # Ditto, with arrow keys
-    bindsym Left resize shrink width 10px
-    bindsym Down resize grow height 10px
-    bindsym Up resize shrink height 10px
-    bindsym Right resize grow width 10px
+    bindsym Left resize shrink width 70px
+    bindsym Down resize grow height 70px
+    bindsym Up resize shrink height 70px
+    bindsym Right resize grow width 70px
 
     # Return to default mode
     bindsym Return mode "default"
@@ -198,20 +214,6 @@ bindsym $mod+r mode "resize"
 #
 # Status Bar:
 #
-# Read `man 5 sway-bar` for more information about this section.
-# bar {
-#     position top
-#
-#     # When the status_command prints a new line to stdout, swaybar updates.
-#     # The default just shows the current date and time.
-#     status_command while date +'%Y-%m-%d %I:%M:%S %p'; do sleep 1; done
-#
-#     colors {
-#         statusline #ffffff
-#         background #323232
-#         inactive_workspace #32323200 #32323200 #5c5c5c
-#     }
-# }
 
 bar swaybar_command waybar
 

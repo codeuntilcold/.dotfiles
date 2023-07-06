@@ -72,8 +72,10 @@ require('lazy').setup({
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', tag = 'legacy', 
-        -- opts = {} 
+      {
+        'j-hui/fidget.nvim',
+        tag = 'legacy',
+        -- opts = {}
       },
 
       -- Additional lua configuration, makes nvim stuff amazing!
@@ -87,7 +89,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',          opts = {} },
   { -- Adds git releated signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
@@ -166,6 +168,7 @@ require('lazy').setup({
   'kristijanhusak/vim-dadbod-ui',
   'xiyaowong/transparent.nvim',
   -- 'dstein64/vim-startuptime',
+  'dylanaraps/wal.vim',
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
@@ -236,6 +239,8 @@ vim.o.completeopt = 'menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
+
+-- vim.cmd.colorscheme 'wal'
 
 -- [[ Basic Keymaps ]]
 

@@ -72,6 +72,12 @@ gaps inner 10
 # You can get the names of your inputs by running: swaymsg -t get_inputs
 # Read `man 5 sway-input` for more information about this section.
 
+# input type:keyboard {
+#     xkb_layout vn,us
+#     xkb_options grp:lctrl_lshift_toggle
+#     xkb_numlock enabled
+# }
+
 ### Key bindings
 #
 # Basics:

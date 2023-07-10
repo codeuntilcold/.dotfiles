@@ -32,6 +32,7 @@
         "cpu",
         // "temperature",
         // "custom/keyboard-layout",
+		"custom/brightness",
 		"pulseaudio",
         "battery",
         "clock#date",
@@ -171,6 +172,15 @@
     "tray": {
         "icon-size": 18,
         "spacing": 10
-    }
+    },
+
+	"custom/brightness": {
+		"exec": "light -G",
+		"interval": 30,
+		"format": "  {}",
+		"on-scroll-up":  "light -A 0.4",
+		"on-scroll-down":  "light -U 0.4",
+
+	},
 }
 

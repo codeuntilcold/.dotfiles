@@ -19,7 +19,7 @@
 
     to {
         color: white;
-        background-color: orange;
+        background-color: @color2;
     }
 }
 
@@ -30,7 +30,7 @@
 
     to {
         color: white;
-        background-color: red;
+        background-color: @color5;
     }
 }
 
@@ -63,6 +63,7 @@
 #clock,
 #cpu,
 #custom-keyboard-layout,
+#custom-brightness,
 #memory,
 #mode,
 #network,
@@ -84,11 +85,11 @@
 }
 
 #battery.warning {
-    color: orange;
+    color: @color2;
 }
 
 #battery.critical {
-    color: red;
+    color: @color5;
 }
 
 #battery.warning.discharging {
@@ -102,6 +103,7 @@
 }
 
 #clock {
+
 }
 
 #cpu {

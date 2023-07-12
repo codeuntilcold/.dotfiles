@@ -1,8 +1,4 @@
-# Default config for sway
-
-#
 ### Variables
-#
 # Logo key. Use Mod1 for Alt.
 set $mod Mod4
 set $left h
@@ -10,23 +6,16 @@ set $down j
 set $up k
 set $right l
 
-# Your preferred terminal emulator
+# Executable
 set $term alacritty
-
-# Your preferred application launcher
-# Note: pass the final command to swaymsg so that the resulting window can be opened
-# on the original workspace that the command was run on.
-# set $menu dmenu_path | dmenu | xargs swaymsg exec --
 set $menu wofi --show run
+set $ibus_toggle /home/qd/Dev/personal/.scripts/ibus-toggle.sh
 
 include /etc/sway/config-vars.d/*
 
 include "$HOME/.cache/wal/colors-sway"
 
 ### Output configuration
-#
-# Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
-# output * bg /usr/share/backgrounds/pop/nick-nazzaro-desert.png fill
 output * background $wallpaper fill
 client.focused $color0 $background $foreground $color7 $background
 
@@ -35,48 +24,19 @@ default_border pixel 1
 default_floating_border normal
 hide_edge_borders smart
 
-smart_gaps on
+# smart_gaps on
 gaps inner 10
 
-#
-# Example configuration:
-#
-#   output HDMI-A-1 resolution 1920x1080 position 1920,0
-#
-# You can get the names of your outputs by running: swaymsg -t get_outputs
+input type:keyboard {
+    xkb_numlock enabled
+}
 
-### Idle configuration
-#
-# Example configuration:
-#
-# exec swayidle -w \
-#          timeout 300 'swaylock -f -c 000000' \
-#          timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
-#          before-sleep 'swaylock -f -c 000000'
-#
-# This will lock your screen after 300 seconds of inactivity, then turn off
-# your displays after another 300 seconds, and turn your screens back on when
-# resumed. It will also lock your screen before your computer goes to sleep.
-
-### Input configuration
-#
-# Example configuration:
-#
-#   input "2:14:SynPS/2_Synaptics_TouchPad" {
-#       dwt enabled
-#       tap enabled
-#       natural_scroll enabled
-#       middle_emulation enabled
-#   }
-#
-# You can get the names of your inputs by running: swaymsg -t get_inputs
-# Read `man 5 sway-input` for more information about this section.
-
-# input type:keyboard {
-#     xkb_layout vn,us
-#     xkb_options grp:lctrl_lshift_toggle
-#     xkb_numlock enabled
-# }
+input "type:touchpad" {
+    dwt enabled
+    tap enabled
+    middle_emulation enabled
+    scroll_factor 0.5
+}
 
 ### Key bindings
 #
@@ -90,6 +50,9 @@ gaps inner 10
 
     # Start your launcher
     bindsym $mod+d exec $menu
+
+    # Change language
+    bindsym ctrl+space exec $ibus_toggle
 
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.

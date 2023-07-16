@@ -20,10 +20,13 @@
 
     "modules-left": [
         "sway/workspaces",
-        "sway/mode"
+        "sway/mode",
+        "sway/window",
     ],
     "modules-center": [
-        "sway/window"
+        "clock#date",
+        "clock#time",
+        "battery",
     ],
     "modules-right": [
         "tray",
@@ -34,9 +37,6 @@
         "custom/keyboard-layout",
 		"custom/brightness",
 		"pulseaudio",
-        "battery",
-        "clock#date",
-        "clock#time"
     ],
 
 
@@ -51,9 +51,10 @@
             "critical": 15
         },
         // Connected to AC
-        "format": "  {icon}  {capacity}%", // Icon: bolt
+        "format": "  {icon}  {capacity}%~{time}", // Icon: bolt
         // Not connected to AC
-        "format-discharging": "{icon}  {capacity}%",
+        "format-discharging": "{icon}  {capacity}%~{time}",
+		"format-time": "{H}h{M}",
         "format-icons": [
             "", // Icon: battery-full
             "", // Icon: battery-three-quarters
@@ -61,7 +62,7 @@
             "", // Icon: battery-quarter
             ""  // Icon: battery-empty
         ],
-        "tooltip": true
+        "tooltip": false
     },
 
     "clock#time": {
@@ -78,7 +79,7 @@
 
     "cpu": {
         "interval": 5,
-        "format": "  {usage}%", // Icon: microchip
+        "format": " {usage}%", // Icon: microchip
         "states": {
           "warning": 70,
           "critical": 90
@@ -105,7 +106,7 @@
 
     "network": {
         "interval": 5,
-        "format-wifi": "  ({signalStrength}%)", // Icon: wifi
+        "format-wifi": "  {signalStrength}%", // Icon: wifi
         "format-ethernet": "  {ifname}: {ipaddr}/{cidr}", // Icon: ethernet
         "format-disconnected": "⚠  Disconnected",
         "tooltip-format": "{essid}: {ifname}: {ipaddr}"
@@ -138,7 +139,7 @@
     },
 
     "pulseaudio": {
-        //"scroll-step": 1,
+        "scroll-step": 0.3,
         "format": "{icon}  {volume}%",
         "format-bluetooth": "{icon}  {volume}%",
         "format-muted": "",

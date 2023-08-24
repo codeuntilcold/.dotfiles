@@ -8,6 +8,7 @@ set $right l
 # Executable
 set $term alacritty
 set $menu wofi --show run
+set $flatpak_menu wofi --show drun
 set $ibus_toggle /home/qd/Dev/personal/.scripts/ibus-toggle.sh
 
 include /etc/sway/config-vars.d/*
@@ -43,6 +44,7 @@ input "type:touchpad" {
 
     # TODO: Integrate Flatpaks
     bindsym $mod+d exec $menu
+    bindsym $mod+p exec $flatpak_menu
 
     bindsym Ctrl+space exec $ibus_toggle
 

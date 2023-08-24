@@ -1,0 +1,47 @@
+* {
+  font-family: JetBrainsMono;
+  color: --wofi-color3;
+  background: transparent;
+}
+
+#window {
+  background: rgba(--wofi-rgb-color0, 0.8);
+  margin: auto;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid --wofi-color2;
+}
+
+#input {
+  color: --wofi-color7;
+  padding: 8px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+#input::placeholder {
+  color: --wofi-color7;
+}
+
+#outer-box {
+  padding: 16px;
+}
+
+#img {
+  margin-right: 6px;
+}
+
+#entry {
+  padding: 8px;
+  border-radius: 8px;
+}
+
+#entry:selected {
+  background-color: --wofi-color2;
+}
+
+#text {
+  margin: 2px;
+  color: --wofi-color7;
+}
+

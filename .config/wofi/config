@@ -1,0 +1,5 @@
+lines=8
+term=alacritty
+allow_images=true
+image_size=20
+key_expand=Tab

@@ -35,8 +35,8 @@
         "cpu",
         // "temperature",
         "custom/keyboard-layout",
-		"custom/brightness",
-		"pulseaudio",
+        "custom/brightness",
+        "pulseaudio",
     ],
 
 
@@ -54,7 +54,7 @@
         "format": "  {icon}  {capacity}%~{time}", // Icon: bolt
         // Not connected to AC
         "format-discharging": "{icon}  {capacity}%~{time}",
-		"format-time": "{H}h{M}",
+        "format-time": "{H}h{M}",
         "format-icons": [
             "", // Icon: battery-full
             "", // Icon: battery-three-quarters
@@ -72,27 +72,27 @@
     },
 
     "clock#date": {
-      "interval": 10,
-      "format": "{:%d/%m/%y}",
-	  "tooltip": false,
+        "interval": 10,
+        "format": "{:%d/%m/%y}",
+        "tooltip": false,
     },
 
     "cpu": {
         "interval": 5,
         "format": " {usage}%", // Icon: microchip
         "states": {
-          "warning": 70,
-          "critical": 90
+            "warning": 70,
+            "critical": 90
         }
     },
 
     "custom/keyboard-layout": {
-      "exec": "ibus engine",
-	  "on-click": "/home/qd/Dev/personal/dotfiles/.scripts/ibus-toggle.sh",
-      "interval": 30,
-      "format": "  {}", // Icon: keyboard
-      // "signal": 1, // SIGHUP
-      "tooltip": false
+        "exec": "ibus engine ",
+        "on-click": "/home/qd/Dev/personal/dotfiles/.scripts/ibus-toggle.sh",
+        "interval": 30,
+        "format": "  {}", // Icon: keyboard
+        // "signal": 1, // SIGHUP
+        "tooltip": false
     },
 
     "memory": {
@@ -122,12 +122,12 @@
         "max-length": 100
     },
 
-	"sway/workspaces": {
-		"all-outputs": false,
-		"disable-scroll": true,
-		"format": "{icon} {name}",
-		"format-icons": {
-			"1:www": "龜", // Icon: firefox-browser
+    "sway/workspaces": {
+        "all-outputs": false,
+        "disable-scroll": true,
+        "format": "{icon} {name}",
+        "format-icons": {
+            "1:www": "龜", // Icon: firefox-browser
             "2:mail": "", // Icon: mail
             "3:editor": "", // Icon: code
             "4:terminals": "", // Icon: terminal
@@ -145,8 +145,8 @@
         "format-muted": "",
         "format-icons": {
             "headphones": "",
-            "handsfree": "",
-            "headset": "",
+            "handsfree": "",
+            "headset": "",
             "phone": "",
             "portable": "",
             "car": "",
@@ -156,17 +156,17 @@
     },
 
     "temperature": {
-      "critical-threshold": 80,
-      "interval": 5,
-      "format": "{icon}  {temperatureC}°C",
-      "format-icons": [
-          "", // Icon: temperature-empty
-          "", // Icon: temperature-quarter
-          "", // Icon: temperature-half
-          "", // Icon: temperature-three-quarters
-          ""  // Icon: temperature-full
-      ],
-      "tooltip": true
+        "critical-threshold": 80,
+        "interval": 5,
+        "format": "{icon}  {temperatureC}°C",
+        "format-icons": [
+            "", // Icon: temperature-empty
+            "", // Icon: temperature-quarter
+            "", // Icon: temperature-half
+            "", // Icon: temperature-three-quarters
+            ""  // Icon: temperature-full
+        ],
+        "tooltip": true
     },
 
     "tray": {
@@ -174,13 +174,12 @@
         "spacing": 10
     },
 
-	"custom/brightness": {
-		"exec": "light -G",
-		"interval": 30,
-		"format": "  {}",
-		"on-scroll-up":  "light -A 0.4",
-		"on-scroll-down":  "light -U 0.4",
-
-	},
+    "custom/brightness": {
+        "exec": "light -G",
+        "interval": 30,
+        "format": "  {}",
+        "on-scroll-up":  "light -A 0.4",
+        "on-scroll-down":  "light -U 0.4",
+    },
 }
 

@@ -176,6 +176,7 @@
 #window {
     font-weight: bold;
     padding-left: 40px;
+    padding-right: 100px;
 }
 
 #workspaces button {

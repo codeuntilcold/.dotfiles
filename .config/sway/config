@@ -36,16 +36,16 @@ input "type:touchpad" {
     scroll_factor 0.5
 }
 
+exec ibus-daemon --daemonize --replace
+
 # Key bindings
-    bindsym $mod+Return exec $term
+    bindsym $mod+t exec $term
 
     bindsym $mod+Shift+q kill
 
     # TODO: Integrate Flatpaks
     bindsym $mod+d exec $menu
     bindsym $mod+p exec $flatpak_menu
-
-    bindsym Ctrl+space exec $ibus_toggle
 
     floating_modifier $mod normal
 
@@ -148,7 +148,7 @@ mode "resize" {
     bindsym Return mode "default"
     bindsym Escape mode "default"
 }
-bindsym $mod+r mode "resize"
+bindsym $mod+Return mode "resize"
 
 
 bar swaybar_command waybar

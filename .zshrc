@@ -43,6 +43,7 @@ alias ldk='lazydocker'
 alias tmux='tmux -2'
 alias zl='zellij'
 alias dbui='nvim -c "DBUI"'
+alias vim='nvim'
 
 function to() {
   zi $1 && project_name=$(basename $(pwd)) && (zl -s $project_name || zl a $project_name)
@@ -66,7 +67,7 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
 export FZF_DEFAULT_OPTS="--layout=reverse"
-export PATH="${PATH}:${HOME}/.local/bin/"
+export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/Dev/personal/dotfiles/.scripts"
 
 (cat ~/.cache/wal/sequences &)
 

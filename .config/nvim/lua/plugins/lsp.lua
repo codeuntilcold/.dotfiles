@@ -64,9 +64,8 @@ return { { -- LSP Configuration & Plugins
 		local servers = {
 			-- clangd = {},
 			-- gopls = {},
-			-- pyright = {},
+			pyright = {},
 			rust_analyzer = {},
-			pylsp = {},
 			-- tsserver = {},
 
 			lua_ls = {

@@ -1,4 +1,4 @@
-vim.cmd.colorscheme 'onedark'
+vim.cmd.colorscheme 'catppuccin'
 
 -- [[ Setting options ]]
 -- See `:help vim.o`

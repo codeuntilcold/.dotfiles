@@ -67,7 +67,7 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
 export FZF_DEFAULT_OPTS="--layout=reverse"
-export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/Dev/personal/dotfiles/.scripts"
+export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/Dev/personal/dotfiles/.scripts:/usr/local/go/bin"
 
 (cat ~/.cache/wal/sequences &)
 

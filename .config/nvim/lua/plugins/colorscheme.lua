@@ -7,4 +7,7 @@ return {
 
 	-- Theme inspired by Atom
 	'navarasu/onedark.nvim',
+
+	-- Catppuccin
+	{ "catppuccin/nvim", name = "catppuccin", priority = 1000 },
 }

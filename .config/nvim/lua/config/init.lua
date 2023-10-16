@@ -31,7 +31,7 @@ require('lazy').setup({
 	-- 'dstein64/vim-startuptime',
 
 	-- Useful plugin to show you pending keybinds.
-	'folke/which-key.nvim',
+	{ 'folke/which-key.nvim', opts = {} },
 
 	-- "gc" to comment visual regions/lines
 	{ 'numToStr/Comment.nvim', opts = {} },

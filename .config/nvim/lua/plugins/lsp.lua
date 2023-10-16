@@ -63,7 +63,7 @@ return { { -- LSP Configuration & Plugins
 
 		local servers = {
 			-- clangd = {},
-			-- gopls = {},
+			gopls = {},
 			pyright = {},
 			rust_analyzer = {},
 			-- tsserver = {},

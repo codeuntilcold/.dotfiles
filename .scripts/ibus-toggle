@@ -13,4 +13,3 @@ then
 else
 	ibus engine Bamboo
 fi
-

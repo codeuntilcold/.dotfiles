@@ -20,6 +20,9 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
+	-- Undo tree
+	'mbbill/undotree',
+
 	-- Detect tabstop and shiftwidth automatically
 	'tpope/vim-sleuth',
 
@@ -31,7 +34,7 @@ require('lazy').setup({
 	-- 'dstein64/vim-startuptime',
 
 	-- Useful plugin to show you pending keybinds.
-	{ 'folke/which-key.nvim', opts = {} },
+	{ 'folke/which-key.nvim',  opts = {} },
 
 	-- "gc" to comment visual regions/lines
 	{ 'numToStr/Comment.nvim', opts = {} },

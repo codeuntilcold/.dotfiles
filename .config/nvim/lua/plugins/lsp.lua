@@ -64,7 +64,14 @@ return { { -- LSP Configuration & Plugins
 		local servers = {
 			-- clangd = {},
 			gopls = {},
-			pyright = {},
+			pyright = {
+				python = {
+                    analysis = {
+                        autoSearchPaths = true,
+                        typeCheckingMode = 'off',
+                    },
+                },
+			},
 			rust_analyzer = {},
 			-- tsserver = {},
 

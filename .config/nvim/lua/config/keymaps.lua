@@ -11,6 +11,9 @@ vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 -- TODO: Move this to appropriate places
 vim.keymap.set("n", "<leader>u", ":UndotreeToggle<CR>")
 
+-- Grab the latest commit message in a very glitchy way
+vim.keymap.set("n", "<leader>gl", ":G log<CR>}jV}y:bd<CR>PV}=", { desc = '[G]o get the [L]ast commit'})
+
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience

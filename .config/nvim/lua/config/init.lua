@@ -23,6 +23,9 @@ require('lazy').setup({
 	-- Undo tree
 	'mbbill/undotree',
 
+	-- Blame it all
+	-- 'f-person/git-blame.nvim',
+
 	-- Detect tabstop and shiftwidth automatically
 	'tpope/vim-sleuth',
 

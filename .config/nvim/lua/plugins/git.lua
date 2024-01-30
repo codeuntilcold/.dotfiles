@@ -15,4 +15,12 @@ return {
 				changedelete = { text = '~' },
 			},
 		},
-	}, }
+	},
+
+	{
+		'f-person/git-blame.nvim',
+		opts = {
+			delay = 1000,
+		},
+	},
+}

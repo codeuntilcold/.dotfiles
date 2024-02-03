@@ -74,7 +74,7 @@ return { { -- LSP Configuration & Plugins
 				},
 			},
 			rust_analyzer = {},
-			-- tsserver = {},
+			tsserver = {},
 
 			lua_ls = {
 				Lua = {

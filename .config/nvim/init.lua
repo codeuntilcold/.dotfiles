@@ -5,7 +5,9 @@ if vim.fn.has('nvim-0.8') == 0 then
   error('You need Neovim 0.8+ in order to use this config')
 end
 
-for _, cmd in ipairs({ "git", "rg" }) do
+local binaries = { "git", "rg" }
+
+for _, cmd in ipairs(binaries) do
   local name = type(cmd) == "string" and cmd or vim.inspect(cmd)
   local commands = type(cmd) == "string" and { cmd } or cmd
   ---@cast commands string[]

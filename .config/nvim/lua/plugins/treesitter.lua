@@ -7,12 +7,21 @@ return {
 		config = function()
 			pcall(require('nvim-treesitter.install').update { with_sync = true })
 
+			local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+			parser_config.move = {
+				install_info = {
+					url = "~/Dev/personal/tree-sitter-move", -- local path or git repo
+					files = { "src/parser.c" }, -- note that some parsers also require src/scanner.c or src/scanner.cc
+				},
+				filetype = "move",
+			}
+
 			-- [[ Configure Treesitter ]]
 			-- See `:help nvim-treesitter`
 			require('nvim-treesitter.configs').setup {
 				-- Add languages to be installed here that you want installed for treesitter
 				ensure_installed = {
-					'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vim', 'html', 'javascript', 'json', 'vimdoc'
+					'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vim', 'html', 'javascript', 'json', 'vimdoc', 'move'
 				},
 				ignore_install = {},
 

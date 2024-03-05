@@ -34,22 +34,32 @@ vim.g.maplocalleader = ' '
 require("config")
 
 
--- vim.api.nvim_create_autocmd("BufEnter", {
---   callback = function(_)
---     vim.lsp.start({
---       name = 'sui',
---       cmd = { '/Users/vpn/.cargo/bin/sui-move-analyzer' },
---       root_dir = vim.fs.dirname(vim.fs.find({ 'Move.toml' }, { upward = true })[1]),
---     })
---   end
--- })
+vim.api.nvim_create_autocmd("BufEnter", {
+  callback = function(_)
+    vim.lsp.start({
+      name = 'sui',
+      cmd = { '/Users/vpn/.cargo/bin/sui-move-analyzer' },
+      root_dir = vim.fs.dirname(vim.fs.find({ 'Move.toml' }, { upward = true })[1]),
+    })
+  end
+})
 
--- vim.api.nvim_create_autocmd('LspAttach', {
---   callback = function(args)
---     print('somehow this is in')
---     vim.keymap.set('n', 'K', vim.lsp.buf.hover, { buffer = args.buf })
---   end,
--- })
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(args)
+    local nmap = function(keys, func, desc)
+      if desc then
+        desc = 'LSP: ' .. desc
+      end
+
+      vim.keymap.set('n', keys, func, { buffer = args.buf, desc = desc })
+    end
+
+    nmap('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+    nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+    nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
+    nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+  end,
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

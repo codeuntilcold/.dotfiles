@@ -33,5 +33,23 @@ vim.g.maplocalleader = ' '
 
 require("config")
 
+
+-- vim.api.nvim_create_autocmd("BufEnter", {
+--   callback = function(_)
+--     vim.lsp.start({
+--       name = 'sui',
+--       cmd = { '/Users/vpn/.cargo/bin/sui-move-analyzer' },
+--       root_dir = vim.fs.dirname(vim.fs.find({ 'Move.toml' }, { upward = true })[1]),
+--     })
+--   end
+-- })
+
+-- vim.api.nvim_create_autocmd('LspAttach', {
+--   callback = function(args)
+--     print('somehow this is in')
+--     vim.keymap.set('n', 'K', vim.lsp.buf.hover, { buffer = args.buf })
+--   end,
+-- })
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

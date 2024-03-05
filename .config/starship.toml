@@ -1,5 +1,6 @@
 [aws]
 symbol = "  "
+disabled = true
 
 [buf]
 symbol = " "
@@ -51,6 +52,30 @@ symbol = " "
 
 [julia]
 symbol = " "
+
+[kubernetes]
+format = 'on [k8s $context]($style) | '
+disabled = false
+detect_folders = ['k8s']
+style = "dimmed green"
+
+[[kubernetes.contexts]]
+context_pattern = ".*/rememberizer-ai-production"
+context_alias = "rem-production"
+style = "bold red"
+
+[[kubernetes.contexts]]
+context_pattern = ".*/rememberizer-staging-eks"
+context_alias = "rem-staging"
+
+[[kubernetes.contexts]]
+context_pattern = ".*/skydeckai-eks-prod-cluster"
+context_alias = "sd-production"
+style = "bold red"
+
+[[kubernetes.contexts]]
+context_pattern = ".*/skydeckai-eks"
+context_alias = "sd-staging"
 
 [lua]
 symbol = " "

@@ -35,7 +35,8 @@ require("config")
 
 
 vim.api.nvim_create_autocmd("BufEnter", {
-  callback = function(_)
+  pattern = {'*.move'},
+  callback = function()
     vim.lsp.start({
       name = 'sui',
       cmd = { '/Users/vpn/.cargo/bin/sui-move-analyzer' },

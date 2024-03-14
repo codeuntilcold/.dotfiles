@@ -30,9 +30,6 @@ require('lazy').setup({
 	-- 'tpope/vim-dadbod',
 	-- 'kristijanhusak/vim-dadbod-ui',
 
-	-- Debug startup time of nvim
-	-- 'dstein64/vim-startuptime',
-
 	-- Useful plugin to show you pending keybinds.
 	{ 'folke/which-key.nvim',     opts = {} },
 

@@ -26,10 +26,6 @@ require('lazy').setup({
 	-- Detect tabstop and shiftwidth automatically
 	'tpope/vim-sleuth',
 
-	-- Working with db
-	-- 'tpope/vim-dadbod',
-	-- 'kristijanhusak/vim-dadbod-ui',
-
 	-- Useful plugin to show you pending keybinds.
 	{ 'folke/which-key.nvim',     opts = {} },
 

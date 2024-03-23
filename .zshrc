@@ -13,6 +13,7 @@ set -o vi
 
 alias ez='nvim ~/.zshrc'
 alias sz='source ~/.zshrc'
+alias dot='nvim ~/Dev/personal/dotfiles'
 
 alias lg='lazygit'
 alias ldk='lazydocker'

@@ -1,6 +1,6 @@
 vim.cmd.colorscheme 'catppuccin'
 
-vim.o.colorcolumn = "100,120"
+vim.o.colorcolumn = "100"
 
 -- [[ Setting options ]]
 -- See `:help vim.o`

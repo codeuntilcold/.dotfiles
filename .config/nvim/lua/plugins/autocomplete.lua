@@ -9,6 +9,7 @@ return { {
 			opts = {},
 			config = function(_, opts)
 				require('luasnip').config.set_config(opts)
+				require('luasnip.loaders.from_vscode').lazy_load()
 			end,
 		},
 		'saadparwaiz1/cmp_luasnip',
@@ -57,7 +58,7 @@ return { {
 
 		return options
 	end,
-	config = function (_, opts)
+	config = function(_, opts)
 		require('cmp').setup(opts)
 	end
 }, }

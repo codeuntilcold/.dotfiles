@@ -1,3 +1,28 @@
+vim.api.nvim_create_autocmd("BufEnter", {
+	pattern = { '*.move' },
+	callback = function()
+		vim.lsp.start({
+			name = 'sui',
+			cmd = { '/Users/vpn/.cargo/bin/sui-move-analyzer' },
+			root_dir = vim.fs.dirname(vim.fs.find({ 'Move.toml' }, { upward = true })[1]),
+		})
+	end
+})
+vim.api.nvim_create_autocmd('LspAttach', {
+	callback = function(args)
+		local nmap = function(keys, func, desc)
+			if desc then
+				desc = 'LSP: ' .. desc
+			end
+			vim.keymap.set('n', keys, func, { buffer = args.buf, desc = desc })
+		end
+		nmap('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+		nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+		nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
+		nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+	end,
+})
+
 -- NOTE: This is where your plugins related to LSP can be installed.
 --  The configuration is done below. Search for lspconfig to find it below.
 return { { -- LSP Configuration & Plugins

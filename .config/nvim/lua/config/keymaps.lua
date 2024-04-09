@@ -8,8 +8,6 @@ vim.keymap.set('v', '<leader>y', '\"+y', { desc = '[Y]ank to system' })
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
--- TODO: Move this to appropriate places
-vim.keymap.set("n", "<leader>u", ":UndotreeToggle<CR>")
 
 -- [[ Basic Keymaps ]]
 

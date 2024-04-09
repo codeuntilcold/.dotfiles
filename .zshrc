@@ -35,12 +35,20 @@ function fp() {
   ( flatpak run "$app" "$@" &> /dev/null & )
 }
 
+function gigen() {
+  curl -sLw n https://www.toptal.com/developers/gitignore/api/$@ ;
+}
+
 # For fzf
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
 export FZF_DEFAULT_OPTS="--layout=reverse"
 export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/Dev/personal/dotfiles/.scripts:/usr/local/go/bin"
+
+if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
+  exec tmux new-session -A -s main
+fi
 
 (cat ~/.cache/wal/sequences &)
 

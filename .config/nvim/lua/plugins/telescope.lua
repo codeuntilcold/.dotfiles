@@ -66,7 +66,7 @@ return {
 						return true
 					end
 				})
-			end)
+			end, { desc = '[G]o get [L]ast commit' })
 		end
 	},
 

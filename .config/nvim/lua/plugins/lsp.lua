@@ -101,7 +101,6 @@ return { { -- LSP Configuration & Plugins
 			},
 			rust_analyzer = {},
 			tsserver = {},
-
 			lua_ls = {
 				Lua = {
 					workspace = { checkThirdParty = false },

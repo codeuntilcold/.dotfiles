@@ -44,10 +44,12 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
 export FZF_DEFAULT_OPTS="--layout=reverse"
-export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/Dev/personal/dotfiles/.scripts:/usr/local/go/bin"
+export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/.local/scripts:/usr/local/go/bin"
 
-if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
-  exec tmux new-session -A -s main
+# Automatically create a new session
+tmux has-session -t main 2> /dev/null
+if [ $? != 0 ]; then
+  tmux new-session -d -s main
 fi
 
 (cat ~/.cache/wal/sequences &)

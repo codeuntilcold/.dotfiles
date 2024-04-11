@@ -3,7 +3,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	callback = function()
 		vim.lsp.start({
 			name = 'sui',
-			cmd = { '/Users/vpn/.cargo/bin/sui-move-analyzer' },
+			cmd = { '/Users/vpn/.cargo/bin/move-analyzer' },
 			root_dir = vim.fs.dirname(vim.fs.find({ 'Move.toml' }, { upward = true })[1]),
 		})
 	end

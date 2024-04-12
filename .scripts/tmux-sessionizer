@@ -2,8 +2,10 @@
 
 if [[ $# -eq 1 ]]; then
     selected=$1
-else
+elif [ $USER = qd ]; then
     selected=$(find ~/Dev/work ~/Dev/personal -mindepth 1 -maxdepth 1 -type d | fzf)
+elif [ $USER = vpn ]; then
+    selected=$(find ~/Desktop/DungNgo -mindepth 1 -maxdepth 1 -type d | fzf)
 fi
 
 if [[ -z $selected ]]; then

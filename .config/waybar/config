@@ -88,8 +88,8 @@
 
     "custom/keyboard-layout": {
         "exec": "ibus engine ",
-        "on-click": "/home/qd/Dev/personal/dotfiles/.scripts/ibus-toggle.sh",
-        "interval": 30,
+        "on-click": "/home/qd/Dev/personal/dotfiles/.scripts/ibus-toggle",
+        "interval": 5,
         "format": "  {}", // Icon: keyboard
         // "signal": 1, // SIGHUP
         "tooltip": false
@@ -107,7 +107,7 @@
     "network": {
         "interval": 5,
         "format-wifi": "  {signalStrength}%", // Icon: wifi
-        "format-ethernet": "  {ifname}: {ipaddr}/{cidr}", // Icon: ethernet
+        "format-ethernet": "  {ifname}", // Icon: ethernet
         "format-disconnected": "⚠  Disconnected",
         "tooltip-format": "{essid}: {ifname}: {ipaddr}"
     },
@@ -165,8 +165,7 @@
             "", // Icon: temperature-half
             "", // Icon: temperature-three-quarters
             ""  // Icon: temperature-full
-        ],
-        "tooltip": true
+        ]
     },
 
     "tray": {

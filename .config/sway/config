@@ -5,11 +5,14 @@ set $down j
 set $up k
 set $right l
 
+set $dot_local /home/qd/.local
+
 # Executable
 set $term alacritty
 set $menu wofi --show run
 set $flatpak_menu wofi --show drun
-set $ibus_toggle /home/qd/Dev/personal/.scripts/ibus-toggle.sh
+set $ibus_toggle /home/qd/.local/scripts/ibus-toggle
+set $screenshot /home/qd/.local/scripts/wl-screenshot
 
 include /etc/sway/config-vars.d/*
 
@@ -43,9 +46,10 @@ exec ibus-daemon --daemonize --replace
 
     bindsym $mod+Shift+q kill
 
-    # TODO: Integrate Flatpaks
     bindsym $mod+d exec $menu
     bindsym $mod+p exec $flatpak_menu
+    bindsym $mod+Shift+space exec $ibus_toggle
+    bindsym $mod+Shift+p exec $screenshot
 
     floating_modifier $mod normal
 

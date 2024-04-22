@@ -22,6 +22,8 @@ alias zl='zellij'
 alias dbui='nvim -c "DBUI"'
 alias vim='nvim'
 
+alias batter=' upower -i $(upower -e | head -n1)'
+
 # fp auto-completion
 () {
   local FLATPAK_APPS=$(flatpak list --app | cut -f1 | awk '{print tolower($1)}')

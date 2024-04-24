@@ -10,6 +10,14 @@ vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 vim.keymap.set('n', '<leader>-', '<CMD>Explore<CR>')
 
+-- No need for vim surround
+vim.keymap.set('v', "<leader>'", "<ESC>gv<ESC>a'<ESC>gvo<ESC>i'<ESC>gv", { desc = 'Surround with [\']' })
+vim.keymap.set('v', "<leader>r'", "<ESC>gv<ESC>lr'gvo<ESC>hr'", { desc = '[R]eplace surround with [\']' })
+vim.keymap.set('v', '<leader>"', '<ESC>gv<ESC>a"<ESC>gvo<ESC>i"<ESC>gv', { desc = 'Surround with ["]' })
+vim.keymap.set('v', '<leader>r"', '<ESC>gv<ESC>lr"gvo<ESC>hr"', { desc = '[R]eplace surround with ["]' })
+vim.keymap.set('v', '<leader>`', '<ESC>gv<ESC>a`<ESC>gvo<ESC>i`<ESC>gv', { desc = 'Surround with [`]' })
+vim.keymap.set('v', '<leader>r`', '<ESC>gv<ESC>lr`gvo<ESC>hr`', { desc = '[R]eplace surround with [`]' })
+
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience
@@ -28,7 +36,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Diagnostic
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('n', '<C-c>', '<cmd>nohlsearch<CR>')
 
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })

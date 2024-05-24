@@ -15,7 +15,6 @@ return {
 	-- Theme inspired by Atom
 	'navarasu/onedark.nvim',
 
-	-- Catppuccin
 	{
 		"catppuccin/nvim",
 		name = "catppuccin",
@@ -24,4 +23,29 @@ return {
 			vim.cmd.colorscheme 'catppuccin'
 		end
 	},
+
+	-- {
+	-- 	"AlexvZyl/nordic.nvim",
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		vim.cmd.colorscheme 'nordic'
+	-- 	end
+	-- },
+
+	-- {
+	-- 	"savq/melange-nvim",
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		vim.cmd.colorscheme 'melange'
+	-- 	end
+	-- },
+
+	-- {
+	-- 	"rebelot/kanagawa.nvim",
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		vim.cmd.colorscheme 'kanagawa'
+	-- 	end
+	-- },
+
 }

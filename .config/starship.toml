@@ -55,7 +55,7 @@ symbol = " "
 
 [kubernetes]
 format = 'on [k8s $context]($style) | '
-disabled = false
+disabled = true
 detect_folders = ['k8s']
 style = "dimmed green"
 

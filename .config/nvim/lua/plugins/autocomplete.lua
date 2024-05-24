@@ -6,6 +6,9 @@ return { {
 		'hrsh7th/cmp-nvim-lsp',
 		{
 			'L3MON4D3/LuaSnip',
+			dependencies = {
+				"rafamadriz/friendly-snippets",
+			},
 			opts = {},
 			config = function(_, opts)
 				require('luasnip').config.set_config(opts)
@@ -13,6 +16,7 @@ return { {
 			end,
 		},
 		'saadparwaiz1/cmp_luasnip',
+		'SergioRibera/cmp-dotenv',
 	},
 	opts = function()
 		local cmp = require 'cmp'
@@ -53,6 +57,7 @@ return { {
 			sources = {
 				{ name = 'nvim_lsp' },
 				{ name = 'luasnip' },
+				{ name = 'dotenv' },
 			},
 		}
 

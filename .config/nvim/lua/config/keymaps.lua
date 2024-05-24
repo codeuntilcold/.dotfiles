@@ -8,7 +8,12 @@ vim.keymap.set('v', '<leader>y', '\"+y', { desc = '[Y]ank to system' })
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
-vim.keymap.set('n', '<leader>-', '<CMD>Explore<CR>')
+-- vim.keymap.set('n', '<leader>-', '<CMD>Explore<CR>')
+vim.keymap.set('n', '<leader>-', '<CMD>Oil<CR>')
+
+
+-- Since Telescope is too smart
+vim.keymap.set('n', '<leader>ee', '<CMD>e .env<CR>', { desc = '[E]dit [E]nv' })
 
 -- No need for vim surround
 vim.keymap.set('v', "<leader>'", "<ESC>gv<ESC>a'<ESC>gvo<ESC>i'<ESC>gv", { desc = 'Surround with [\']' })

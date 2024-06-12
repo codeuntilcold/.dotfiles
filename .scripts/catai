@@ -1,0 +1,61 @@
+#!/bin/bash
+
+process_files() {
+  local selected_files="$1"
+  local output=""
+
+  while IFS= read -r file; do
+    output+="File: $file"$'\n'
+    output+="\`\`\`"$'\n'
+    output+=$(cat "$file")$'\n'
+    output+="\`\`\`"$'\n\n'
+  done <<< "$selected_files"
+
+  echo "$output"
+}
+
+if [ $# -eq 0 ]; then
+  echo "Please provide an option: file extension or \`fzf\`. You can also add --copy."
+  exit 1
+fi
+
+copy_flag=true
+option=""
+
+for arg in "$@"; do
+  case "$arg" in
+    "--no-copy")
+      copy_flag=false
+      ;;
+    *)
+      option="$arg"
+      ;;
+  esac
+done
+
+case "$option" in
+  "fzf")
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+      files=$(git ls-files --exclude-standard --others --cached)
+    else
+      files=$(find . -type f)
+    fi
+
+    selected_files=$(
+      echo "$files" \
+      | fzf -m --ansi --filepath-word --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:500 {}'
+    )
+    ;;
+
+  *)
+    selected_files=$(find . -type f -name "*.$option" -not -path "./node_modules/*" -not -path "./build/*")
+    ;;
+esac
+
+output=$(process_files "$selected_files")
+
+if [ "$copy_flag" = true ]; then
+  echo "$output" | pbcopy
+else
+  echo "$output"
+fi

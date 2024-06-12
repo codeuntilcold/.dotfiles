@@ -1,0 +1,73 @@
+#!/bin/bash
+
+beautify=true
+
+for arg in "$@"; do
+  case "$arg" in
+    "-b"|"--beautify")
+      beautify=false
+      ;;
+    *)
+      ;;
+  esac
+done
+
+BASE_URL="https://admin.skydeck.ai/api/v1"
+
+# https://admin.skydeck.ai/api/v1/integrations/apps/user-rememberizer-integrations/21/activate/
+
+REFERER="https://eastagile.skydeck.ai/"
+
+create_conversation() {
+  local message="$1"
+  local model_id="$2"
+
+  curl -s -X POST "$BASE_URL/conversations/chat_v2/" \
+    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
+    -d '{ "message": "'"$message"'", "model_id": '"$model_id"', "regenerate_message_id": -1 }'
+}
+
+
+get_response_stream() {
+  local message_id="$1"
+
+  if [[ "$beautify" = true ]]; then
+    curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
+    -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
+    | bat --style=grid --paging=never --theme=Dracula --language md
+  else
+    curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
+      -H "Cookie: eastagile_sessionid=$COOKIES" \
+      -H "Referer: $REFERER"
+    echo ""
+  fi
+
+}
+
+continue_conversation() {
+  local message="$1"
+  local model_id="$2"
+  local conversation_id="$3"
+
+  curl -s -X POST "$BASE_URL/conversations/chat_v2/" \
+    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
+    -d '{ "message": "'"$message"'", "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
+}
+
+printf "\e[1;36m= Prompt = \e[0m"
+read initial_message
+
+initial_response=$(create_conversation "$initial_message" 4094)
+conversation_id=$(echo "$initial_response" | jq -r '.data.conversation_id')
+assistant_message_id=$(echo "$initial_response" | jq -r '.data.assistant_message_id')
+
+get_response_stream "$assistant_message_id"
+
+while true; do
+  printf "\e[1;36m= Prompt = \e[0m"
+  read user_message
+
+  continue_response=$(continue_conversation "$user_message" 4094 "$conversation_id")
+  assistant_message_id=$(echo "$continue_response" | jq -r '.data.assistant_message_id')
+  get_response_stream "$assistant_message_id"
+done

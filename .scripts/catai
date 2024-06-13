@@ -15,7 +15,7 @@ process_files() {
 }
 
 if [ $# -eq 0 ]; then
-  echo "Please provide an option: file extension or \`fzf\`. You can also add --copy."
+  echo "Please provide an option: file extension or manual. You can also add --no-copy."
   exit 1
 fi
 
@@ -34,7 +34,7 @@ for arg in "$@"; do
 done
 
 case "$option" in
-  "fzf")
+  "manual")
     if git rev-parse --git-dir > /dev/null 2>&1; then
       files=$(git ls-files --exclude-standard --others --cached)
     else

@@ -40,9 +40,7 @@ get_response_stream() {
 get_conversation_id() {
   curl -s "$BASE_URL/conversations/" \
     -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
-  | jq -c '.results[] | { id, name }' \
-  | fzf \
-  | jq '.id'
+  | jq -c '.results[] | { id, name }' | fzf | jq '.id'
 }
 
 delete_conversation() {
@@ -51,8 +49,11 @@ delete_conversation() {
 }
 
 patch_conversation() {
-  local name="$@"
-  curl -s -X PATCH "$BASE_URL/conversations/$(get_conversation_id)" \
+  local conversation_id=$(get_conversation_id)
+  local name
+  echo -n "Enter new name: "
+  read name
+  curl -s -X PATCH "$BASE_URL/conversations/$conversation_id" \
     -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
     -d '{ "name": "'"$name"'" }'
 }
@@ -64,17 +65,16 @@ start_chat_session() {
   clr='\e[0m'
 
   model_id=4094
-  conversation_id=""
-  [[ "$use_editor" = true ]] && tempfile=$(mktemp)
+  conversation_id="$1"
+  tempfile=$(mktemp)
 
   while true; do
     printf "$fg1:Ctrl+D sends:$clr "
 
-    if [[ "$use_editor" = true ]]; then
+    message=$(cat)
+    if [[ "$message" = "" ]]; then
       nvim "$tempfile"
       message=$(cat "$tempfile")
-    else
-      message=$(cat)
     fi
 
     message=$(echo "$message" | awk '{gsub(/"/, "\\\""); printf "%s\\n", $0}')
@@ -84,24 +84,20 @@ start_chat_session() {
     assistant_message_id=$(echo "$response" | jq -r '.data.assistant_message_id')
 
     get_response_stream "$assistant_message_id"
-
-    [[ "$use_editor" = true ]] && read justwaitingforusertogo
   done
 }
 
+[[ "$#" -lt 1 ]] && echo "Usage: sdai [chat|delete|patch|continue] [OPTIONS]" && exit 0
+
 beautify=true
-use_editor=false
 
 action="$1"
 shift
 
 for arg in "$@"; do
   case "$arg" in
-    "--no-color")
+    "-p","--plain")
       beautify=false
-      ;;
-    "--editor")
-      use_editor=true
       ;;
     *)
       ;;
@@ -117,5 +113,11 @@ case "$action" in
     ;;
   "chat")
     start_chat_session
+    ;;
+  "continue")
+    start_chat_session "$(get_conversation_id)"
+    ;;
+  *)
+    echo "Invalid subcommand. Must be one of: chat, delete, patch, continue" && exit 1
     ;;
 esac

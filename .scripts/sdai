@@ -4,6 +4,17 @@ LOG_FILE="/tmp/sdai-session-$(date +%s).log"
 BASE_URL="https://admin.skydeck.ai/api/v1"
 REFERER="https://eastagile.skydeck.ai/"
 
+bg='\e[1;32m'
+fg1='\e[1;37m'
+fg2='\e[1;33m'
+clr='\e[0m'
+
+streaming="false"
+conversation_id=""
+message_id=""
+# model_id=4094
+model_id=3476
+
 post_user_message() {
   local message="$1"
   local model_id="$2"
@@ -24,7 +35,8 @@ post_user_message() {
 }
 
 get_response_stream() {
-  local message_id="$1"
+  message_id="$1"
+  streaming="true"
 
   if [[ "$beautify" = true ]]; then
     curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
@@ -34,6 +46,19 @@ get_response_stream() {
     curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
       -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER"
     echo ""
+  fi
+
+  streaming="false"
+}
+
+stop_response_stream() {
+  if [[ "$streaming" == "true" ]]; then
+    curl -s -o /dev/null -X POST "$BASE_URL/conversations/messages/$message_id/stop-streaming/" \
+      -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
+      -d "{}"
+    echo "Interrupted"
+  else
+    exit
   fi
 }
 
@@ -59,20 +84,15 @@ patch_conversation() {
 }
 
 start_chat_session() {
-  bg='\e[1;32m'
-  fg1='\e[1;37m'
-  fg2='\e[1;33m'
-  clr='\e[0m'
-
-  model_id=4094
   conversation_id="$1"
-  tempfile=$(mktemp)
+  tempfile=""
 
   while true; do
     printf "$fg1:Ctrl+D sends:$clr "
 
     message=$(cat)
     if [[ "$message" = "" ]]; then
+      [[ -z "$tempfile" ]] && tempfile=$(mktemp)
       nvim "$tempfile"
       message=$(cat "$tempfile")
     fi
@@ -83,7 +103,11 @@ start_chat_session() {
     conversation_id=$(echo "$response" | jq -r '.data.conversation_id')
     assistant_message_id=$(echo "$response" | jq -r '.data.assistant_message_id')
 
+    trap stop_response_stream SIGINT
+
     get_response_stream "$assistant_message_id"
+
+    trap - SIGINT
   done
 }
 

@@ -12,8 +12,22 @@ clr='\e[0m'
 streaming="false"
 conversation_id=""
 message_id=""
-# model_id=4094
-model_id=3476
+# model_id=4094 # gpt-4o
+# model_id=4187 # claude-opus
+# model_id=4189 # clause-haiku
+model_id=4190 # claude-3.5-sonnet
+
+spinner() {
+    local delay=0.1
+    local spinstr='|/-\'
+    while true; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+}
 
 post_user_message() {
   local message="$1"
@@ -69,8 +83,9 @@ get_conversation_id() {
 }
 
 delete_conversation() {
-  curl -s -X DELETE "$BASE_URL/conversations/$(get_conversation_id)" \
-    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" | jq '.message'
+  local conversation_id=$(get_conversation_id)
+  curl -s -o /dev/null -X DELETE "$BASE_URL/conversations/$conversation_id" \
+    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" &
 }
 
 patch_conversation() {
@@ -78,9 +93,9 @@ patch_conversation() {
   local name
   echo -n "Enter new name: "
   read name
-  curl -s -X PATCH "$BASE_URL/conversations/$conversation_id" \
+  curl -s -o /dev/null -X PATCH "$BASE_URL/conversations/$conversation_id" \
     -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
-    -d '{ "name": "'"$name"'" }'
+    -d '{ "name": "'"$name"'" }' &
 }
 
 start_chat_session() {
@@ -88,7 +103,7 @@ start_chat_session() {
   tempfile=""
 
   while true; do
-    printf "$fg1:Ctrl+D sends:$clr "
+    printf "$bg:Ctrl+D sends:$clr "
 
     message=$(cat)
     if [[ "$message" = "" ]]; then

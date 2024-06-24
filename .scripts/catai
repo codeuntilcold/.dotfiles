@@ -15,26 +15,28 @@ process_files() {
 }
 
 if [ $# -eq 0 ]; then
-  echo "Please provide an option: file extension or manual. You can also add --no-copy."
-  exit 1
+  echo "Please provide an option: file extension or [m]anual. You can also add --no-copy."
+  exit 0
 fi
 
-copy_flag=true
-option=""
+option="$1"
+shift
+
+stdout=false
 
 for arg in "$@"; do
   case "$arg" in
-    "--no-copy")
-      copy_flag=false
+    "-")
+      stdout=true
       ;;
     *)
-      option="$arg"
+      echo "Usage: $0 [query | manual] [-]" && exit 1
       ;;
   esac
 done
 
 case "$option" in
-  "manual")
+  "m"|"manual")
     if git rev-parse --git-dir > /dev/null 2>&1; then
       files=$(git ls-files --exclude-standard --others --cached)
     else
@@ -43,7 +45,7 @@ case "$option" in
 
     selected_files=$(
       echo "$files" \
-      | fzf -m --ansi --filepath-word --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:500 {}'
+      | fzf -m --bind ctrl-t:toggle-all --ansi --filepath-word --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:500 {}'
     )
     ;;
 
@@ -54,7 +56,7 @@ esac
 
 output=$(process_files "$selected_files")
 
-if [ "$copy_flag" = true ]; then
+if [ "$stdout" = false ]; then
   echo "$output" | pbcopy
 else
   echo "$output"

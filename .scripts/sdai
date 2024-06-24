@@ -114,9 +114,14 @@ start_chat_session() {
 
     message=$(echo "$message" | awk '{gsub(/"/, "\\\""); printf "%s\\n", $0}')
 
+    spinner &
+    spinner_id=$!
+
     response=$(post_user_message "$message" "$model_id" "$conversation_id")
     conversation_id=$(echo "$response" | jq -r '.data.conversation_id')
     assistant_message_id=$(echo "$response" | jq -r '.data.assistant_message_id')
+
+    kill $spinner_id && printf '\b\b\b\b\b\b    \b\b\b\b'
 
     trap stop_response_stream SIGINT
 
@@ -128,7 +133,7 @@ start_chat_session() {
 
 [[ "$#" -lt 1 ]] && echo "Usage: sdai [chat|delete|patch|continue] [OPTIONS]" && exit 0
 
-beautify=true
+beautify=false
 
 action="$1"
 shift

@@ -3,6 +3,8 @@
 LOG_FILE="/tmp/sdai-session-$(date +%s).log"
 BASE_URL="https://admin.skydeck.ai/api/v1"
 REFERER="https://eastagile.skydeck.ai/"
+CACHE_FILE="/tmp/sdai-cache.txt"
+CACHE_TIMEOUT=300  # 5 minutes
 
 bg='\e[1;32m'
 fg1='\e[1;37m'
@@ -22,11 +24,15 @@ spinner() {
     local spinstr='|/-\'
     while true; do
         local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
+        printf " %c " "$spinstr"
         local spinstr=$temp${spinstr%"$temp"}
         sleep $delay
-        printf "\b\b\b\b\b\b"
+        printf "\b\b\b"
     done
+}
+
+invalidate_cache() {
+  [[ -f "$CACHE_FILE" ]] && rm $CACHE_FILE
 }
 
 post_user_message() {
@@ -36,9 +42,9 @@ post_user_message() {
   local data
 
   if [[ -z "$conversation_id" ]]; then
-    data='{ "message": "'"$message"'", "model_id": '"$model_id"', "regenerate_message_id": -1 }'
+    data='{ "message": '"$message"', "model_id": '"$model_id"', "regenerate_message_id": -1 }'
   else
-    data='{ "message": "'"$message"'", "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
+    data='{ "message": '"$message"', "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
   fi
 
   # echo "$data" >> "$LOG_FILE"
@@ -57,9 +63,11 @@ get_response_stream() {
       -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
     | bat --style=grid --paging=never --theme=Dracula --language md
   else
+    echo '———'
     curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
       -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER"
     echo ""
+    echo '———'
   fi
 
   streaming="false"
@@ -77,15 +85,22 @@ stop_response_stream() {
 }
 
 get_conversation_id() {
-  curl -s "$BASE_URL/conversations/" \
-    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
-  | jq -c '.results[] | { id, name }' | fzf | jq '.id'
+  local response=$(
+    if [ -f "$CACHE_FILE" ] && [ $(($(date +%s) - $(stat -f %m "$CACHE_FILE"))) -lt $CACHE_TIMEOUT ]; then
+      cat "$CACHE_FILE"
+    else
+      curl -s "$BASE_URL/conversations/" \
+        -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" | tee "$CACHE_FILE"
+    fi
+  )
+  echo $response | jq -c '.results[] | { id, name }' | fzf | jq '.id'
 }
 
 delete_conversation() {
   local conversation_id=$(get_conversation_id)
   curl -s -o /dev/null -X DELETE "$BASE_URL/conversations/$conversation_id" \
     -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" &
+  invalidate_cache
 }
 
 patch_conversation() {
@@ -103,16 +118,18 @@ start_chat_session() {
   tempfile=""
 
   while true; do
-    printf "$bg:Ctrl+D sends:$clr "
+    printf "$bg==>$clr "
 
     message=$(cat)
     if [[ "$message" = "" ]]; then
       [[ -z "$tempfile" ]] && tempfile=$(mktemp)
       nvim "$tempfile"
       message=$(cat "$tempfile")
+      echo ""
     fi
 
-    message=$(echo "$message" | awk '{gsub(/"/, "\\\""); printf "%s\\n", $0}')
+    # message=$(echo "$message" | awk '{gsub(/"/, "\\\""); printf "%s\\n", $0}')
+    message=$(echo "$message" | jq -Rs .)
 
     spinner &
     spinner_id=$!
@@ -121,7 +138,9 @@ start_chat_session() {
     conversation_id=$(echo "$response" | jq -r '.data.conversation_id')
     assistant_message_id=$(echo "$response" | jq -r '.data.assistant_message_id')
 
-    kill $spinner_id && printf '\b\b\b\b\b\b    \b\b\b\b'
+    kill $spinner_id
+    wait $! 2>/dev/null
+    printf '\b\b\b   \b\b\b'
 
     trap stop_response_stream SIGINT
 

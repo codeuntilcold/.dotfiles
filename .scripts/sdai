@@ -20,15 +20,17 @@ message_id=""
 model_id=4190 # claude-3.5-sonnet
 
 spinner() {
-    local delay=0.1
-    local spinstr='|/-\'
-    while true; do
-        local temp=${spinstr#?}
-        printf " %c " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b"
-    done
+  local delay=0.1
+  local spinstr='|/-\'
+  # local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+
+  while true; do
+    local temp=${spinstr#?}
+    printf " %c " "$spinstr"
+    local spinstr=$temp${spinstr%"$temp"}
+    sleep $delay
+    printf "\b\b\b"
+  done
 }
 
 invalidate_cache() {
@@ -128,7 +130,6 @@ start_chat_session() {
       echo ""
     fi
 
-    # message=$(echo "$message" | awk '{gsub(/"/, "\\\""); printf "%s\\n", $0}')
     message=$(echo "$message" | jq -Rs .)
 
     spinner &
@@ -150,6 +151,11 @@ start_chat_session() {
   done
 }
 
+start_ws_session() {
+  wscat -c wss://admin.skydeck.ai/ws/connect/ \
+  -H "Cookie: eastagile_sessionid=$COOKIES" -H 'Origin: https://eastagile.skydeck.ai'
+}
+
 [[ "$#" -lt 1 ]] && echo "Usage: sdai [chat|delete|patch|continue] [OPTIONS]" && exit 0
 
 beautify=false
@@ -168,16 +174,16 @@ for arg in "$@"; do
 done
 
 case "$action" in
-  "delete")
+  "d"|"del"|"delete")
     delete_conversation
     ;;
-  "patch")
+  "p"|"patch")
     patch_conversation
     ;;
-  "chat")
+  "c"|"ch"|"chat")
     start_chat_session
     ;;
-  "continue")
+  "cont"|"continue")
     start_chat_session "$(get_conversation_id)"
     ;;
   *)

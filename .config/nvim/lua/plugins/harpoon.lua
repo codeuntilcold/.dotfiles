@@ -15,6 +15,7 @@ return {
 			vim.keymap.set("n", "<leader>hj", function() harpoon:list():select(2) end, { desc = '[H]arpoon 2' })
 			vim.keymap.set("n", "<leader>hk", function() harpoon:list():select(3) end, { desc = '[H]arpoon 3' })
 			vim.keymap.set("n", "<leader>hl", function() harpoon:list():select(4) end, { desc = '[H]arpoon 4' })
+			vim.keymap.set("n", "<leader>h;", function() harpoon:list():select(5) end, { desc = '[H]arpoon 5' })
 		end
 	}
 }

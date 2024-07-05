@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+
+import sys
+import re
+
+def fix_diff(diff_content: str) -> str:
+    files = diff_content.split('diff --git')[1:]
+    fixed_diff = []
+
+    for file in files:
+        lines = file.split('\n')
+        lines[0] = 'diff --git' + lines[0]
+
+        fixed_file = []
+        hunks: list[list[str]] = []
+        current_hunk: list[str] = []
+        line_shift = 0
+
+        for line in lines:
+            if line == '':
+                continue
+            if line.startswith('@@'):
+                if current_hunk:
+                    hunks.append(current_hunk)
+                    current_hunk = []
+                current_hunk.append(line)
+            elif current_hunk:
+                current_hunk.append(line)
+            else:
+                fixed_file.append(line)
+
+        if current_hunk:
+            hunks.append(current_hunk)
+
+        for hunk in hunks:
+            hunk_header, *hunk_rest = hunk
+            match = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@(.*)', hunk_header)
+
+            if match:
+                old_start, old_length, new_start, new_length = map(int, match.groups()[:-1])
+                rest = match.groups()[-1]
+
+                added, removed, unchanged = 0, 0, 0
+                for line in hunk_rest:
+                    added += int(line.startswith('+'))
+                    removed += int(line.startswith('-'))
+                    unchanged += int(not line.startswith(('+', '-')))
+
+                old_length = removed + unchanged
+                new_length = added + unchanged
+                new_start = old_start + line_shift if old_start > 0 else 1
+                new_hunk_header = f'@@ -{old_start},{old_length} +{new_start},{new_length} @@'
+                hunk[0] = new_hunk_header + rest
+
+                line_shift += added - removed
+
+            fixed_file.extend(hunk)
+
+        fixed_diff.append('\n'.join(fixed_file))
+
+    return '\n'.join(fixed_diff) + '\n'
+
+input = '\n'.join(sys.stdin)
+
+print(fix_diff(input))

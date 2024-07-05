@@ -67,7 +67,7 @@ get_response_stream() {
   else
     echo '———'
     curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
-      -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" | tee "/tmp/sdai-conv-$conversation_id.txt"
+      -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" | tee "/tmp/sdai-conv-$conversation_id.md"
     echo ""
     echo '———'
   fi

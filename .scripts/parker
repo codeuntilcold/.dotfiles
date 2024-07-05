@@ -11,6 +11,4 @@
   cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | pbcopy
 )
 
-[ -z "$(pbpaste)" ] && exit 0
-
-patch --strip=1 --verbose < <(pbpaste)
+patch --strip=1 --verbose < <(pbpaste | diff-fix)

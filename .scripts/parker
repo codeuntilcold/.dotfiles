@@ -1,0 +1,16 @@
+#!/bin/bash
+
+(
+  cd /tmp
+
+  file=$(
+    ls sdai-conv* \
+    | fzf --height ~50% --preview 'bat --theme=Dracula --line-range=:500 {}'
+  )
+
+  cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | pbcopy
+)
+
+[ -z "$(pbpaste)" ] && exit 0
+
+patch --strip=1 --verbose < <(pbpaste)

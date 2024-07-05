@@ -7,7 +7,7 @@ process_files() {
   while IFS= read -r file; do
     output+="File: $file"$'\n'
     output+="\`\`\`"$'\n'
-    output+=$(cat "$file")$'\n'
+    output+=$(cat -n "$file")$'\n'
     output+="\`\`\`"$'\n\n'
   done <<< "$selected_files"
 

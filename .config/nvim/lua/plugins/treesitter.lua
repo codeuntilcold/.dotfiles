@@ -11,7 +11,7 @@ return {
 			local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
 			parser_config.move = {
 				install_info = {
-					url = "~/Dev/personal/tree-sitter-move", -- local path or git repo
+					url = (vim.env.DEV_HOME or "~/Desktop/DungNgo") .. "/tree-sitter-move", -- local path or git repo
 					files = { "src/parser.c" }, -- note that some parsers also require src/scanner.c or src/scanner.cc
 				},
 				filetype = "move",

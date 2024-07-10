@@ -15,25 +15,11 @@ process_files() {
 }
 
 if [ $# -eq 0 ]; then
-  echo "Please provide an option: file extension or [m]anual. You can also add --no-copy."
+  echo "Usage: $0 [query | manual]"
   exit 0
 fi
 
 option="$1"
-shift
-
-stdout=false
-
-for arg in "$@"; do
-  case "$arg" in
-    "-")
-      stdout=true
-      ;;
-    *)
-      echo "Usage: $0 [query | manual] [-]" && exit 1
-      ;;
-  esac
-done
 
 case "$option" in
   "m"|"manual")
@@ -45,12 +31,18 @@ case "$option" in
 
     selected_files=$(
       echo "$files" \
-      | fzf -m --bind ctrl-t:toggle-all --ansi --filepath-word --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:500 {}'
+      | fzf -m --ansi --filepath-word \
+        --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:100 {}' \
+        --bind ctrl-t:toggle-all
     )
     ;;
 
   *)
-    selected_files=$(find . -type f -name "*.$option" -not -path "./node_modules/*" -not -path "./build/*")
+    selected_files=$(
+      find . -type f -name "*.$option" \
+        -not -path "./node_modules/*" \
+        -not -path "./build/*"
+    )
     ;;
 esac
 

@@ -2,9 +2,20 @@
 
 LOG_FILE="/tmp/sdai-session-$(date +%s).log"
 BASE_URL="https://admin.skydeck.ai/api/v1"
-REFERER="https://eastagile.skydeck.ai/"
 CACHE_FILE="/tmp/sdai-cache.txt"
 CACHE_TIMEOUT=300  # 5 minutes
+
+COOKIE_FILE="$HOME/.sdai/cookies"
+HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
+
+refresh() {
+  # exp=$(echo -n $JWT | cut -d. -f2 | base64 -d 2>/dev/null | jq -r .exp)
+  # [ "$exp" ] && [ $(date +%s) -gt "$exp" ] && echo "Expired" || echo "Not expired"
+
+  curl -X POST "$BASE_URL/authentication/token/refresh/" -H "$HEADER_REFERER" --cookie "$COOKIE_FILE"
+}
+
+# refresh
 
 bg='\e[1;32m'
 fg1='\e[1;37m'
@@ -37,6 +48,13 @@ invalidate_cache() {
   [[ -f "$CACHE_FILE" ]] && rm $CACHE_FILE
 }
 
+call() {
+  local url=$1
+  shift
+
+  curl -s $url --cookie "$COOKIE_FILE" -H "Content-Type: application/json" -H "$HEADER_REFERER" "$@"
+}
+
 post_user_message() {
   local message="$1"
   local model_id="$2"
@@ -51,9 +69,7 @@ post_user_message() {
 
   # echo "$data" >> "$LOG_FILE"
 
-  curl -s -X POST "$BASE_URL/conversations/chat_v2/" \
-    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
-    -d "$data"
+  call "$BASE_URL/conversations/chat_v2/" -d "$data"
 }
 
 get_response_stream() {
@@ -61,13 +77,10 @@ get_response_stream() {
   streaming="true"
 
   if [[ "$beautify" = true ]]; then
-    curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
-      -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
-    | bat --style=grid --paging=never --theme=Dracula --language md
+    call "$BASE_URL/conversations/streaming/?message_id=$message_id" | bat --style=grid --paging=never --theme=Dracula --language md
   else
     echo '———'
-    curl -s --no-buffer -X GET "$BASE_URL/conversations/streaming/?message_id=$message_id" \
-      -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" | tee "/tmp/sdai-conv-$conversation_id.md"
+    call "$BASE_URL/conversations/streaming/?message_id=$message_id" --no-buffer | tee "/tmp/sdai-conv-$conversation_id.md" | tee "/tmp/sdai-conv-000000.md"
     echo ""
     echo '———'
   fi
@@ -77,9 +90,7 @@ get_response_stream() {
 
 stop_response_stream() {
   if [[ "$streaming" == "true" ]]; then
-    curl -s -o /dev/null -X POST "$BASE_URL/conversations/messages/$message_id/stop-streaming/" \
-      -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
-      -d "{}"
+    call "$BASE_URL/conversations/messages/$message_id/stop-streaming/" -o /dev/null -d "{}"
     echo "Interrupted"
   else
     exit
@@ -91,8 +102,7 @@ get_conversation_id() {
     if [ -f "$CACHE_FILE" ] && [ $(($(date +%s) - $(stat -f %m "$CACHE_FILE"))) -lt $CACHE_TIMEOUT ]; then
       cat "$CACHE_FILE"
     else
-      curl -s "$BASE_URL/conversations/" \
-        -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" | tee "$CACHE_FILE"
+      call "$BASE_URL/conversations/" | tee "$CACHE_FILE"
     fi
   )
   echo $response | jq -c '.results[] | { id, name }' | fzf | jq '.id'
@@ -100,8 +110,7 @@ get_conversation_id() {
 
 delete_conversation() {
   local conversation_id=$(get_conversation_id)
-  curl -s -o /dev/null -X DELETE "$BASE_URL/conversations/$conversation_id" \
-    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" &
+  call "$BASE_URL/conversations/$conversation_id" -o /dev/null -X DELETE &
   invalidate_cache
 }
 
@@ -110,9 +119,7 @@ patch_conversation() {
   local name
   echo -n "Enter new name: "
   read name
-  curl -s -o /dev/null -X PATCH "$BASE_URL/conversations/$conversation_id" \
-    -H "Content-Type: application/json" -H "Cookie: eastagile_sessionid=$COOKIES" -H "Referer: $REFERER" \
-    -d '{ "name": "'"$name"'" }' &
+  call "$BASE_URL/conversations/$conversation_id" -o /dev/null -X PATCH -d '{ "name": "'"$name"'" }' &
 }
 
 start_chat_session() {

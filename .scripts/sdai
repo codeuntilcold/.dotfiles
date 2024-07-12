@@ -8,15 +8,6 @@ CACHE_TIMEOUT=300  # 5 minutes
 COOKIE_FILE="$HOME/.sdai/cookies"
 HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
 
-refresh() {
-  # exp=$(echo -n $JWT | cut -d. -f2 | base64 -d 2>/dev/null | jq -r .exp)
-  # [ "$exp" ] && [ $(date +%s) -gt "$exp" ] && echo "Expired" || echo "Not expired"
-
-  curl -X POST "$BASE_URL/authentication/token/refresh/" -H "$HEADER_REFERER" --cookie "$COOKIE_FILE"
-}
-
-# refresh
-
 bg='\e[1;32m'
 fg1='\e[1;37m'
 fg2='\e[1;33m'
@@ -30,14 +21,26 @@ message_id=""
 # model_id=4189 # clause-haiku
 model_id=4190 # claude-3.5-sonnet
 
+refresh() {
+  exp=$(
+    grep "_access" $COOKIE_FILE | cut -f7 | cut -d. -f2 | base64 -d 2>/dev/null \
+      | grep -o '"exp":[0-9]*' | cut -d: -f2
+  )
+
+  [ $(date +%s) -gt "$exp" ] && \
+    curl -s -X POST "$BASE_URL/authentication/token/refresh/" -H "$HEADER_REFERER" \
+      --cookie "$COOKIE_FILE" --cookie-jar "$COOKIE_FILE" -o /dev/null
+}
+
+refresh &
+
 spinner() {
   local delay=0.1
-  local spinstr='|/-\'
-  # local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 
   while true; do
     local temp=${spinstr#?}
-    printf " %c " "$spinstr"
+    printf " %s " "${spinstr:0:1}"
     local spinstr=$temp${spinstr%"$temp"}
     sleep $delay
     printf "\b\b\b"
@@ -105,7 +108,7 @@ get_conversation_id() {
       call "$BASE_URL/conversations/" | tee "$CACHE_FILE"
     fi
   )
-  echo $response | jq -c '.results[] | { id, name }' | fzf | jq '.id'
+  echo $response | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
 }
 
 delete_conversation() {

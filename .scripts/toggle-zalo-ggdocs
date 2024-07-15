@@ -1,0 +1,15 @@
+#!/bin/bash
+
+BAMBOO_PATH="$HOME/.config/ibus-bamboo/ibus-bamboo.config.json"
+
+current_state=$(jq '.DefaultInputMode' $BAMBOO_PATH)
+
+if [[ $current_state = 4 ]]; then
+	echo $(jq '.DefaultInputMode = 1' $BAMBOO_PATH) > $BAMBOO_PATH
+else
+	echo $(jq '.DefaultInputMode = 4' $BAMBOO_PATH) > $BAMBOO_PATH
+fi
+
+echo "Current state: $(jq '.DefaultInputMode' $BAMBOO_PATH)"
+
+ibus engine Bamboo

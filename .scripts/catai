@@ -49,7 +49,8 @@ esac
 output=$(process_files "$selected_files")
 
 if [ "$stdout" = false ]; then
-  echo "$output" | pbcopy
+  [ "$(uname)" = "Darwin" ] && echo "$output" | pbcopy
+  [ "$(uname)" = "Linux" ] && echo "$output" | wl-copy
 else
   echo "$output"
 fi

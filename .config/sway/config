@@ -1,3 +1,5 @@
+exec ibus-daemon --daemonize --replace
+
 # Variables
 set $mod Mod4
 set $left h
@@ -11,7 +13,9 @@ set $term alacritty
 set $menu wofi --show run
 set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle
+set $ibus_zalo $dot_local/scripts/toggle-zalo-ggdocs
 set $screenshot $dot_local/scripts/wl-screenshot
+# set $clipboard_manager cliphist list | wofi | cliphist decode | wl-copy
 
 include /etc/sway/config-vars.d/*
 
@@ -38,8 +42,6 @@ input "type:touchpad" {
     scroll_factor 0.5
 }
 
-exec ibus-daemon --daemonize --replace
-
 # Key bindings
     bindsym $mod+t exec $term
 
@@ -48,8 +50,9 @@ exec ibus-daemon --daemonize --replace
     bindsym $mod+d exec $menu
     bindsym $mod+p exec $flatpak_menu
     bindsym $mod+Shift+space exec $ibus_toggle
+    bindsym $mod+Shift+z exec $ibus_zalo
     bindsym $mod+Shift+p exec $screenshot
-
+    bindsym $mod+Shift+v exec $clipboard_manager
     floating_modifier $mod normal
 
     bindsym $mod+Shift+c reload

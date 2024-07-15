@@ -2,6 +2,9 @@
 
 tag=$(curl -sS https://api.github.com/repos/MystenLabs/sui/releases/latest | jq -r '.tag_name')
 
-read -p "Continue download $tag? (Y/N): " confirm && [[ $confirm == [yY] ]] || exit 1
+[[ "$(uname)" = "Darwin" ]] && os=macos
+[[ "$(uname)" = "Linux" ]] && os=ubuntu
 
-curl -L "https://github.com/MystenLabs/sui/releases/download/$tag/sui-$tag-macos-x86_64.tgz" --output "sui-$tag-macos-x86_64.tgz"
+read -p "Continue download $tag for $os? (Y/N): " confirm && [[ $confirm == [yY] ]] || exit 1
+
+curl -L "https://github.com/MystenLabs/sui/releases/download/$tag/sui-$tag-$os-x86_64.tgz" --output "sui-$tag-$os-x86_64.tgz"

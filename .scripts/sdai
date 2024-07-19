@@ -17,6 +17,10 @@ assistant_message_id=""
 # model_id=4094 # gpt-4o
 model_id=4190 # claude-3.5-sonnet
 
+shopt -s expand_aliases
+# alias editor="nvim -c 'set filetype=markdown'"
+alias editor="code -w"
+
 spinner() {
   local rest=""
   local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
@@ -111,9 +115,15 @@ start_chat_session() {
     printf "$BG==>$CLR "
 
     message=$(cat)
+
+    if [[ "$message" = "parker" ]]; then
+      parker
+      continue
+    fi
+
     if [[ "$message" = "" ]]; then
-      [[ -z "$tempfile" ]] && tempfile=$(mktemp)
-      nvim "$tempfile"
+      [[ -z "$tempfile" ]] && tempfile=$(mktemp /tmp/sdai-query.XXXXXX)
+      editor "$tempfile"
       message=$(cat "$tempfile")
       echo ""
     fi
@@ -143,19 +153,21 @@ start_chat_session() {
 main() {
   [[ "$#" -lt 1 ]] && echo "Usage: sdai [chat|delete|patch|continue]" && exit 0
 
-  refresh
-
   case "$1" in
     "d"|"del"|"delete")
+      refresh
       delete_conversation
       ;;
     "p"|"patch")
+      refresh
       patch_conversation
       ;;
     "c"|"ch"|"chat")
+      refresh &
       start_chat_session
       ;;
     "cont"|"continue")
+      refresh
       start_chat_session "$(get_conversation_id)"
       ;;
     *)

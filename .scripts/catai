@@ -1,21 +1,16 @@
 #!/bin/bash
 
 process_files() {
-  local selected_files="$1"
-  local output=""
-
   while IFS= read -r file; do
-    output+="File: $file"$'\n'
-    output+="\`\`\`"$'\n'
-    output+=$(cat -n "$file")$'\n'
-    output+="\`\`\`"$'\n\n'
-  done <<< "$selected_files"
-
-  echo "$output"
+    echo "File: $file"
+    echo '```'
+    cat -n "$file"
+    echo '```'
+  done <<< "$1"
 }
 
 if [ $# -eq 0 ]; then
-  echo "Usage: $0 [query | manual]"
+  echo "Usage: catai [query | manual] [-]"
   exit 0
 fi
 
@@ -31,7 +26,7 @@ case "$option" in
 
     selected_files=$(
       echo "$files" \
-      | fzf -m --ansi --filepath-word \
+      | fzf --tmux -m --ansi --filepath-word \
         --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:100 {}' \
         --bind ctrl-t:toggle-all
     )
@@ -48,7 +43,7 @@ esac
 
 output=$(process_files "$selected_files")
 
-if [ "$stdout" = false ]; then
+if [ -z "$2" ]; then
   [ "$(uname)" = "Darwin" ] && echo "$output" | pbcopy
   [ "$(uname)" = "Linux" ] && echo "$output" | wl-copy
 else

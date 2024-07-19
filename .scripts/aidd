@@ -4,34 +4,42 @@
 
 case "$1" in
     "code")
-        PROMPTU="Given the below <framework> code
+PROMPTU="Given the below code, file structure, requirement and general rule:
 
 <code>
-…
+$(catai m -)
 </code>
 
-Help me <do stuff>.
+<file_structure>
+$(tree --gitfile .gitignore)
+</file_structure>
 
-<more context and explanation, specifying the constraints>
+<requirement>
+Help me <do stuff, add more explanation and constraint>.
+</requirement>
 
-For now and the rest of this session, make sure you output professional-grade,
-production-ready code that is clean, optimized, maintainable and follow
-best practices. Only print out the changed parts and where they are, never
-print out full file contents unless it's a new file. Never print out
-unchanged files."
+<general_rule>
+As a lead developer of the project, you will start with high level ideas on how you would implement this, considering all security and performance issues with it. For now and the rest of this session
+
+- Make sure you output professional-grade, production-ready code that is clean, optimized, maintainable and follow best practices.
+- Only output code AFTER I have reviewed the strategy. You may realize that you need some file to know more about the system implementation, so feel free to ask me for it.
+- Only print out the changed parts and where they are, never print out full file contents unless it's a new file. Never print out unchanged files.
+- Try to print the change in diff format. Follow the line numbers correctly so that the output can be used in the patch program to apply the changes.
+</general_rule>
+"
         ;;
 
     "test")
-        PROMPTU="Help me add test coverage to the <class, component or feature> below. Start
-with outlining the scenarios, make sure to cover different paths that the code
-handles, together with edge cases. Do not provide test code right away, only
-after I have confirmed that the scenarios look good. Follow the existing
-testing styles and conventions where applicable.
+PROMPTU="Help me add test coverage to the <class, component or feature> below.
+
+- Start with outlining the scenarios, make sure to cover different paths that the code handles, together with edge cases.
+- Do not provide test code right away, only after I have confirmed that the scenarios look good.
+- Follow the existing testing styles and conventions where applicable.
 
 <optionally provide feature descriptions and acceptance criteria>
 
-<concatenated code>
-        "
+$(catai m -)
+"
         ;;
 
     *)

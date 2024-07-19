@@ -1,14 +1,10 @@
 #!/bin/bash
 
-(
-  cd /tmp
+file=/tmp/sdai-conv-000000.md
 
-  file=$(
-    ls sdai-conv* \
-    | fzf --height ~50% --preview 'bat --theme=Dracula --line-range=:500 {}'
-  )
-
-  cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | pbcopy
+[[ "$1" = "m" ]] && file=$(
+  ls /tmp/sdai-conv* \
+  | fzf --height ~50% --preview 'bat --theme=Dracula --line-range=:500 {}'
 )
 
-patch --strip=1 --verbose < <(pbpaste | diff-fix)
+patch --strip=1 --verbose < <(cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | diff-fix)

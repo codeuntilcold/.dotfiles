@@ -21,7 +21,11 @@ alias ldk='lazydocker'
 alias tmux='tmux -2'
 alias zl='zellij'
 alias dbui='nvim -c "DBUI"'
+alias oil='nvim -c "Oil"'
 alias vim='nvim'
+
+alias suibuild='sui move build --doc --skip-fetch-latest-git-deps'
+alias suitest='sui move test --doc --skip-fetch-latest-git-deps'
 
 alias batter=' upower -i $(upower -e | head -n1)'
 

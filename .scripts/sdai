@@ -14,12 +14,15 @@ CLR='\e[0m'
 streaming="false"
 conversation_id=""
 assistant_message_id=""
+# model_id=4445 # mistral large
+# model_id=4430 # gpt-4o mini
 # model_id=4094 # gpt-4o
 model_id=4190 # claude-3.5-sonnet
 
 shopt -s expand_aliases
+alias editor="nvim"
 # alias editor="nvim -c 'set filetype=markdown'"
-alias editor="code -w"
+# alias editor="code -w"
 
 spinner() {
   local rest=""
@@ -109,22 +112,28 @@ stop_response_stream() {
 
 start_chat_session() {
   conversation_id="$1"
-  local tempfile=""
 
   while true; do
+    local queryfile="/tmp/sdai-query-$conversation_id.md"
+
     printf "$BG==>$CLR "
 
     message=$(cat)
 
-    if [[ "$message" = "parker" ]]; then
+    if [[ "$message" = "/parker" ]]; then
       parker
       continue
     fi
 
+    if [[ "$message" = "/view" ]]; then
+      cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
+      # nvim -R $CURRENT_RESPONSE_FILE
+      continue
+    fi
+
     if [[ "$message" = "" ]]; then
-      [[ -z "$tempfile" ]] && tempfile=$(mktemp /tmp/sdai-query.XXXXXX)
-      editor "$tempfile"
-      message=$(cat "$tempfile")
+      editor "$queryfile"
+      message=$(cat "$queryfile")
       echo ""
     fi
 

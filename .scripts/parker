@@ -1,10 +1,16 @@
 #!/bin/bash
 
+command -v diffix &> /dev/null || echo "diffix required"
+
 file=/tmp/sdai-conv-000000.md
 
+### If passed in an additional [m]anual option
 [[ "$1" = "m" ]] && file=$(
   ls /tmp/sdai-conv* \
   | fzf --height ~50% --preview 'bat --theme=Dracula --line-range=:500 {}'
 )
 
-patch --strip=1 --verbose < <(cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | diff-fix)
+content=$(cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d')
+
+### Else just patch the latest response
+patch --strip=1 --verbose < <(echo "$content" | diffix)

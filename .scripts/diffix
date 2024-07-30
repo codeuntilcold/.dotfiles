@@ -3,13 +3,13 @@
 import sys
 import re
 
-def fix_diff(diff_content: str) -> str:
-    files = diff_content.split('diff --git')[1:]
+def fix_diff(diff_content: str, files_delim: str) -> str:
+    files = diff_content.split(files_delim)[1:]  # ignore the first empty one
     fixed_diff = []
 
     for file in files:
         lines = file.split('\n')
-        lines[0] = 'diff --git' + lines[0]
+        lines[0] = files_delim + lines[0]
 
         fixed_file = []
         hunks: list[list[str]] = []
@@ -61,5 +61,7 @@ def fix_diff(diff_content: str) -> str:
     return '\n'.join(fixed_diff) + '\n'
 
 input = '\n'.join(sys.stdin)
+is_git_diff = input.startswith('diff --git')
+files_delim = 'diff --git' if is_git_diff else '--- '
 
-print(fix_diff(input))
+print(fix_diff(input, files_delim))

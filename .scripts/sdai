@@ -11,13 +11,18 @@ HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
 BG='\e[1;32m'
 CLR='\e[0m'
 
+# TODO: this does not work yet
+declare -a MODELS
+MODELS["gpt4o"]=4094
+MODELS["gpt4o-mini"]=4430
+MODELS["claude"]=4190
+
 streaming="false"
 conversation_id=""
 assistant_message_id=""
-# model_id=4445 # mistral large
-# model_id=4430 # gpt-4o mini
-# model_id=4094 # gpt-4o
-model_id=4190 # claude-3.5-sonnet
+
+model_name="claude"
+model_id=${MODELS[$model_name]}
 
 shopt -s expand_aliases
 alias editor="nvim"
@@ -110,6 +115,11 @@ stop_response_stream() {
   fi
 }
 
+dash() {
+  printf %"$(tput cols)"s | tr " " "—"
+  echo
+}
+
 start_chat_session() {
   conversation_id="$1"
 
@@ -125,9 +135,24 @@ start_chat_session() {
       continue
     fi
 
+    if [[ "$message" = "/chmodel" ]]; then
+      model_name=$(
+        for m in "${!MODELS[@]}"; do
+          echo $m
+        done | fzf
+      )
+      model_id=${MODELS["$model_name"]}
+      continue
+    fi
+
     if [[ "$message" = "/view" ]]; then
+      nvim -R $CURRENT_RESPONSE_FILE
+      continue
+    fi
+
+
+    if [[ "$message" = "/viewdiff" ]]; then
       cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
-      # nvim -R $CURRENT_RESPONSE_FILE
       continue
     fi
 
@@ -150,12 +175,15 @@ start_chat_session() {
     wait $! 2>/dev/null
     printf '\b\b\b   \b\b\b'
 
-    echo '———'
+    dash
     trap stop_response_stream SIGINT
+
+    printf "$BG($model_name)$CLR "
     get_response_stream
-    trap - SIGINT
     echo
-    echo '———'
+
+    trap - SIGINT
+    dash
   done
 }
 

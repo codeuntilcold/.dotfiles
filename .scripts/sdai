@@ -11,18 +11,15 @@ HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
 BG='\e[1;32m'
 CLR='\e[0m'
 
-# TODO: this does not work yet
-declare -a MODELS
-MODELS["gpt4o"]=4094
-MODELS["gpt4o-mini"]=4430
-MODELS["claude"]=4190
+MODELS_NAMES=("gpt4o" "gpt4o-mini" "claude")
+MODELS_IDS=(4094 4430 4190)
 
 streaming="false"
 conversation_id=""
 assistant_message_id=""
 
 model_name="claude"
-model_id=${MODELS[$model_name]}
+model_id=4094
 
 shopt -s expand_aliases
 alias editor="nvim"
@@ -40,6 +37,22 @@ spinner() {
     sleep 0.1
     printf "\b\b\b"
   done
+}
+
+pick_model() {
+  selected=$(printf '%s\n' "${MODELS_NAMES[@]}" | fzf --prompt="Select a model: ")
+  if [[ -n "$selected" ]]; then
+    for i in "${!MODELS_NAMES[@]}"; do
+      if [[ "${MODELS_NAMES[$i]}" = "${selected}" ]]; then
+        model_name="${MODELS_NAMES[$i]}"
+        model_id="${MODELS_IDS[$i]}"
+        echo "Model changed to $model_name (ID: $model_id)"
+        break
+      fi
+    done
+  else
+    echo "Model selection cancelled"
+  fi
 }
 
 invalidate_cache() {
@@ -62,13 +75,16 @@ call() {
   curl -s --cookie "$COOKIE_FILE" -H "Content-Type: application/json" -H "$HEADER_REFERER" "$@"
 }
 
-get_conversation_id() {
-  local response
+get_conversations() {
   if [ -f "$CACHE_FILE" ] && [ $(($(date +%s) - $(stat -f %m "$CACHE_FILE"))) -lt $CACHE_TIMEOUT ]; then
-    response=$(cat "$CACHE_FILE")
+    cat "$CACHE_FILE"
   else
-    response=$(call "$BASE_URL/conversations/" | tee "$CACHE_FILE")
+    call "$BASE_URL/conversations/" | tee "$CACHE_FILE"
   fi
+}
+
+get_conversation_id() {
+  local response=$(get_conversations)
   echo $response | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
 }
 
@@ -80,6 +96,8 @@ delete_conversation() {
 
 patch_conversation() {
   local conversation_id=$(get_conversation_id)
+  [[ -z "$conversation_id" ]] && echo "No conversation selected" && exit 1
+
   local name
   read -p "Enter new name: " name
   call "$BASE_URL/conversations/$conversation_id" -o /dev/null -X PATCH -d '{ "name": "'"$name"'" }' &
@@ -116,7 +134,7 @@ stop_response_stream() {
 }
 
 dash() {
-  printf %"$(tput cols)"s | tr " " "—"
+  printf "$BG%$(tput cols)s$CLR" | tr " " "—"
   echo
 }
 
@@ -135,13 +153,8 @@ start_chat_session() {
       continue
     fi
 
-    if [[ "$message" = "/chmodel" ]]; then
-      model_name=$(
-        for m in "${!MODELS[@]}"; do
-          echo $m
-        done | fzf
-      )
-      model_id=${MODELS["$model_name"]}
+    if [[ "$message" = "/model" ]]; then
+      pick_model
       continue
     fi
 

@@ -11,15 +11,20 @@ HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
 BG='\e[1;32m'
 CLR='\e[0m'
 
-MODELS_NAMES=("gpt4o" "gpt4o-mini" "claude")
-MODELS_IDS=(4094 4430 4190)
+MODELS_NAMES=(
+  "claude" "gpt4o" "gpt4o-mini" "groq-llama" "groq-mixtral"
+)
+MODELS_IDS=(
+   4190 4094 4430 4455 4456
+)
 
 streaming="false"
 conversation_id=""
 assistant_message_id=""
 
-model_name="claude"
-model_id=4094
+model_index=0
+model_name=${MODELS_NAMES[$model_index]}
+model_id=${MODELS_IDS[$model_index]}
 
 shopt -s expand_aliases
 alias editor="nvim"

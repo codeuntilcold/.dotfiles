@@ -146,6 +146,16 @@ dash() {
 start_chat_session() {
   conversation_id="$1"
 
+  ### One off script to pipe into
+  if [[ ! -t 0 ]]; then
+    message=$(cat)
+    message=$(jq -Rs '.' <<< "$message")
+    response=$(post_user_message "$message" "$model_id" "$conversation_id")
+    assistant_message_id=$(jq -r '.data.assistant_message_id' <<< "$response")
+    get_response_stream
+    exit 0
+  fi
+
   while true; do
     local queryfile="/tmp/sdai-query-$conversation_id.md"
 
@@ -167,7 +177,6 @@ start_chat_session() {
       nvim -R $CURRENT_RESPONSE_FILE
       continue
     fi
-
 
     if [[ "$message" = "/viewdiff" ]]; then
       cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
@@ -224,6 +233,11 @@ main() {
     "cont"|"continue")
       refresh
       start_chat_session "$(get_conversation_id)"
+      ;;
+    "pc")
+      refresh &
+      pick_model
+      start_chat_session
       ;;
     *)
       echo "Invalid subcommand. Must be one of: chat, delete, patch, continue" && exit 1

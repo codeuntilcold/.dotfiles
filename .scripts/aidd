@@ -1,7 +1,5 @@
 #!/bin/bash
 
-[[ "$#" -lt 1 ]] && echo "Usage: aidd [code|test]" && exit 0
-
 case "$1" in
     "code")
 echo "Given the below code, file structure, requirement and general rule:
@@ -29,7 +27,7 @@ Think for as much as you want. Then, for now and the rest of this session:
 - If printing out 'diff' file, then do not print out any other code block.
 </general_rule>
 "
-        ;;
+;;
 
     "test")
 echo "Help me add test coverage to the <class, component or feature> below.
@@ -44,9 +42,36 @@ echo "Help me add test coverage to the <class, component or feature> below.
 $(catai m -)
 </code>
 "
-        ;;
+;;
+
+    "fix")
+echo "Help me fix the failing test, here is the test output
+
+<test_output>
+$(npm run test 2>&1 && npm run test:e2e 2>&1)
+</test_output>
+"
+;;
+
+    "review")
+echo "Help me review the code
+
+<diff>
+$(git diff main)
+</diff>
+"
+;;
+
+    "commit")
+echo "Help me write a commit message
+
+<diff>
+$(git diff HEAD~)
+</diff>
+"
+;;
 
     *)
-        echo "Usage: aidd [code|test]" && exit 1
+        echo "Usage: aidd [code | test | fix | review | commit]" && exit 1
         ;;
 esac

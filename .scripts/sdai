@@ -27,6 +27,7 @@ model_name=${MODELS_NAMES[$model_index]}
 model_id=${MODELS_IDS[$model_index]}
 
 shopt -s expand_aliases
+set -o vi
 alias editor="nvim"
 # alias editor="nvim -c 'set filetype=markdown'"
 # alias editor="code -w"
@@ -159,9 +160,12 @@ start_chat_session() {
   while true; do
     local queryfile="/tmp/sdai-query-$conversation_id.md"
 
-    printf "$BG==>$CLR "
+    printf "$BG==>$CLR\b\b\b"
 
-    message=$(cat)
+    message=""
+    while IFS= read -e -r line; do
+      message+="$line"$'\n'
+    done
 
     if [[ "$message" = "/parker" ]]; then
       parker

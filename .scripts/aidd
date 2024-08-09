@@ -17,14 +17,22 @@ Help me <do stuff, add more explanation and constraint>.
 </requirement>
 
 <general_rule>
-As a lead developer of the project, you will start with high level ideas on how you would implement this, considering all security and performance issues with it.
-Think for as much as you want. Then, for now and the rest of this session:
+As a lead developer of the project, you will start with high level ideas on how you would implement
+this, considering all security and performance issues with it. Think for as much as you want. Then,
+for now and the rest of this session:
 
-- Only output code AFTER I have reviewed the strategy. You may realize that you need some file to know more about the system implementation, so feel free to ask me for it.
-- Make sure you output professional-grade, production-ready code that is clean, optimized, maintainable and follow best practices.
-- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines that got changed, and ignore the parts that is unchanged).
-- The change must be compatible to be used in the 'patch' program to apply the changes. Follow the line numbers correctly, especially the starting line of the change.
+- Only output code AFTER I have reviewed the strategy.
+- Be rigorous. If the context provided to you has missing files, ask me for those files.
+  + For example, if a constant is imported but you don't know exactly which file it is in, ask me.
+  + If you want to know the content of a specific file, ask me.
+  + This is absolutely crucial to make sure that the following requirements works.
+- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
+  that got changed, and ignore the parts that is unchanged).
+- The change must be compatible to be used in the 'patch' program to apply the changes. Follow the
+  line numbers correctly, especially the starting line of the change.
 - If printing out 'diff' file, then do not print out any other code block.
+- Make sure you output professional-grade, production-ready code that is clean, optimized, maintain-
+  able and follow best practices.
 </general_rule>
 "
 ;;
@@ -32,7 +40,8 @@ Think for as much as you want. Then, for now and the rest of this session:
     "test")
 echo "Help me add test coverage to the <class, component or feature> below.
 
-- Start with outlining the scenarios, make sure to cover different paths that the code handles, together with edge cases.
+- Start with outlining the scenarios, make sure to cover different paths that the code handles,
+  together with edge cases.
 - Do not provide test code right away, only after I have confirmed that the scenarios look good.
 - Follow the existing testing styles and conventions where applicable.
 
@@ -45,7 +54,7 @@ $(catai m -)
 ;;
 
     "fix")
-echo "Help me fix the failing test, here is the test output
+echo "Help me fix the failing test, here is the test output:
 
 <test_output>
 $(npm run test 2>&1 && npm run test:e2e 2>&1)
@@ -54,7 +63,10 @@ $(npm run test 2>&1 && npm run test:e2e 2>&1)
 ;;
 
     "review")
-echo "Help me review the code
+echo "Help me review the code based on this git diff. The code review should compreshensively cover
+the code change on many facets like code quality, whether it is a good solution in general, about
+potential security issue and potential future changes in requirement. No need for any real implemen-
+tation, I just need your judgement on it. Here is the diff:
 
 <diff>
 $(git diff main)
@@ -63,7 +75,9 @@ $(git diff main)
 ;;
 
     "commit")
-echo "Help me write a commit message
+echo "Help me write a commit message based on this git diff. Ideally the description should contain
+just enough details that we care about. Try to output just the message, no need to tell me anything
+else. Here is the diff:
 
 <diff>
 $(git diff HEAD~)

@@ -8,7 +8,6 @@ return {
 			ft({ 'move' }, ft.get('c'))
 			comment.setup()
 		end,
-		lazy = true,
 	},
 
 }

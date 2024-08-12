@@ -15,7 +15,7 @@ MODELS_NAMES=(
   "claude" "gpt4o" "gpt4o-mini" "groq-llama" "groq-mixtral"
 )
 MODELS_IDS=(
-   4190 4094 4430 4455 4456
+   4541 4094 4430 4455 4456
 )
 
 streaming="false"
@@ -160,29 +160,27 @@ start_chat_session() {
   while true; do
     local queryfile="/tmp/sdai-query-$conversation_id.md"
 
-    printf "$BG==>$CLR\b\b\b"
-
     message=""
     while IFS= read -e -r line; do
       message+="$line"$'\n'
     done
 
-    if [[ "$message" = "/parker" ]]; then
+    if [[ "$message" = "/parker"$'\n' ]]; then
       parker
       continue
     fi
 
-    if [[ "$message" = "/model" ]]; then
+    if [[ "$message" = "/model"$'\n' ]]; then
       pick_model
       continue
     fi
 
-    if [[ "$message" = "/view" ]]; then
+    if [[ "$message" = "/view"$'\n' ]]; then
       nvim -R $CURRENT_RESPONSE_FILE
       continue
     fi
 
-    if [[ "$message" = "/viewdiff" ]]; then
+    if [[ "$message" = "/viewdiff"$'\n' ]]; then
       cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
       continue
     fi
@@ -234,14 +232,14 @@ main() {
       refresh &
       start_chat_session
       ;;
-    "cont"|"continue")
-      refresh
-      start_chat_session "$(get_conversation_id)"
-      ;;
     "pc")
       refresh &
       pick_model
       start_chat_session
+      ;;
+    "cont"|"continue")
+      refresh
+      start_chat_session "$(get_conversation_id)"
       ;;
     *)
       echo "Invalid subcommand. Must be one of: chat, delete, patch, continue" && exit 1

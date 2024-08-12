@@ -40,4 +40,7 @@ return {
 		priority = 1000,
 	},
 
+	{
+		'yorickpeterse/nvim-grey'
+	},
 }

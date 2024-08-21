@@ -216,8 +216,13 @@ start_chat_session() {
   done
 }
 
+usage() {
+  echo "Usage: sdai [chat|delete|patch|continue|pc|query-models]"
+  exit 1
+}
+
 main() {
-  [[ "$#" -lt 1 ]] && echo "Usage: sdai [chat|delete|patch|continue]" && exit 0
+  [[ "$#" -lt 1 ]] && usage
 
   case "$1" in
     "d"|"del"|"delete")
@@ -241,8 +246,11 @@ main() {
       refresh
       start_chat_session "$(get_conversation_id)"
       ;;
+    "query-models")
+      call "$BASE_URL/models/" | jq '.[] | { id, name, family, context_window }'
+      ;;
     *)
-      echo "Invalid subcommand. Must be one of: chat, delete, patch, continue" && exit 1
+      usage
       ;;
   esac
 }

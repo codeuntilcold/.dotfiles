@@ -30,7 +30,7 @@ case "$option" in
 
     selected_files=$(
       echo "$files" \
-      | fzf --tmux \
+      | fzf-tmux \
         -m --ansi --filepath-word \
         --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:100 {}' \
         --bind ctrl-t:toggle-all

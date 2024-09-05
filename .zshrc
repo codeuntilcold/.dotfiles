@@ -6,6 +6,8 @@ plugins=(git zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
+export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/.local/scripts:/usr/local/go/bin:${HOME}/go/bin:/opt/nvim-linux64/bin"
+
 # Edit commands using vi bindings
 set -o vi
 
@@ -15,6 +17,12 @@ export EDITOR=nvim
 alias ez='nvim ~/.zshrc'
 alias sz='source ~/.zshrc'
 alias dot='nvim ~/Dev/personal/dotfiles'
+alias ck='nvim ~/.sdai/cookies'
+alias tma='tmux -2 a'
+
+function dailyzoom() {
+  xdg-open 'https://app.zoom.us/wc/84023662781/join?pwd=N1U3enJ4T0c3bGQwdWw3N3JEdkxKUT09'
+}
 
 alias lg='lazygit'
 alias ldk='lazydocker'
@@ -51,7 +59,8 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
 export FZF_DEFAULT_OPTS="--layout=reverse"
-export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/.local/scripts:/usr/local/go/bin:${HOME}/go/bin"
+# export FZF_TMUX=1
+export FZF_TMUX_OPTS='-p80%,60%'
 
 # Automatically create a new session
 tmux has-session -t main 2> /dev/null

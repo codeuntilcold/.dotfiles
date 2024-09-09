@@ -1,15 +1,8 @@
 return {
-	-- Based plugin to help working with git in the flow
 	{
 		'tpope/vim-fugitive',
 		event = 'VeryLazy',
 	},
-
-	-- Maybe useful when you have to check github back and forth
-	-- {
-	-- 	'tpope/vim-rhubarb',
-	-- 	event = 'VimEnter',
-	-- },
 
 	{ -- Adds git releated signs to the gutter, as well as utilities for managing changes
 		'lewis6991/gitsigns.nvim',

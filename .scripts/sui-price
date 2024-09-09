@@ -1,3 +1,3 @@
 #!/bin/bash
 
-curl --silent https://suiscan.xyz/api/sui-backend/mainnet/api/widgets/get-price | jq '.price' | cut -c1-6
+curl --silent https://dev-gilder-index-b0c127db6aa5.herokuapp.com/currency-price/sui | jq '.price' | cut -c1-6

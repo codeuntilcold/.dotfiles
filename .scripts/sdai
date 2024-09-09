@@ -85,7 +85,7 @@ get_conversations() {
   if [ -f "$CACHE_FILE" ] && [ $(($(date +%s) - $(stat -f %m "$CACHE_FILE"))) -lt $CACHE_TIMEOUT ]; then
     cat "$CACHE_FILE"
   else
-    call "$BASE_URL/conversations/" | tee "$CACHE_FILE"
+    call "$BASE_URL/conversations/?order=created" | tee "$CACHE_FILE"
   fi
 }
 
@@ -126,7 +126,7 @@ post_user_message() {
 
 get_response_stream() {
   streaming="true"
-  call "$BASE_URL/conversations/streaming/?message_id=$assistant_message_id" --no-buffer | tee $CURRENT_RESPONSE_FILE
+  call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer | tee $CURRENT_RESPONSE_FILE
   streaming="false"
 }
 
@@ -139,6 +139,14 @@ stop_response_stream() {
   fi
 }
 
+count_messages() {
+  call "$BASE_URL/conversations/?order=created" \
+    | jq -c  '.results[] | { name, num_of_unread_messages }' \
+    | fzf -m | jq '.num_of_unread_messages' \
+    | paste -sd+ - \
+    | bc
+}
+
 dash() {
   printf "$BG%$(tput cols)s$CLR" | tr " " "—"
   echo
@@ -146,16 +154,6 @@ dash() {
 
 start_chat_session() {
   conversation_id="$1"
-
-  ### One off script to pipe into
-  if [[ ! -t 0 ]]; then
-    message=$(cat)
-    message=$(jq -Rs '.' <<< "$message")
-    response=$(post_user_message "$message" "$model_id" "$conversation_id")
-    assistant_message_id=$(jq -r '.data.assistant_message_id' <<< "$response")
-    get_response_stream
-    exit 0
-  fi
 
   while true; do
     local queryfile="/tmp/sdai-query-$conversation_id.md"
@@ -202,12 +200,12 @@ start_chat_session() {
 
     kill $spinner_id
     wait $! 2>/dev/null
-    printf '\b\b\b   \b\b\b'
+    echo -ne '\r   \r'
 
     dash
     trap stop_response_stream SIGINT
 
-    printf "$BG($model_name)$CLR "
+    printf "$BG($model_name)$CLR\n"
     get_response_stream
     echo
 
@@ -217,7 +215,7 @@ start_chat_session() {
 }
 
 usage() {
-  echo "Usage: sdai [chat|delete|patch|continue|pc|query-models]"
+  echo "Usage: sdai [chat | continue | delete | patch | query-models | count-conv]"
   exit 1
 }
 
@@ -225,6 +223,14 @@ main() {
   [[ "$#" -lt 1 ]] && usage
 
   case "$1" in
+    "c"|"ch"|"chat")
+      refresh &
+      start_chat_session
+      ;;
+    "cont"|"continue")
+      refresh
+      start_chat_session "$(get_conversation_id)"
+      ;;
     "d"|"del"|"delete")
       refresh
       delete_conversation
@@ -233,21 +239,11 @@ main() {
       refresh
       patch_conversation
       ;;
-    "c"|"ch"|"chat")
-      refresh &
-      start_chat_session
-      ;;
-    "pc")
-      refresh &
-      pick_model
-      start_chat_session
-      ;;
-    "cont"|"continue")
-      refresh
-      start_chat_session "$(get_conversation_id)"
-      ;;
     "query-models")
       call "$BASE_URL/models/" | jq '.[] | { id, name, family, context_window }'
+      ;;
+    "count-conv")
+      count_messages
       ;;
     *)
       usage

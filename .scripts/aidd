@@ -1,11 +1,11 @@
 #!/bin/bash
 
 case "$1" in
-    "code")
+    "c"|"code")
 echo "Given the below code, file structure, requirement and general rule:
 
 <file_structure>
-$(tree --gitfile .gitignore)
+$(tree --gitignore --noreport)
 </file_structure>
 
 <code>
@@ -40,6 +40,7 @@ for now and the rest of this session:
     "test")
 echo "Help me add test coverage to the <class, component or feature> below.
 
+- First check whether there are cases that are not covered, list them out and let me review.
 - Start with outlining the scenarios, make sure to cover different paths that the code handles,
   together with edge cases.
 - Do not provide test code right away, only after I have confirmed that the scenarios look good.

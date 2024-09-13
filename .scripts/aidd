@@ -2,7 +2,8 @@
 
 case "$1" in
     "c"|"code")
-echo "Given the below code, file structure, requirement and general rule:
+echo "[[ .........Implementation
+Given the below code, file structure, requirement and general rule:
 
 <file_structure>
 $(tree --gitignore --noreport)
@@ -38,7 +39,8 @@ for now and the rest of this session:
 ;;
 
     "test")
-echo "Help me add test coverage to the <class, component or feature> below.
+echo "[[ Add Test
+Help me add test coverage to the <class, component or feature> below.
 
 - First check whether there are cases that are not covered, list them out and let me review.
 - Start with outlining the scenarios, make sure to cover different paths that the code handles,
@@ -54,17 +56,9 @@ $(catai m -)
 "
 ;;
 
-    "fix")
-echo "Help me fix the failing test, here is the test output:
-
-<test_output>
-$(npm run test 2>&1 && npm run test:e2e 2>&1)
-</test_output>
-"
-;;
-
     "review")
-echo "Help me review the code based on this git diff. The code review should compreshensively cover
+echo "[[ Code Review
+Help me review the code based on this git diff. The code review should compreshensively cover
 the code change on many facets like code quality, whether it is a good solution in general, about
 potential security issue and potential future changes in requirement. No need for any real implemen-
 tation, I just need your judgement on it. Here is the diff:
@@ -76,7 +70,8 @@ $(git diff main)
 ;;
 
     "commit")
-echo "Help me write a commit message based on this git diff. Ideally the description should contain
+echo "[[ Commit Message
+Help me write a commit message based on this git diff. Ideally the description should contain
 just enough details that we care about. Try to output just the message, no need to tell me anything
 else. Here is the diff:
 

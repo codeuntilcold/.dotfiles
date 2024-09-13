@@ -163,6 +163,18 @@ start_chat_session() {
       message+="$line"$'\n'
     done
 
+    if [[ "$message" = "" ]]; then
+      editor "$queryfile"
+      message=$(cat "$queryfile")
+      echo ""
+    fi
+
+    local first_line=$(echo "$message" | head -n 1)
+    if [[ "$first_line" =~ ^\[\[ ]]; then
+      conversation_title=$(echo "$first_line" | sed -n 's/^\[\[ \(.*\)/\1/p')
+      message=$(echo "$message" | tail -n +2)
+    fi
+
     if [[ "$message" = "/parker"$'\n' ]]; then
       parker
       continue
@@ -181,12 +193,6 @@ start_chat_session() {
     if [[ "$message" = "/viewdiff"$'\n' ]]; then
       cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
       continue
-    fi
-
-    if [[ "$message" = "" ]]; then
-      editor "$queryfile"
-      message=$(cat "$queryfile")
-      echo ""
     fi
 
     message=$(jq -Rs '.' <<< "$message")
@@ -211,6 +217,10 @@ start_chat_session() {
 
     trap - SIGINT
     dash
+
+    if [[ ! -z "$conversation_title" ]]; then
+      call "$BASE_URL/conversations/$conversation_id" -o /dev/null -X PATCH -d '{ "name": "'"$conversation_title"'" }' &
+    fi
   done
 }
 

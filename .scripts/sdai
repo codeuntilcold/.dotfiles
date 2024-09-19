@@ -22,7 +22,7 @@ streaming="false"
 conversation_id=""
 assistant_message_id=""
 
-model_index=0
+model_index=2
 model_name=${MODELS_NAMES[$model_index]}
 model_id=${MODELS_IDS[$model_index]}
 
@@ -126,7 +126,9 @@ post_user_message() {
 
 get_response_stream() {
   streaming="true"
-  call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer | tee $CURRENT_RESPONSE_FILE
+  call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer \
+    | tee $CURRENT_RESPONSE_FILE \
+    | bat --theme=Dracula --paging=never --style=rule --language=markdown
   streaming="false"
 }
 
@@ -143,8 +145,7 @@ count_messages() {
   call "$BASE_URL/conversations/?order=created" \
     | jq -c  '.results[] | { name, num_of_unread_messages }' \
     | fzf -m | jq '.num_of_unread_messages' \
-    | paste -sd+ - \
-    | bc
+    | awk '{sum += $1} END {print sum / 2}'
 }
 
 dash() {
@@ -153,6 +154,9 @@ dash() {
 }
 
 start_chat_session() {
+  echo "SkyDeck.ai with $model_name"
+  dash
+
   conversation_id="$1"
 
   while true; do
@@ -169,6 +173,7 @@ start_chat_session() {
       echo ""
     fi
 
+    # setting conversation title using prefix [[ on first line
     local first_line=$(echo "$message" | head -n 1)
     if [[ "$first_line" =~ ^\[\[ ]]; then
       conversation_title=$(echo "$first_line" | sed -n 's/^\[\[ \(.*\)/\1/p')
@@ -192,6 +197,18 @@ start_chat_session() {
 
     if [[ "$message" = "/viewdiff"$'\n' ]]; then
       cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
+      continue
+    fi
+
+    if [[ "$message" =~ ^/yank ]]; then
+      local block=$(echo "$message" | cut -f2 -d' ')
+      if [[ "$block" = "/yank" ]]; then
+        pbcopy < $CURRENT_RESPONSE_FILE
+        echo "Yanked content to clipboard"
+      else
+        cat $CURRENT_RESPONSE_FILE | sed -n "/^\`\`\`$block$/,/^\`\`\`$/p" | sed '/^```/d' | pbcopy
+        echo "Yanked $block to clipboard"
+      fi
       continue
     fi
 
@@ -225,7 +242,7 @@ start_chat_session() {
 }
 
 usage() {
-  echo "Usage: sdai [chat | continue | delete | patch | query-models | count-conv]"
+  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv]"
   exit 1
 }
 
@@ -233,15 +250,15 @@ main() {
   [[ "$#" -lt 1 ]] && usage
 
   case "$1" in
-    "c"|"ch"|"chat")
+    "c"|"chat")
       refresh &
       start_chat_session
       ;;
-    "cont"|"continue")
+    "co"|"cont"|"continue")
       refresh
       start_chat_session "$(get_conversation_id)"
       ;;
-    "d"|"del"|"delete")
+    "d"|"delete")
       refresh
       delete_conversation
       ;;

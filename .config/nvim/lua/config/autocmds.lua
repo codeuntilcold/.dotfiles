@@ -37,58 +37,27 @@ vim.api.nvim_create_autocmd('BufEnter', {
 })
 
 -- For move projects
-local lsp_started = false
-
 vim.api.nvim_create_autocmd("BufEnter", {
 	pattern = { '*.move' },
 	callback = function()
-		if lsp_started then return end
-
 		vim.lsp.set_log_level('off')
 
 		local move_toml = vim.fs.find({ 'Move.toml' }, { upward = true })[1]
-		if not move_toml then
-			print("No Move.toml found")
-			return
-		end
+		if not move_toml then return end
 
-		local content = vim.fn.readfile(move_toml)
-		local repo_found = ''
-		for _, line in ipairs(content) do
+		local repo_found = 'aptos'
+		for _, line in ipairs(vim.fn.readfile(move_toml)) do
 			if line:match("MystenLabs/sui") then
 				repo_found = 'sui'
 				break
 			end
-			if line:match("AptosFramework") then
-				repo_found = 'aptos'
-				break
-			end
 		end
 
-		local lsp_config = {
-			sui = { cmd = "move-analyzer" },
-			aptos = { cmd = "aptos-move-analyzer" }
-		}
-
-		if lsp_config[repo_found] then
-			local cmd = vim.fn.exepath(lsp_config[repo_found].cmd)
-			if cmd == "" then
-				print(string.format("%s not found in PATH", lsp_config[repo_found].cmd))
-				return
-			end
-
-			vim.lsp.stop_client(vim.lsp.get_active_clients())
-			vim.lsp.start({
-				name = repo_found,
-				cmd = { cmd },
-				root_dir = vim.fs.dirname(move_toml),
-			})
-
-			lsp_started = true
-			print(string.format("%s LSP started", repo_found))
-		else
-			print("Unknown Move project type")
-		end
+		vim.lsp.start({
+			name = repo_found,
+			cmd = { vim.fn.exepath(repo_found .. '-move-analyzer') },
+			root_dir = vim.fs.dirname(move_toml),
+		})
 	end
 })
 

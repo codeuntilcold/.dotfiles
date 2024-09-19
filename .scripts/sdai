@@ -162,15 +162,19 @@ start_chat_session() {
   while true; do
     local queryfile="/tmp/sdai-query-$conversation_id.md"
 
-    message=""
-    while IFS= read -e -r line; do
-      message+="$line"$'\n'
-    done
+    # ## ancient
+    # message=""
+    # while IFS= read -e -r line; do
+    #   message+="$line"$'\n'
+    # done
+
+    message=$(
+      gum write --char-limit=0 --width=0 --height=0 --no-show-help --placeholder="ctrl+j to newline"
+    ) || exit 0
 
     if [[ "$message" = "" ]]; then
       editor "$queryfile"
       message=$(cat "$queryfile")
-      echo ""
     fi
 
     # setting conversation title using prefix [[ on first line
@@ -180,22 +184,22 @@ start_chat_session() {
       message=$(echo "$message" | tail -n +2)
     fi
 
-    if [[ "$message" = "/parker"$'\n' ]]; then
+    if [[ "$message" = "/parker" ]]; then
       parker
       continue
     fi
 
-    if [[ "$message" = "/model"$'\n' ]]; then
+    if [[ "$message" = "/model" ]]; then
       pick_model
       continue
     fi
 
-    if [[ "$message" = "/view"$'\n' ]]; then
+    if [[ "$message" = "/view" ]]; then
       nvim -R $CURRENT_RESPONSE_FILE
       continue
     fi
 
-    if [[ "$message" = "/viewdiff"$'\n' ]]; then
+    if [[ "$message" = "/viewdiff" ]]; then
       cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
       continue
     fi

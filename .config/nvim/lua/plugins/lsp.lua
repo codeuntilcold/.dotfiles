@@ -7,18 +7,10 @@ return {
 		'williamboman/mason-lspconfig.nvim',
 
 		-- Useful status updates for LSP
-		{
-			"j-hui/fidget.nvim",
-			tag = "legacy",
-			event = "LspAttach",
-			opts = {},
-		},
+		{ "j-hui/fidget.nvim", event = "LspAttach", opts = {} },
 
 		-- Additional lua configuration, makes nvim stuff amazing!
-		{
-			'folke/neodev.nvim',
-			opts = {},
-		},
+		{ 'folke/neodev.nvim', opts = {} },
 	},
 	config = function(_, opts)
 		local telescope = require('telescope.builtin')

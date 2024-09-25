@@ -34,6 +34,7 @@ for now and the rest of this session:
 - If printing out 'diff' file, then do not print out any other code block.
 - Make sure you output professional-grade, production-ready code that is clean, optimized, maintain-
   able and follow best practices.
+- No need for comment. Try to write semanticly rich code instead of littering the code with comments.
 </general_rule>
 "
 ;;
@@ -66,6 +67,43 @@ tation, I just need your judgement on it. Here is the diff:
 <diff>
 $(git diff main)
 </diff>
+"
+;;
+
+    "pr")
+echo "[[ PR Description
+You are a meticulous code reviewer. After you have looked at the diff below, help me produce a GitHub
+pull request description for this code change, following this format:
+
+<diff>
+$(git diff main)
+</diff>
+
+<git_log>
+$(git log main..HEAD)
+</git_log>
+
+<format>
+### Task
+
+[Task name](task url)
+
+### What have we done
+
+- Some api changes
+- Some technical details
+
+### Proof of Work
+</format>
+
+Please follow this requirement closely
+- Note that proof of work is omited if the code is backend-only
+- Only list out high level changes in the "What have we done" part; I dont want to hear things like
+  'move code from here to there' or 'add test to cover this or that' since those are just noise
+- Specifically note out things like api changes, tricky code logic, etc
+- For api change, tell the users which user-facing (i.e public) functions are added, modified,
+  what are the parameters change
+- Try to fill in the task name and url if you can, from the diff, but dont try too hard
 "
 ;;
 

@@ -141,11 +141,26 @@ stop_response_stream() {
   fi
 }
 
-count_messages() {
+count_messages_manually() {
   call "$BASE_URL/conversations/?order=created" \
     | jq -c  '.results[] | { name, num_of_unread_messages }' \
-    | fzf -m | jq '.num_of_unread_messages' \
+    | fzf --bind='ctrl-t:toggle-all' -m \
+    | jq '.num_of_unread_messages' \
     | awk '{sum += $1} END {print sum / 2}'
+}
+
+count_messages() {
+  local last_monday=$(date -v-sun -u +%s)
+  (
+    call "$BASE_URL/conversations/?order=created" | jq -c  '.results[] | { num_of_unread_messages, created }' &
+    call "$BASE_URL/conversations/?order=created&page=2" | jq -c  '.results[] | { num_of_unread_messages, created }' &
+    wait
+  ) | while IFS= read -r conv; do
+    local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
+    local unread=$(echo "$conv" | jq -r '.num_of_unread_messages')
+
+    [ $(date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created") -gt "$last_monday" ] && echo $unread
+  done | awk '{sum += $1} END {print sum / 2}'
 }
 
 dash() {
@@ -168,13 +183,16 @@ start_chat_session() {
     #   message+="$line"$'\n'
     # done
 
+    # use a local version of `gum` to map enter to new line, ctrl+d to submit
     message=$(
-      gum write --char-limit=0 --width=0 --height=0 --no-show-help --placeholder="ctrl+j to newline"
+      ~/.local/bin/gum write --char-limit=0 --width=0 --height=0 --no-show-help
     ) || exit 0
 
     if [[ "$message" = "" ]]; then
       editor "$queryfile"
       message=$(cat "$queryfile")
+    else
+      echo "$message"
     fi
 
     # setting conversation title using prefix [[ on first line

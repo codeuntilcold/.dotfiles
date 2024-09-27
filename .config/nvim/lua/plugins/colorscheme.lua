@@ -1,46 +1,38 @@
+vim.cmd.set "background=light"
+
 return {
 	-- Transparent background
 	{
 		'xiyaowong/transparent.nvim',
-		opts = {
-			extra_groups = {
-				-- "NormalFloat", -- plugins which have float panel such as Lazy, Mason, LspInfo
-			},
-		},
+		opts = {},
 	},
-
-	-- Use pywal colors
-	'dylanaraps/wal.vim',
-
-	-- Theme inspired by Atom
-	'navarasu/onedark.nvim',
 
 	{
 		"catppuccin/nvim",
 		name = "catppuccin",
-		priority = 1000,
 		event = "VimEnter",
 		config = function()
-			vim.cmd.colorscheme 'catppuccin'
+		-- 	vim.cmd.colorscheme 'catppuccin-latte'
 		end
 	},
 
 	{
-		"AlexvZyl/nordic.nvim",
-		priority = 1000,
+		"zenbones-theme/zenbones.nvim",
+		event = "VimEnter",
+		config = function()
+			vim.cmd.set "termguicolors"
+			-- vim.g.zenbones_compat = 1
+			-- vim.cmd.colorscheme "zenbones"
+			vim.g.zenwritten_compat = 1
+			vim.cmd.colorscheme "zenwritten"
+		end
 	},
 
 	{
-		"savq/melange-nvim",
-		priority = 1000,
-	},
-
-	{
-		"rebelot/kanagawa.nvim",
-		priority = 1000,
-	},
-
-	{
-		'yorickpeterse/nvim-grey'
+		'NLKNguyen/papercolor-theme',
+		event = "VimEnter",
+		config = function()
+			-- vim.cmd.colorscheme "PaperColor"
+		end
 	},
 }

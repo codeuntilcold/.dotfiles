@@ -128,7 +128,7 @@ get_response_stream() {
   streaming="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer \
     | tee $CURRENT_RESPONSE_FILE \
-    | bat --theme=Dracula --paging=never --style=rule --language=markdown
+    | bat --paging=never --style=rule --language=markdown # --theme=Dracula 
   streaming="false"
 }
 

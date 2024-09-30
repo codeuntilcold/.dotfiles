@@ -1,4 +1,6 @@
-vim.cmd.set "background=light"
+if os.getenv("USER") == "vpn" then
+	vim.cmd.set "background=light"
+end
 
 return {
 	-- Transparent background

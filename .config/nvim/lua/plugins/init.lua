@@ -24,20 +24,4 @@ return {
 		dependencies = { 'nvim-lua/plenary.nvim' },
 		opts = { signs = false }
 	},
-
-	{
-		"leath-dub/snipe.nvim",
-		keys = {
-			{
-				"<leader>ss",
-				function() require("snipe").open_buffer_menu({
-					max_path_width = 1
-				}) end,
-				desc = "Open [S]nipe buffer menu"
-			}
-		},
-		opts = {
-			ui = { position = 'cursor' },
-		}
-	}
 }

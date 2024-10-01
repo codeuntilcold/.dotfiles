@@ -20,7 +20,6 @@ return {
 		"zenbones-theme/zenbones.nvim",
 		event = "VimEnter",
 		config = function()
-			vim.cmd.set "termguicolors"
 			-- vim.g.zenbones_compat = 1
 			-- vim.cmd.colorscheme "zenbones"
 			vim.g.zenwritten_compat = 1

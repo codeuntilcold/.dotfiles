@@ -1,50 +1,31 @@
 import = [
-    # "~/.config/alacritty/themes/themes/atom_one_light.toml",
-    # "~/.config/alacritty/themes/themes/catppuccin_latte.toml",
-    # "~/.config/alacritty/themes/themes/papercolor_light.toml",
-    "~/.config/alacritty/themes/themes/zenwritten_light.toml",
+    # this file is symlinked to the appropriate config
+    "~/.config/alacritty/host_configs.toml",
 ]
 
 live_config_reload = true
-working_directory = "/Users/vpn"
-
-[shell]
-args = ["--login"]
-program = "/usr/local/bin/zsh"
 
 [window]
-decorations = "buttonless"
-dynamic_padding = true
-# opacity = 0.9
-# opacity = 0.8
-# blur = true
+decorations = "none"
+dynamic_padding = false
+opacity = 1
 title = "Alacritty"
-dynamic_title = true
 
-[selection]
-save_to_clipboard = false
+[window.class]
+general = "Alacritty"
+instance = "Alacritty"
 
 [window.padding]
 x = 12
 y = 8
 
 [colors]
-transparent_background_colors = false
+draw_bold_text_with_bright_colors = true
+transparent_background_colors = true
 
 [cursor]
 style = "Block"
 unfocused_hollow = true
-
-[font]
-size = 18.0
-normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
-bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
-italic = { family = "JetBrainsMono Nerd Font", style = "Italic" }
-bold_italic = { family = "JetBrainsMono Nerd Font", style = "Bold Italic" }
-
-[font.offset]
-x = 0
-y = 1
 
 [hints]
 alphabet = "jfkdls;ahgurieowpq"

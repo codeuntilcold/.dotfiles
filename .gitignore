@@ -1,2 +1,3 @@
 .config/lazygit/state.yml
 .config/alacritty/themes
+.config/alacritty/host_configs.toml

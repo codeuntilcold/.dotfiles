@@ -1,3 +1,5 @@
+command_timeout = 500
+
 [aws]
 symbol = "  "
 disabled = true
@@ -28,6 +30,9 @@ symbol = " "
 
 [fossil_branch]
 symbol = " "
+
+[gcloud]
+disabled = true
 
 [git_branch]
 symbol = " "

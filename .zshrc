@@ -14,6 +14,8 @@ set -o vi
 export EDITOR=nvim
 source "$HOME/.cargo/env"
 
+alias upgrade='sudo apt update && sudo apt upgrade'
+
 alias ez='nvim ~/.zshrc'
 alias sz='source ~/.zshrc'
 alias dot='nvim ~/Dev/personal/dotfiles'
@@ -30,7 +32,6 @@ alias tmux='tmux -2'
 alias zl='zellij'
 alias dbui='nvim -c "DBUI"'
 alias oil='nvim -c "Oil"'
-alias vim='nvim'
 
 alias suibuild='sui move build --doc --skip-fetch-latest-git-deps'
 alias suitest='sui move test --doc --skip-fetch-latest-git-deps'

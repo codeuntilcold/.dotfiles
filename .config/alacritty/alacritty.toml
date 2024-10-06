@@ -6,9 +6,7 @@ import = [
 live_config_reload = true
 
 [window]
-decorations = "none"
 dynamic_padding = false
-opacity = 1
 title = "Alacritty"
 
 [window.class]

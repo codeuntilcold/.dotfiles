@@ -32,7 +32,7 @@ case "$option" in
       echo "$files" \
       | fzf-tmux \
         -m --ansi --filepath-word \
-        --preview='bat --theme=Dracula --color=always --style=numbers --line-range=:100 {}' \
+        --preview='bat --style=numbers --line-range=:100 {}' \
         --bind ctrl-t:toggle-all
     )
     ;;

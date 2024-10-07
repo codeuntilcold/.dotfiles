@@ -8,8 +8,16 @@ working_directory = "/Users/vpn"
 program = "/usr/local/bin/zsh"
 args = ["--login"]
 
+[window]
+decorations = "buttonless"
+opacity = 1
+
 [font]
 size = 18.0
+
+[font.normal]
+family = "JetBrainsMono Nerd Font"
+style = "Regular"
 
 [font.bold]
 family = "JetBrainsMono Nerd Font"
@@ -22,10 +30,6 @@ style = "Bold Italic"
 [font.italic]
 family = "JetBrainsMono Nerd Font"
 style = "Italic"
-
-[font.normal]
-family = "JetBrainsMono Nerd Font"
-style = "Regular"
 
 [font.offset]
 x = 0

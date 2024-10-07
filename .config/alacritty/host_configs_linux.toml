@@ -15,6 +15,10 @@ opacity = 1
 [font]
 size = 14.0
 
+[font.normal]
+family = "JetBrainsMonoNL Nerd Font"
+style = "Regular"
+
 [font.bold]
 family = "JetBrainsMonoNL Nerd Font"
 style = "Bold"
@@ -26,10 +30,6 @@ style = "Bold Italic"
 [font.italic]
 family = "JetBrainsMonoNL Nerd Font"
 style = "Italic"
-
-[font.normal]
-family = "JetBrainsMonoNL Nerd Font"
-style = "Regular"
 
 [font.offset]
 x = 0

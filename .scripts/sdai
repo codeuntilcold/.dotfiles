@@ -3,7 +3,7 @@
 BASE_URL="https://admin.skydeck.ai/api/v1"
 CURRENT_RESPONSE_FILE="/tmp/sdai-conv-000000.md"
 CACHE_FILE="/tmp/sdai-cache.txt"
-CACHE_TIMEOUT=300  # 5 minutes
+CACHE_TIMEOUT=300 # 5 minutes
 
 COOKIE_FILE="$HOME/.sdai/cookies"
 HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
@@ -12,10 +12,10 @@ BG='\e[1;32m'
 CLR='\e[0m'
 
 MODELS_NAMES=(
-  "claude" "gpt4o" "gpt4o-mini" "groq-llama" "groq-mixtral"
+  "claude" "gpt4o" "gpt4o-mini" "groq-llama" "groq-mixtral" "o1-preview" "per-llama"
 )
 MODELS_IDS=(
-   4541 4094 4430 4455 4456
+  4541 4094 4430 4455 4456 4782 4852
 )
 
 streaming="false"
@@ -67,11 +67,11 @@ invalidate_cache() {
 
 refresh() {
   local exp=$(
-    grep "_access" $COOKIE_FILE | cut -f7 | cut -d. -f2 | base64 -d 2>/dev/null \
-      | grep -o '"exp":[0-9]*' | cut -d: -f2
+    grep "_access" $COOKIE_FILE | cut -f7 | cut -d. -f2 | base64 -d 2>/dev/null |
+      grep -o '"exp":[0-9]*' | cut -d: -f2
   )
 
-  [ "$(date +%s)" -gt "$exp" ] && \
+  [ "$(date +%s)" -gt "$exp" ] &&
     curl -s -X POST -o /dev/null "$BASE_URL/authentication/token/refresh/" \
       -H "$HEADER_REFERER" --cookie "$COOKIE_FILE" --cookie-jar "$COOKIE_FILE"
 }
@@ -126,9 +126,9 @@ post_user_message() {
 
 get_response_stream() {
   streaming="true"
-  call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer \
-    | tee $CURRENT_RESPONSE_FILE \
-    | bat --paging=never --style=rule --language=markdown # --theme=Dracula 
+  call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer |
+    tee $CURRENT_RESPONSE_FILE |
+    bat --paging=never --style=rule --language=markdown # --theme=Dracula
   streaming="false"
 }
 
@@ -142,18 +142,18 @@ stop_response_stream() {
 }
 
 count_messages_manually() {
-  call "$BASE_URL/conversations/?order=created" \
-    | jq -c  '.results[] | { name, num_of_unread_messages }' \
-    | fzf --bind='ctrl-t:toggle-all' -m \
-    | jq '.num_of_unread_messages' \
-    | awk '{sum += $1} END {print sum / 2}'
+  call "$BASE_URL/conversations/?order=created" |
+    jq -c '.results[] | { name, num_of_unread_messages }' |
+    fzf --bind='ctrl-t:toggle-all' -m |
+    jq '.num_of_unread_messages' |
+    awk '{sum += $1} END {print sum / 2}'
 }
 
 count_messages() {
   local last_monday=$(date -v-sun -u +%s)
   (
-    call "$BASE_URL/conversations/?order=created" | jq -c  '.results[] | { num_of_unread_messages, created }' &
-    call "$BASE_URL/conversations/?order=created&page=2" | jq -c  '.results[] | { num_of_unread_messages, created }' &
+    call "$BASE_URL/conversations/?order=created" | jq -c '.results[] | { num_of_unread_messages, created }' &
+    call "$BASE_URL/conversations/?order=created&page=2" | jq -c '.results[] | { num_of_unread_messages, created }' &
     wait
   ) | while IFS= read -r conv; do
     local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
@@ -176,12 +176,6 @@ start_chat_session() {
 
   while true; do
     local queryfile="/tmp/sdai-query-$conversation_id.md"
-
-    # ## ancient
-    # message=""
-    # while IFS= read -e -r line; do
-    #   message+="$line"$'\n'
-    # done
 
     # use a local version of `gum` to map enter to new line, ctrl+d to submit
     message=$(
@@ -225,7 +219,7 @@ start_chat_session() {
     if [[ "$message" =~ ^/yank ]]; then
       local block=$(echo "$message" | cut -f2 -d' ')
       if [[ "$block" = "/yank" ]]; then
-        pbcopy < $CURRENT_RESPONSE_FILE
+        pbcopy <$CURRENT_RESPONSE_FILE
         echo "Yanked content to clipboard"
       else
         cat $CURRENT_RESPONSE_FILE | sed -n "/^\`\`\`$block$/,/^\`\`\`$/p" | sed '/^```/d' | pbcopy
@@ -234,14 +228,14 @@ start_chat_session() {
       continue
     fi
 
-    message=$(jq -Rs '.' <<< "$message")
+    message=$(jq -Rs '.' <<<"$message")
 
     spinner &
     spinner_id=$!
 
     response=$(post_user_message "$message" "$model_id" "$conversation_id")
-    conversation_id=$(jq -r '.data.conversation_id' <<< "$response")
-    assistant_message_id=$(jq -r '.data.assistant_message_id' <<< "$response")
+    conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
+    assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
 
     kill $spinner_id
     wait $! 2>/dev/null
@@ -272,31 +266,36 @@ main() {
   [[ "$#" -lt 1 ]] && usage
 
   case "$1" in
-    "c"|"chat")
-      refresh &
-      start_chat_session
-      ;;
-    "co"|"cont"|"continue")
-      refresh
-      start_chat_session "$(get_conversation_id)"
-      ;;
-    "d"|"delete")
-      refresh
-      delete_conversation
-      ;;
-    "p"|"patch")
-      refresh
-      patch_conversation
-      ;;
-    "query-models")
-      call "$BASE_URL/models/" | jq '.[] | { id, name, family, context_window }'
-      ;;
-    "count-conv")
-      count_messages
-      ;;
-    *)
-      usage
-      ;;
+  "c" | "chat")
+    refresh &
+    start_chat_session
+    ;;
+  "co" | "cont" | "continue")
+    refresh
+    start_chat_session "$(get_conversation_id)"
+    ;;
+  "d" | "delete")
+    refresh
+    delete_conversation
+    ;;
+  "p" | "patch")
+    refresh
+    patch_conversation
+    ;;
+  "pc" | "pick-chat")
+    refresh &
+    pick_model
+    start_chat_session
+    ;;
+  "query-models")
+    call "$BASE_URL/models/" | jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -k2
+    ;;
+  "count-conv")
+    count_messages
+    ;;
+  *)
+    usage
+    ;;
   esac
 }
 

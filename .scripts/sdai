@@ -26,11 +26,7 @@ model_index=2
 model_name=${MODELS_NAMES[$model_index]}
 model_id=${MODELS_IDS[$model_index]}
 
-shopt -s expand_aliases
 set -o vi
-alias editor="nvim"
-# alias editor="nvim -c 'set filetype=markdown'"
-# alias editor="code -w"
 
 spinner() {
   local rest=""
@@ -41,7 +37,7 @@ spinner() {
     rest=${spinstr#?}
     spinstr=$rest${spinstr:0:1}
     sleep 0.1
-    printf "\b\b\b"
+    printf "\r"
   done
 }
 
@@ -52,18 +48,19 @@ pick_model() {
       (printf '%s\n' "${MODELS_NAMES[@]}" | fzf --prompt="Select a model: ")
   )
 
-  if [[ -n "$selected" ]]; then
-    for i in "${!MODELS_NAMES[@]}"; do
-      if [[ "${MODELS_NAMES[$i]}" = "${selected}" ]]; then
-        model_name="${MODELS_NAMES[$i]}"
-        model_id="${MODELS_IDS[$i]}"
-        echo "Model changed to $model_name (ID: $model_id)"
-        break
-      fi
-    done
-  else
+  if [ ! -n "$selected" ]; then
     echo "Model selection cancelled"
+    return
   fi
+
+  for i in "${!MODELS_NAMES[@]}"; do
+    if [[ "${MODELS_NAMES[$i]}" = "${selected}" ]]; then
+      model_name="${MODELS_NAMES[$i]}"
+      model_id="${MODELS_IDS[$i]}"
+      echo "Model changed to $model_name (ID: $model_id)"
+      break
+    fi
+  done
 }
 
 invalidate_cache() {
@@ -87,7 +84,11 @@ call() {
 }
 
 get_conversations() {
-  if [ -f "$CACHE_FILE" ] && [ $(($(date +%s) - $(stat -f %m "$CACHE_FILE"))) -lt $CACHE_TIMEOUT ]; then
+  [ ! -f $CACHE_FILE ] && call "$BASE_URL/conversations/?order=created" | tee "$CACHE_FILE"
+
+  local cur=$(date +%s)
+  local mod=$([ $(uname) = 'Linux' ] && stat --format=%Y $CACHE_FILE || stat -f %m $CACHE_FILE)
+  if [ $((cur - mod)) -lt $CACHE_TIMEOUT ]; then
     cat "$CACHE_FILE"
   else
     call "$BASE_URL/conversations/?order=created" | tee "$CACHE_FILE"
@@ -118,13 +119,11 @@ post_user_message() {
   local message="$1"
   local model_id="$2"
   local conversation_id="$3"
-  local data
-
-  if [[ -z "$conversation_id" ]]; then
-    data='{ "message": '"$message"', "model_id": '"$model_id"', "regenerate_message_id": -1 }'
-  else
-    data='{ "message": '"$message"', "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
-  fi
+  local data=$(
+    [ -z "$conversation_id" ] \
+    && echo '{ "message": '"$message"', "model_id": '"$model_id"', "regenerate_message_id": -1 }' \
+    || echo '{ "message": '"$message"', "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
+  )
 
   call "$BASE_URL/conversations/chat_v2/" -d "$data"
 }
@@ -138,12 +137,10 @@ get_response_stream() {
 }
 
 stop_response_stream() {
-  if [[ "$streaming" == "true" ]]; then
-    call "$BASE_URL/conversations/messages/$assistant_message_id/stop-streaming/" -o /dev/null -d "{}"
-    printf "\n$BG[Interrupted]$CLR"
-  else
-    exit
-  fi
+  [ "$streaming" == "false" ] && exit
+
+  call "$BASE_URL/conversations/messages/$assistant_message_id/stop-streaming/" -o /dev/null -d "{}"
+  printf "\n$BG[Interrupted]$CLR"
 }
 
 count_messages_manually() {
@@ -155,7 +152,7 @@ count_messages_manually() {
 }
 
 count_messages() {
-  local last_monday=$(date -v-sun -u +%s)
+  local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
   (
     call "$BASE_URL/conversations/?order=created" | jq -c '.results[] | { num_of_unread_messages, created }' &
     call "$BASE_URL/conversations/?order=created&page=2" | jq -c '.results[] | { num_of_unread_messages, created }' &
@@ -164,7 +161,10 @@ count_messages() {
     local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
     local unread=$(echo "$conv" | jq -r '.num_of_unread_messages')
 
-    [ $(date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created") -gt "$last_monday" ] && echo $unread
+    local created=$([ $(uname) = 'Linux' ] \
+      && date --date="$created" +%s || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
+    )
+    [ $created -gt "$last_monday" ] && echo $unread
   done | awk '{sum += $1} END {print sum / 2}'
 }
 
@@ -188,7 +188,7 @@ start_chat_session() {
     ) || exit 0
 
     if [[ "$message" = "" ]]; then
-      editor "$queryfile"
+      nvim "$queryfile"
       message=$(cat "$queryfile")
     else
       echo "$message"
@@ -267,6 +267,8 @@ usage() {
   exit 1
 }
 
+# might add this to zshrc: complete -W 'query-models count-conv' sdai
+
 main() {
   [[ "$#" -lt 1 ]] && usage
 
@@ -305,3 +307,8 @@ main() {
 }
 
 main "$@"
+
+### Appendice
+
+# MODELS_IDS=( 4537 4541 4539 4540 4538 4536 4870 4873 4872 4871 178 179 3105 175 4094 4478 4430 3899 4457 4455 4454 4456 4445 4783 4782 4933 4852 4934 4853 4935)
+# MODELS_NAMES=( "claude-2.1" "claude-3-5-sonnet-20240620" "claude-3-haiku-20240307" "claude-3-opus-20240229" "claude-3-sonnet-20240229" "claude-instant-1.2" "gemini-1.0-pro" "gemini-1.0-pro-vision" "gemini-1.5-flash" "gemini-1.5-pro" "gpt-3.5-turbo" "gpt-3.5-turbo-16k" "gpt-3.5-turbo-instruct" "gpt-4" "gpt-4o" "gpt-4o-2024-08-06" "gpt-4o-mini" "gpt-4-turbo" "groq/gemma-7b-it" "groq/llama3-70b-8192" "groq/llama3-8b-8192" "groq/mixtral-8x7b-32768" "mistral/mistral-large-2407" "o1-mini" "o1-preview" "perplexity/llama-3.1-sonar-huge-128k-online" "perplexity/llama-3.1-sonar-large-128k-chat" "perplexity/llama-3.1-sonar-large-128k-online" "perplexity/llama-3.1-sonar-small-128k-chat" "perplexity/llama-3.1-sonar-small-128k-online")

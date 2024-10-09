@@ -1,6 +1,14 @@
 vim.o.tabstop = 4
 vim.o.expandtab = true
 
+-- sui format:
+-- %-GINCLUDING%.%#,
+-- %-GBUILDING%.%#,
+-- %Eerror[E%n]:\ %m,
+-- %-C%.%#\ %f:%l:%c,
+-- %-C%.%#,
+-- %Z
+
 local function main()
 	vim.lsp.set_log_level('off')
 

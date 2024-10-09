@@ -1,3 +1,6 @@
+vim.o.tabstop = 4
+vim.o.expandtab = true
+
 local function main()
 	vim.lsp.set_log_level('off')
 

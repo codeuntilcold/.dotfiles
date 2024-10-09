@@ -1,4 +1,6 @@
 vim.o.tabstop = 4
+vim.o.softtabstop = 4
+vim.o.shiftwidth = 4
 vim.o.expandtab = true
 
 -- sui format:
@@ -8,6 +10,34 @@ vim.o.expandtab = true
 -- %-C%.%#\ %f:%l:%c,
 -- %-C%.%#,
 -- %Z
+-- Suppress color since aptos sucks
+vim.o.makeprg = 'NO_COLOR=1 make'
+vim.o.errorformat = table.concat({
+	"%-Gaptos%.%#",
+	"%-Gsui%.%#",
+	"%-GINCLUDING DEPENDENCY%.%#",
+	"%-GCompiling%.%#",
+	"%-GBuilding%.%#",
+
+	"%Eerror: %m",
+	"%-C%.%# %f:%l:%c",
+	"%-C%.%#│%.%#",
+	"%-C%.%#│%.%#",
+	"%-C%.%#│%.%#",
+	"%Z",
+
+	"%Wwarning: %m",
+	"%-C%.%# %f:%l:%c",
+	"%-C%.%#│%.%#",
+	"%-C%.%#│%.%#",
+	"%-C%.%#│%.%#",
+	"%Z",
+
+	"%-A{",
+	"%-C%.%#",
+	"%-C}",
+	"%Z",
+}, ',')
 
 local function main()
 	vim.lsp.set_log_level('off')

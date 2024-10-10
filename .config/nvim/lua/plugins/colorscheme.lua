@@ -22,9 +22,10 @@ return {
 		"zenbones-theme/zenbones.nvim",
 		event = "VimEnter",
 		config = function()
-			-- vim.g.zenbones_compat = 1
-			-- vim.cmd.colorscheme "zenbones"
 			vim.g.zenwritten_compat = 1
+			vim.g.zenwritten_lightness = 'dim'
+			vim.g.zenwritten_darken_comments = 45
+			vim.g.zenwritten_transparent_background = true
 			vim.cmd.colorscheme "zenwritten"
 		end
 	},

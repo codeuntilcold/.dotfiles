@@ -3,28 +3,41 @@ vim.o.softtabstop = 4
 vim.o.shiftwidth = 4
 vim.o.expandtab = true
 
--- sui format:
--- %-GINCLUDING%.%#,
--- %-GBUILDING%.%#,
--- %Eerror[E%n]:\ %m,
--- %-C%.%#\ %f:%l:%c,
--- %-C%.%#,
--- %Z
--- Suppress color since aptos sucks
-vim.o.makeprg = 'NO_COLOR=1 make'
+-- Strip color...
+vim.o.makeprg = 'NO_COLOR=1 make $*' .. ' \\|& sed \'s/\x1B\\[[0-9;]\\{1,\\}[A-Za-z]//g\'';
+
 vim.o.errorformat = table.concat({
 	"%-Gaptos%.%#",
 	"%-Gsui%.%#",
 	"%-GINCLUDING DEPENDENCY%.%#",
 	"%-GCompiling%.%#",
 	"%-GBuilding%.%#",
+	"%-GFailed to build%.%#",
+	"%-Gmake: ***%.%#",
 
+	"%Eerror[E%n]: %m",
 	"%Eerror: %m",
 	"%-C%.%# %f:%l:%c",
-	"%-C%.%#│%.%#",
-	"%-C%.%#│%.%#",
-	"%-C%.%#│%.%#",
+	"%-C%.%#│%p %^%#",
+	"%-C%.%#│%p %^%# %m",
+	"%-C%.%#│%p -%# %m",
+	"%-C%.%#│%p %m",
+	"%-C%.%#│ %#%m",
 	"%Z",
+
+	-- TODO: For tests, incomplete
+	-- "%-GRunning Move%.%#",
+	-- "%-G[ PASS %.%#",
+	-- "%-G[ FAIL %.%#",
+	-- "%-G",
+	-- "%-GTest failures:%.%#",
+	-- "%-GFailures in %.%#",
+	-- "%-GTest result: %.%#",
+	-- "%-E┌── %m %.%#",
+	-- "%-C│ error[E%n]: %.%#",
+	-- "%-C%.%# %f:%l:%c",
+	-- "%-C%.%#│%p %^%# %m",
+	-- "%Z",
 
 	"%Wwarning: %m",
 	"%-C%.%# %f:%l:%c",

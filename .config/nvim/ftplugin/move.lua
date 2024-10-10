@@ -14,7 +14,20 @@ vim.o.errorformat = table.concat({
 	"%-GBuilding%.%#",
 	"%-GFailed to build%.%#",
 	"%-Gmake: ***%.%#",
+	"%-GRunning Move%.%#",
+	"%-G[ PASS %.%#",
+	"%-G[ FAIL %.%#",
+	"%-GTest failures:%.%#",
+	"%-GFailures in %.%#",
+	"%-GTest result: %.%#",
+	"%-G",
 
+	-- test
+	"%E┌── %.%# ──────",
+	"%C│ error[E%n]:",
+	"%Z└──────────────────",
+
+	-- compiling
 	"%Eerror[E%n]: %m",
 	"%Eerror: %m",
 	"%-C%.%# %f:%l:%c",
@@ -24,20 +37,6 @@ vim.o.errorformat = table.concat({
 	"%-C%.%#│%p %m",
 	"%-C%.%#│ %#%m",
 	"%Z",
-
-	-- TODO: For tests, incomplete
-	-- "%-GRunning Move%.%#",
-	-- "%-G[ PASS %.%#",
-	-- "%-G[ FAIL %.%#",
-	-- "%-G",
-	-- "%-GTest failures:%.%#",
-	-- "%-GFailures in %.%#",
-	-- "%-GTest result: %.%#",
-	-- "%-E┌── %m %.%#",
-	-- "%-C│ error[E%n]: %.%#",
-	-- "%-C%.%# %f:%l:%c",
-	-- "%-C%.%#│%p %^%# %m",
-	-- "%Z",
 
 	"%Wwarning: %m",
 	"%-C%.%# %f:%l:%c",

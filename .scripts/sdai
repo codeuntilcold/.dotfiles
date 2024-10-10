@@ -12,10 +12,10 @@ BG='\e[1;32m'
 CLR='\e[0m'
 
 MODELS_NAMES=(
-  "claude" "gpt4o" "gpt4o-mini" "groq-llama" "groq-mixtral" "o1-preview" "per-llama"
+  "claude" "gpt4o" "gpt4o-mini" "o1-preview" "per-llama" "gem-flash" "gem-pro"
 )
 MODELS_IDS=(
-  4541 4094 4430 4455 4456 4782 4852
+  4541 4094 4430 4782 4852 4872 4871
 )
 
 streaming="false"
@@ -46,7 +46,12 @@ spinner() {
 }
 
 pick_model() {
-  selected=$(printf '%s\n' "${MODELS_NAMES[@]}" | fzf --prompt="Select a model: ")
+  local selected=$(
+    [ ! -z $1 ] &&
+      (printf '%s\n' "${MODELS_NAMES[@]}" | fzf --filter $1 | head -n 1) ||
+      (printf '%s\n' "${MODELS_NAMES[@]}" | fzf --prompt="Select a model: ")
+  )
+
   if [[ -n "$selected" ]]; then
     for i in "${!MODELS_NAMES[@]}"; do
       if [[ "${MODELS_NAMES[$i]}" = "${selected}" ]]; then
@@ -201,8 +206,8 @@ start_chat_session() {
       continue
     fi
 
-    if [[ "$message" = "/model" ]]; then
-      pick_model
+    if [[ "$message" =~ ^/model ]]; then
+      pick_model $(cut -f2 -d' ' <<<"$message")
       continue
     fi
 

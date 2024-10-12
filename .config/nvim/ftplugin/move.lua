@@ -30,19 +30,14 @@ vim.o.errorformat = table.concat({
 	-- compiling
 	"%Eerror[E%n]: %m",
 	"%Eerror: %m",
+	"%Wwarning: %m",
+	"%Wwarning[W%n]: %m",
 	"%-C%.%# %f:%l:%c",
 	"%-C%.%#│%p %^%#",
 	"%-C%.%#│%p %^%# %m",
 	"%-C%.%#│%p -%# %m",
 	"%-C%.%#│%p %m",
 	"%-C%.%#│ %#%m",
-	"%Z",
-
-	"%Wwarning: %m",
-	"%-C%.%# %f:%l:%c",
-	"%-C%.%#│%.%#",
-	"%-C%.%#│%.%#",
-	"%-C%.%#│%.%#",
 	"%Z",
 
 	"%-A{",

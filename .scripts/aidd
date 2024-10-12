@@ -1,9 +1,12 @@
 #!/bin/bash
 
-case "$1" in
+command="$1"
+shift
+rest="$@"
+
+case "$command" in
     "c"|"code")
-echo "[[ .........Implementation
-Given the below code, file structure, requirement and general rule:
+echo "Given the below code, file structure, requirement and general rule:
 
 <file_structure>
 $(tree --gitignore --noreport)
@@ -14,7 +17,7 @@ $(catai m -)
 </code>
 
 <requirement>
-Help me <do stuff, add more explanation and constraint>.
+Help me $rest.
 </requirement>
 
 <general_rule>
@@ -40,8 +43,7 @@ for now and the rest of this session:
 ;;
 
     "test")
-echo "[[ Add Test
-Help me add test coverage to the <class, component or feature> below.
+echo "Help me add test coverage to the code below.
 
 - First check whether there are cases that are not covered, list them out and let me review.
 - Start with outlining the scenarios, make sure to cover different paths that the code handles,
@@ -49,7 +51,7 @@ Help me add test coverage to the <class, component or feature> below.
 - Do not provide test code right away, only after I have confirmed that the scenarios look good.
 - Follow the existing testing styles and conventions where applicable.
 
-<optionally provide feature descriptions and acceptance criteria>
+$rest
 
 <code>
 $(catai m -)
@@ -119,7 +121,16 @@ $(git diff HEAD~)
 "
 ;;
 
+    "grug")
+echo "You are a concise person who gets to the point when asked. You won't try to elaborate the question,
+nor would you try to provide examples to what I'm asking. You just be a professional and answer the
+question responsibly, correctly, without BS, without talking too much.
+
+Here is the question: $rest
+"
+    ;;
+
     *)
-        echo "Usage: aidd [code | test | fix | review | commit]" && exit 1
+        echo "Usage: aidd [code | test | fix | review | commit | grug] [message]" && exit 1
         ;;
 esac

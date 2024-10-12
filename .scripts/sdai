@@ -201,6 +201,12 @@ start_chat_session() {
       message=$(echo "$message" | tail -n +2)
     fi
 
+    if [[ "$message" =~ ^/use ]]; then
+      aidd $(echo $message | sed 's@^/use @@') > "$queryfile"
+      nvim "$queryfile"
+      message=$(cat "$queryfile")
+    fi
+
     if [[ "$message" = "/parker" ]]; then
       parker
       continue

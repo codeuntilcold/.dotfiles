@@ -13,7 +13,7 @@ $(tree --gitignore --noreport)
 </file_structure>
 
 <code>
-$(catai m -)
+$(catai)
 </code>
 
 <requirement>
@@ -54,7 +54,7 @@ echo "Help me add test coverage to the code below.
 $rest
 
 <code>
-$(catai m -)
+$(catai)
 </code>
 "
 ;;

@@ -1,56 +1,28 @@
 #!/bin/bash
 
-command -v fzf &> /dev/null || echo "fzf required. Installation: brew install fzf"
-
-process_files() {
-  while IFS= read -r file; do
-    local ext=$(basename $file | rev | cut -d. -f1 | rev)
-    echo "File: $file"
-    echo "\`\`\`$ext"
-    cat -n "$file"
-    echo '```'
-    echo
-  done <<< "$1"
+fzf_command() {
+  [ ! "$TMUX" ] && fzf "$@" || fzf-tmux "$@"
 }
 
-if [ $# -eq 0 ]; then
-  echo "Usage: catai [file extension | manual] [-]"
-  exit 0
-fi
+print_file() {
+  cat <<EOF
+File: $1
+\`\`\`$(basename $1 | rev | cut -d. -f1 | rev)
+$(cat -n $1)
+\`\`\`
+EOF
+  echo
+}
 
-option="$1"
+export -f print_file
 
-case "$option" in
-  "m"|"manual")
-    if git rev-parse --git-dir > /dev/null 2>&1; then
-      files=$(git ls-files --exclude-standard --others --cached)
-    else
-      files=$(find . -type f)
-    fi
+[ $# -eq 1 ] && cd "$1"
 
-    selected_files=$(
-      echo "$files" \
-      | fzf-tmux \
-        -m --ansi --filepath-word \
-        --preview='bat --style=numbers --line-range=:100 {}' \
-        --bind ctrl-t:toggle-all
-    )
-    ;;
-
-  *)
-    selected_files=$(
-      find . -type f -name "*.$option" \
-        -not -path "./node_modules/*" \
-        -not -path "./build/*"
-    )
-    ;;
-esac
-
-[[ ! -z "$selected_files" ]] && output=$(process_files "$selected_files")
-
-if [ -z "$2" ]; then
-  [ "$(uname)" = "Darwin" ] && echo "$output" | pbcopy
-  [ "$(uname)" = "Linux" ] && echo "$output" | wl-copy
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  git ls-files --exclude-standard --others --cached
 else
-  echo "$output"
-fi
+  find . -type f
+fi |
+  fzf_command --multi --ansi --filepath-word --preview='bat {}' --bind ctrl-t:toggle-all |
+  tee /tmp/sdai-files-cache.txt |
+  xargs -I{} bash -c "print_file {}"

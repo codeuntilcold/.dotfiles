@@ -25,6 +25,7 @@ vim.o.errorformat = table.concat({
 	-- test
 	"%E┌── %.%# ──────",
 	"%C│ error[E%n]:",
+	"%E│%p %m(%f:%l)",
 	"%Z└──────────────────",
 
 	-- compiling

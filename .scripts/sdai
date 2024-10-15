@@ -120,9 +120,9 @@ post_user_message() {
   local model_id="$2"
   local conversation_id="$3"
   local data=$(
-    [ -z "$conversation_id" ] \
-    && echo '{ "message": '"$message"', "model_id": '"$model_id"', "regenerate_message_id": -1 }' \
-    || echo '{ "message": '"$message"', "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
+    [ -z "$conversation_id" ] &&
+      echo '{ "message": '"$message"', "model_id": '"$model_id"', "regenerate_message_id": -1 }' ||
+      echo '{ "message": '"$message"', "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
   )
 
   call "$BASE_URL/conversations/chat_v2/" -d "$data"
@@ -161,8 +161,9 @@ count_messages() {
     local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
     local unread=$(echo "$conv" | jq -r '.num_of_unread_messages')
 
-    local created=$([ $(uname) = 'Linux' ] \
-      && date --date="$created" +%s || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
+    local created=$(
+      [ $(uname) = 'Linux' ] &&
+        date --date="$created" +%s || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
     )
     [ $created -gt "$last_monday" ] && echo $unread
   done | awk '{sum += $1} END {print sum / 2}'
@@ -202,7 +203,7 @@ start_chat_session() {
     fi
 
     if [[ "$message" =~ ^/use ]]; then
-      aidd $(echo $message | sed 's@^/use @@') > "$queryfile"
+      aidd $(echo $message | sed 's@^/use @@') >"$queryfile"
       nvim "$queryfile"
       message=$(cat "$queryfile")
     fi
@@ -305,6 +306,15 @@ main() {
     ;;
   "count-conv")
     count_messages
+    ;;
+  "read-cont")
+    conversation_id=$(get_conversation_id)
+    wscat -c "wss://admin.skydeck.ai/ws/connect/" \
+      -H "Origin: https://eastagile.skydeck.ai" \
+      -H "Cookie: eastagile_access=$(grep "_access" $COOKIE_FILE | cut -f7)" \
+      -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$conversation_id"'}}' |
+      jq -r '.data.messages.[].content'
+    start_chat_session $conversation_id
     ;;
   *)
     usage

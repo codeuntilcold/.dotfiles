@@ -202,19 +202,38 @@ start_chat_session() {
       message=$(echo "$message" | tail -n +2)
     fi
 
-    if [[ "$message" =~ ^/use ]]; then
-      aidd $(echo $message | sed 's@^/use @@') >"$queryfile"
+    # use aidd prompt
+    if [[ "$message" =~ ^/u ]]; then
+      aidd $(echo $message | cut -f2- -d' ') >"$queryfile"
       nvim "$queryfile"
       message=$(cat "$queryfile")
     fi
 
-    if [[ "$message" = "/parker" ]]; then
+    # parker
+    if [[ "$message" =~ ^/p ]]; then
       parker
+      dash
       continue
     fi
 
-    if [[ "$message" =~ ^/model ]]; then
+    # model
+    if [[ "$message" =~ ^/m ]]; then
       pick_model $(cut -f2 -d' ' <<<"$message")
+      dash
+      continue
+    fi
+
+    # yank
+    if [[ "$message" =~ ^/y ]]; then
+      local block=$(echo "$message" | cut -f2 -d' ')
+      if [[ "$block" = "$message" ]]; then
+        pbcopy <$CURRENT_RESPONSE_FILE
+        echo "Yanked content to clipboard"
+      else
+        cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'$/,/^```$/p' | sed '/^```/d' | pbcopy
+        echo "Yanked $block to clipboard"
+      fi
+      dash
       continue
     fi
 
@@ -228,19 +247,14 @@ start_chat_session() {
       continue
     fi
 
-    if [[ "$message" =~ ^/yank ]]; then
-      local block=$(echo "$message" | cut -f2 -d' ')
-      if [[ "$block" = "/yank" ]]; then
-        pbcopy <$CURRENT_RESPONSE_FILE
-        echo "Yanked content to clipboard"
-      else
-        cat $CURRENT_RESPONSE_FILE | sed -n "/^\`\`\`$block$/,/^\`\`\`$/p" | sed '/^```/d' | pbcopy
-        echo "Yanked $block to clipboard"
-      fi
+    if [[ "$message" = "/clear" ]]; then
+      clear
       continue
     fi
 
     message=$(jq -Rs '.' <<<"$message")
+
+    dash
 
     spinner &
     spinner_id=$!
@@ -253,7 +267,6 @@ start_chat_session() {
     wait $! 2>/dev/null
     echo -ne '\r   \r'
 
-    dash
     trap stop_response_stream SIGINT
 
     printf "$BG($model_name)$CLR\n"

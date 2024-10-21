@@ -5,7 +5,7 @@ shift
 rest="$@"
 
 case "$command" in
-    "c"|"code")
+    "code")
 echo "Given the below code, file structure, requirement and general rule:
 
 <file_structure>
@@ -111,13 +111,20 @@ Please follow this requirement closely
 
     "commit")
 echo "[[ Commit Message
-Help me write a commit message based on this git diff. Ideally the description should contain
-just enough details that we care about. Try to output just the message, no need to tell me anything
-else. Here is the diff:
+Help me write a commit message based on this git diff. Ideally the description should contain just
+enough details that we care about. Output just the message following the format, no need to tell me
+anything else. Here is the diff:
 
 <diff>
 $(git diff HEAD~)
 </diff>
+
+<format>
+[f] - Do something on the commit
+
+- Optional explanation number one
+- Optional notice number two
+</format>
 "
 ;;
 
@@ -131,6 +138,6 @@ Here is the question: $rest
     ;;
 
     *)
-        echo "Usage: aidd [code | test | fix | review | commit | grug] [message]" && exit 1
+        echo "Usage: aidd [code | test | review | commit | pr | grug] [message]" && exit 1
         ;;
 esac

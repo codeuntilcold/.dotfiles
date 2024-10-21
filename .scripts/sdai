@@ -22,11 +22,15 @@ streaming="false"
 conversation_id=""
 assistant_message_id=""
 
-model_index=2
-model_name=${MODELS_NAMES[$model_index]}
-model_id=${MODELS_IDS[$model_index]}
-
 set -o vi
+
+set_model() {
+  model_name=${MODELS_NAMES[$1]}
+  model_id=${MODELS_IDS[$1]}
+}
+
+# if interactive then use mini, else use claude to be more dependable
+set_model $([ -t 0 ] && echo 2 || echo 0)
 
 spinner() {
   local rest=""
@@ -55,8 +59,7 @@ pick_model() {
 
   for i in "${!MODELS_NAMES[@]}"; do
     if [[ "${MODELS_NAMES[$i]}" = "${selected}" ]]; then
-      model_name="${MODELS_NAMES[$i]}"
-      model_id="${MODELS_IDS[$i]}"
+      set_model $i
       echo "Model changed to $model_name (ID: $model_id)"
       break
     fi
@@ -132,7 +135,9 @@ get_response_stream() {
   streaming="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer |
     tee $CURRENT_RESPONSE_FILE |
-    bat --paging=never --style=rule --language=markdown # --theme=Dracula
+    bat --paging=never --style=rule --language=markdown
+    # ([ ! -t 0 ] && cat || bat --paging=never --style=rule --language=markdown)
+
   streaming="false"
 }
 
@@ -283,7 +288,7 @@ start_chat_session() {
 }
 
 usage() {
-  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv]"
+  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models]"
   exit 1
 }
 
@@ -328,6 +333,16 @@ main() {
       -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$conversation_id"'}}' |
       jq -r '.data.messages.[].content'
     start_chat_session $conversation_id
+    ;;
+  "up"|"use-prompt")
+      shift
+      message=$(aidd "$@")
+      message=$(jq -Rs '.' <<<"$message")
+      response=$(post_user_message "$message" "$model_id" "$conversation_id")
+      conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
+      assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
+
+      get_response_stream
     ;;
   *)
     usage

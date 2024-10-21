@@ -10,6 +10,8 @@ return {
 	-- Detect tabstop and shiftwidth automatically
 	'tpope/vim-sleuth',
 
+	'tpope/vim-dispatch',
+
 	-- Useful plugin to show you pending keybinds.
 	{
 		'folke/which-key.nvim',

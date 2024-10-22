@@ -86,7 +86,7 @@ $(git log main..HEAD)
 </git_log>
 
 <format>
-### Task
+### Tasks
 
 [Task name](task url)
 
@@ -115,15 +115,22 @@ Help me write a commit message based on this git diff. Ideally the description s
 enough details that we care about. Output just the message following the format, no need to tell me
 anything else. Here is the diff:
 
+<branch>
+$(git branch --show-current)
+</branch>
+
 <diff>
-$(git diff HEAD~)
+$(git diff HEAD)
 </diff>
 
+Note on the format: f on feature branch, b on bugs branch, so on
 <format>
 [f] - Do something on the commit
 
 - Optional explanation number one
 - Optional notice number two
+
+[optional task name](optional task url)
 </format>
 "
 ;;

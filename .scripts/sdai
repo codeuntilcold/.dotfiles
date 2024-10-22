@@ -12,10 +12,10 @@ BG='\e[1;32m'
 CLR='\e[0m'
 
 MODELS_NAMES=(
-  "claude" "gpt4o" "gpt4o-mini" "o1-preview" "per-llama" "gem-flash" "gem-pro"
+  "claude" "gpt4o" "gpt4o-mini" "o1-preview" "gem-flash" "gem-pro"
 )
 MODELS_IDS=(
-  4541 4094 4430 4782 4852 4872 4871
+  4541 4094 4430 4782 4872 4871
 )
 
 streaming="false"
@@ -30,7 +30,7 @@ set_model() {
 }
 
 # if interactive then use mini, else use claude to be more dependable
-set_model $([ -t 0 ] && echo 2 || echo 0)
+set_model $([ -t 0 ] && echo 2 || echo 5)
 
 spinner() {
   local rest=""
@@ -122,13 +122,9 @@ post_user_message() {
   local message="$1"
   local model_id="$2"
   local conversation_id="$3"
-  local data=$(
-    [ -z "$conversation_id" ] &&
-      echo '{ "message": '"$message"', "model_id": '"$model_id"', "regenerate_message_id": -1 }' ||
-      echo '{ "message": '"$message"', "model_id": '"$model_id"', "conversation_id": '"$conversation_id"', "regenerate_message_id": -1 }'
-  )
 
-  call "$BASE_URL/conversations/chat_v2/" -d "$data"
+  curl "$BASE_URL/conversations/chat_v2/" -s --cookie "$COOKIE_FILE" -H "Content-Type: multipart/form-data" -H "$HEADER_REFERER" \
+    -F "message=$message" -F "model_id=$model_id" -F "regenerate_message_id=-1" -F "conversation_id=$conversation_id"
 }
 
 get_response_stream() {
@@ -136,7 +132,7 @@ get_response_stream() {
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer |
     tee $CURRENT_RESPONSE_FILE |
     bat --paging=never --style=rule --language=markdown
-    # ([ ! -t 0 ] && cat || bat --paging=never --style=rule --language=markdown)
+  # ([ ! -t 0 ] && cat || bat --paging=never --style=rule --language=markdown)
 
   streaming="false"
 }
@@ -173,6 +169,8 @@ count_messages() {
     [ $created -gt "$last_monday" ] && echo $unread
   done | awk '{sum += $1} END {print sum / 2}'
 }
+
+
 
 dash() {
   printf "$BG%$(tput cols)s$CLR" | tr " " "—"
@@ -288,7 +286,7 @@ start_chat_session() {
 }
 
 usage() {
-  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models]"
+  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv | read-cont | use-prompt]"
   exit 1
 }
 
@@ -334,15 +332,15 @@ main() {
       jq -r '.data.messages.[].content'
     start_chat_session $conversation_id
     ;;
-  "up"|"use-prompt")
-      shift
-      message=$(aidd "$@")
-      message=$(jq -Rs '.' <<<"$message")
-      response=$(post_user_message "$message" "$model_id" "$conversation_id")
-      conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
-      assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
+  "up" | "use-prompt")
+    shift
+    message=$(aidd "$@")
+    message=$(jq -Rs '.' <<<"$message")
+    response=$(post_user_message "$message" "$model_id" "$conversation_id")
+    conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
+    assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
 
-      get_response_stream
+    get_response_stream
     ;;
   *)
     usage

@@ -1,0 +1,6 @@
+-- vim.api.nvim_create_autocmd('User', {
+-- 	group = 'FugitiveCommit',
+-- 	callback = function (ev)
+-- 		print(vim.inspect(ev))
+-- 	end
+-- })

@@ -28,7 +28,6 @@ function dailyzoom() {
 
 alias lg='lazygit'
 alias ldk='lazydocker'
-alias tmux='tmux -2'
 alias zl='zellij'
 alias dbui='nvim -c "DBUI"'
 alias oil='nvim -c "Oil"'

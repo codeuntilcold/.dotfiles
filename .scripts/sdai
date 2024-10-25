@@ -12,10 +12,10 @@ BG='\e[1;32m'
 CLR='\e[0m'
 
 MODELS_NAMES=(
-  "claude" "gpt4o" "gpt4o-mini" "o1-preview" "gem-flash" "gem-pro"
+  "claude" "gpt4o" "gpt4o-mini" "gem-flash" "gem-pro"
 )
 MODELS_IDS=(
-  4541 4094 4430 4782 4872 4871
+  5101 4094 4430 5103 4871
 )
 
 streaming="false"
@@ -30,7 +30,7 @@ set_model() {
 }
 
 # if interactive then use mini, else use claude to be more dependable
-set_model $([ -t 0 ] && echo 2 || echo 5)
+set_model $([ -t 0 ] && echo 2 || echo 3)
 
 spinner() {
   local rest=""
@@ -144,14 +144,6 @@ stop_response_stream() {
   printf "\n$BG[Interrupted]$CLR"
 }
 
-count_messages_manually() {
-  call "$BASE_URL/conversations/?order=created" |
-    jq -c '.results[] | { name, num_of_unread_messages }' |
-    fzf --bind='ctrl-t:toggle-all' -m |
-    jq '.num_of_unread_messages' |
-    awk '{sum += $1} END {print sum / 2}'
-}
-
 count_messages() {
   local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
   (
@@ -169,8 +161,6 @@ count_messages() {
     [ $created -gt "$last_monday" ] && echo $unread
   done | awk '{sum += $1} END {print sum / 2}'
 }
-
-
 
 dash() {
   printf "$BG%$(tput cols)s$CLR" | tr " " "—"
@@ -285,6 +275,27 @@ start_chat_session() {
   done
 }
 
+one_time_prompt() {
+  refresh
+
+  message=$(aidd "$@" | jq -Rs '.')
+  response=$(post_user_message "$message" "$model_id" "$conversation_id")
+  conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
+  assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
+
+  get_response_stream
+}
+
+get_conversation_history() {
+  conversation_id=$(get_conversation_id)
+  wscat -c "wss://admin.skydeck.ai/ws/connect/" \
+    -H "Origin: https://eastagile.skydeck.ai" \
+    -H "Cookie: eastagile_access=$(grep "_access" $COOKIE_FILE | cut -f7)" \
+    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$conversation_id"'}}' |
+    jq -r '.data.messages.[].content' |
+    bat --paging=never --style=rule --language=markdown
+}
+
 usage() {
   echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv | read-cont | use-prompt]"
   exit 1
@@ -324,33 +335,13 @@ main() {
     count_messages
     ;;
   "read-cont")
-    conversation_id=$(get_conversation_id)
-    wscat -c "wss://admin.skydeck.ai/ws/connect/" \
-      -H "Origin: https://eastagile.skydeck.ai" \
-      -H "Cookie: eastagile_access=$(grep "_access" $COOKIE_FILE | cut -f7)" \
-      -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$conversation_id"'}}' |
-      jq -r '.data.messages.[].content'
+    get_conversation_history
     start_chat_session $conversation_id
     ;;
-  "up" | "use-prompt")
-    shift
-    message=$(aidd "$@")
-    message=$(jq -Rs '.' <<<"$message")
-    response=$(post_user_message "$message" "$model_id" "$conversation_id")
-    conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
-    assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
-
-    get_response_stream
-    ;;
   *)
-    usage
+    one_time_prompt "$@"
     ;;
   esac
 }
 
 main "$@"
-
-### Appendice
-
-# MODELS_IDS=( 4537 4541 4539 4540 4538 4536 4870 4873 4872 4871 178 179 3105 175 4094 4478 4430 3899 4457 4455 4454 4456 4445 4783 4782 4933 4852 4934 4853 4935)
-# MODELS_NAMES=( "claude-2.1" "claude-3-5-sonnet-20240620" "claude-3-haiku-20240307" "claude-3-opus-20240229" "claude-3-sonnet-20240229" "claude-instant-1.2" "gemini-1.0-pro" "gemini-1.0-pro-vision" "gemini-1.5-flash" "gemini-1.5-pro" "gpt-3.5-turbo" "gpt-3.5-turbo-16k" "gpt-3.5-turbo-instruct" "gpt-4" "gpt-4o" "gpt-4o-2024-08-06" "gpt-4o-mini" "gpt-4-turbo" "groq/gemma-7b-it" "groq/llama3-70b-8192" "groq/llama3-8b-8192" "groq/mixtral-8x7b-32768" "mistral/mistral-large-2407" "o1-mini" "o1-preview" "perplexity/llama-3.1-sonar-huge-128k-online" "perplexity/llama-3.1-sonar-large-128k-chat" "perplexity/llama-3.1-sonar-large-128k-online" "perplexity/llama-3.1-sonar-small-128k-chat" "perplexity/llama-3.1-sonar-small-128k-online")

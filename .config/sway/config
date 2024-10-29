@@ -1,4 +1,5 @@
 exec ibus-daemon --daemonize --replace
+exec nm-applet
 
 # Variables
 set $mod Mod4
@@ -15,7 +16,7 @@ set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle
 set $ibus_zalo $dot_local/scripts/toggle-zalo-ggdocs
 set $screenshot $dot_local/scripts/wl-screenshot
-# set $clipboard_manager cliphist list | wofi | cliphist decode | wl-copy
+# set $clipboard_manager cliphist list | wofi --dmenu | cliphist decode | wl-copy
 
 include /etc/sway/config-vars.d/*
 

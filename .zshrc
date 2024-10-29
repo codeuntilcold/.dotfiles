@@ -32,6 +32,15 @@ alias zl='zellij'
 alias dbui='nvim -c "DBUI"'
 alias oil='nvim -c "Oil"'
 
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
 alias suibuild='sui move build --doc --skip-fetch-latest-git-deps'
 alias suitest='sui move test --doc --skip-fetch-latest-git-deps'
 

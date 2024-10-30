@@ -15,7 +15,7 @@ MODELS_NAMES=(
   "claude" "gpt4o" "gpt4o-mini" "gem-flash" "gem-pro"
 )
 MODELS_IDS=(
-  5101 4094 4430 5103 4871
+  5101 4094 4430 5103 5139
 )
 
 streaming="false"

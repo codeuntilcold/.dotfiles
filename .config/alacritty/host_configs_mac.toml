@@ -1,10 +1,11 @@
+[general]
 import = [
     "~/.config/alacritty/themes/themes/zenwritten_light.toml",
 ]
 
 working_directory = "/Users/vpn"
 
-[shell]
+[terminal.shell]
 program = "/usr/local/bin/zsh"
 args = ["--login"]
 

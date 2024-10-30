@@ -1,3 +1,4 @@
+[general]
 import = [
     # this file is symlinked to the appropriate config
     "~/.config/alacritty/host_configs.toml",

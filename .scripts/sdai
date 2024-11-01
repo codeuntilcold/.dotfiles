@@ -87,14 +87,14 @@ call() {
 }
 
 get_conversations() {
-  [ ! -f $CACHE_FILE ] && call "$BASE_URL/conversations/?order=created" | tee "$CACHE_FILE"
+  [ ! -f $CACHE_FILE ] && call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
 
   local cur=$(date +%s)
   local mod=$([ $(uname) = 'Linux' ] && stat --format=%Y $CACHE_FILE || stat -f %m $CACHE_FILE)
   if [ $((cur - mod)) -lt $CACHE_TIMEOUT ]; then
     cat "$CACHE_FILE"
   else
-    call "$BASE_URL/conversations/?order=created" | tee "$CACHE_FILE"
+    call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
   fi
 }
 
@@ -147,8 +147,8 @@ stop_response_stream() {
 count_messages() {
   local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
   (
-    call "$BASE_URL/conversations/?order=created" | jq -c '.results[] | { num_of_unread_messages, created }' &
-    call "$BASE_URL/conversations/?order=created&page=2" | jq -c '.results[] | { num_of_unread_messages, created }' &
+    call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { num_of_unread_messages, created }' &
+    call "$BASE_URL/conversations/?sort_by=created&page=2" | jq -c '.results[] | { num_of_unread_messages, created }' &
     wait
   ) | while IFS= read -r conv; do
     local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds

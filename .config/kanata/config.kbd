@@ -1,0 +1,6 @@
+(defsrc
+  caps)
+
+(deflayer default
+  lctl)
+

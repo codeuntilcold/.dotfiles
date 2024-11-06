@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 BASE_URL="https://admin.skydeck.ai/api/v1"
 CURRENT_RESPONSE_FILE="/tmp/sdai-conv-000000.md"
@@ -11,12 +11,13 @@ HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
 BG='\e[1;32m'
 CLR='\e[0m'
 
-MODELS_NAMES=(
-  "claude" "gpt4o" "gpt4o-mini" "gem-flash" "gem-pro"
-)
-MODELS_IDS=(
-  5101 4094 4430 5103 5139
-)
+declare -A models
+models[cl-sonnet]=5101
+models[cl-haiku]=5171
+models[gpt4o]=4094
+models[gpt4o-mini]=4430
+models[gem-flash]=5103
+models[gem-pro]=5139
 
 streaming="false"
 conversation_id=""
@@ -25,12 +26,12 @@ assistant_message_id=""
 set -o vi
 
 set_model() {
-  model_name=${MODELS_NAMES[$1]}
-  model_id=${MODELS_IDS[$1]}
+  model_name=$1
+  model_id=${models[$1]}
 }
 
 # if interactive then use mini, else use claude to be more dependable
-set_model $([ -t 0 ] && echo 2 || echo 3)
+set_model $([ -t 0 ] && echo "cl-haiku" || echo "cl-haiku")
 
 spinner() {
   local rest=""
@@ -48,8 +49,8 @@ spinner() {
 pick_model() {
   local selected=$(
     [ ! -z $1 ] &&
-      (printf '%s\n' "${MODELS_NAMES[@]}" | fzf --filter $1 | head -n 1) ||
-      (printf '%s\n' "${MODELS_NAMES[@]}" | fzf --prompt="Select a model: ")
+      (for key in ${!models[@]}; do echo $key; done | fzf --filter $1 | head -n 1) ||
+      (for key in ${!models[@]}; do echo $key; done | fzf --prompt="Select a model: ")
   )
 
   if [ ! -n "$selected" ]; then
@@ -57,13 +58,8 @@ pick_model() {
     return
   fi
 
-  for i in "${!MODELS_NAMES[@]}"; do
-    if [[ "${MODELS_NAMES[$i]}" = "${selected}" ]]; then
-      set_model $i
-      echo "Model changed to $model_name (ID: $model_id)"
-      break
-    fi
-  done
+  set_model $selected
+  echo "Model changed to $model_name (ID: $model_id)"
 }
 
 invalidate_cache() {
@@ -86,6 +82,11 @@ call() {
   curl -s --cookie "$COOKIE_FILE" -H "Content-Type: application/json" -H "$HEADER_REFERER" "$@"
 }
 
+call_form() {
+  refresh
+  curl -s --cookie "$COOKIE_FILE" -H "Content-Type: multipart/form-data" -H "$HEADER_REFERER" "$@"
+}
+
 get_conversations() {
   [ ! -f $CACHE_FILE ] && call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
 
@@ -104,18 +105,11 @@ get_conversation_id() {
 }
 
 delete_conversation() {
-  local conversation_id=$(get_conversation_id)
-  call "$BASE_URL/conversations/$conversation_id" -o /dev/null -X DELETE &
-  invalidate_cache
+  call "$BASE_URL/conversations/$1" -o /dev/null -X DELETE &
 }
 
 patch_conversation() {
-  local conversation_id=$(get_conversation_id)
-  [[ -z "$conversation_id" ]] && echo "No conversation selected" && exit 1
-
-  local name
-  read -p "Enter new name: " name
-  call "$BASE_URL/conversations/$conversation_id" -o /dev/null -X PATCH -d '{ "name": "'"$name"'" }' &
+  call "$BASE_URL/conversations/$1" -o /dev/null -X PATCH -d '{ "name": "'"$2"'" }' &
 }
 
 post_user_message() {
@@ -123,8 +117,8 @@ post_user_message() {
   local model_id="$2"
   local conversation_id="$3"
 
-  curl "$BASE_URL/conversations/chat_v2/" -s --cookie "$COOKIE_FILE" -H "Content-Type: multipart/form-data" -H "$HEADER_REFERER" \
-    -F "message=$message" -F "model_id=$model_id" -F "regenerate_message_id=-1" -F "conversation_id=$conversation_id"
+  call_form "$BASE_URL/conversations/chat_v2/" -F "message=$message" -F "model_id=$model_id" \
+    -F "regenerate_message_id=-1" -F "conversation_id=$conversation_id"
 }
 
 get_response_stream() {
@@ -269,76 +263,87 @@ start_chat_session() {
     trap - SIGINT
     dash
 
-    if [[ ! -z "$conversation_title" ]]; then
-      call "$BASE_URL/conversations/$conversation_id" -o /dev/null -X PATCH -d '{ "name": "'"$conversation_title"'" }' &
-    fi
+    [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
   done
 }
 
 one_time_prompt() {
-  refresh
+  message=$(aidd "$@")
 
-  message=$(aidd "$@" | jq -Rs '.')
+  # setting conversation title using prefix [[ on first line
+  local first_line=$(echo "$message" | head -n 1)
+  if [[ "$first_line" =~ ^\[\[ ]]; then
+    conversation_title=$(echo "$first_line" | sed -n 's/^\[\[ \(.*\)/\1/p')
+    message=$(echo "$message" | tail -n +2)
+  fi
+
+  message=$(jq -Rs '.' <<<"$message")
+
   response=$(post_user_message "$message" "$model_id" "$conversation_id")
   conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
   assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
 
   get_response_stream
+
+  [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
 }
 
 get_conversation_history() {
-  conversation_id=$(get_conversation_id)
   wscat -c "wss://admin.skydeck.ai/ws/connect/" \
     -H "Origin: https://eastagile.skydeck.ai" \
     -H "Cookie: eastagile_access=$(grep "_access" $COOKIE_FILE | cut -f7)" \
-    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$conversation_id"'}}' |
+    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$1"'}}' |
     jq -r '.data.messages.[].content' |
     bat --paging=never --style=rule --language=markdown
 }
 
 usage() {
-  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv | read-cont | use-prompt]"
+  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv | read-cont]"
   exit 1
 }
-
-# might add this to zshrc: complete -W 'query-models count-conv' sdai
 
 main() {
   [[ "$#" -lt 1 ]] && usage
 
   case "$1" in
-  "c" | "chat")
+  c | chat)
     refresh &
     start_chat_session
     ;;
-  "co" | "cont" | "continue")
+  cont | continue)
     refresh
-    start_chat_session "$(get_conversation_id)"
+    start_chat_session $(get_conversation_id)
     ;;
-  "d" | "delete")
+  d | delete)
     refresh
-    delete_conversation
+    delete_conversation $(get_conversation_id)
+    invalidate_cache
     ;;
-  "p" | "patch")
+  p | patch)
     refresh
-    patch_conversation
+    local conversation_id=$(get_conversation_id)
+    [[ $? ]] && echo "No conversation selected" && exit 1
+    read -p "Enter new name: " name
+    patch_conversation $conversation_id $name
     ;;
-  "pc" | "pick-chat")
+  pc | pick-chat)
     refresh &
-    pick_model
-    start_chat_session
+    start_chat_session $(pick_model)
     ;;
-  "query-models")
+  query-models)
+    refresh
     call "$BASE_URL/models/" | jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -k2
     ;;
-  "count-conv")
+  count-conv)
     count_messages
     ;;
-  "read-cont")
-    get_conversation_history
+  read-cont)
+    local conversation_id=$(get_conversation_id)
+    get_conversation_history $conversation_id
     start_chat_session $conversation_id
     ;;
   *)
+    refresh
     one_time_prompt "$@"
     ;;
   esac

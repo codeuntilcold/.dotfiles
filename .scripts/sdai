@@ -328,7 +328,8 @@ main() {
     ;;
   pc | pick-chat)
     refresh &
-    start_chat_session $(pick_model)
+    pick_model
+    start_chat_session
     ;;
   query-models)
     refresh

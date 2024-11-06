@@ -1,7 +1,5 @@
+-- For better coding guide
 vim.o.colorcolumn = "100"
-
--- [[ Setting options ]]
--- See `:help vim.o`
 
 -- Vim dadbod config
 vim.g.db_ui_winwidth = 30
@@ -36,6 +34,7 @@ vim.o.timeout = true
 vim.o.timeoutlen = 300
 
 -- Set completeopt to have a better completion experience
+vim.o.complete = vim.o.complete .. ',i,kspell'
 vim.o.completeopt = 'menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this

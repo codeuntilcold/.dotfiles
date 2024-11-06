@@ -1,4 +1,4 @@
-return { {
+return {
 	-- Autocompletion
 	'hrsh7th/nvim-cmp',
 	event = 'VeryLazy',
@@ -66,4 +66,4 @@ return { {
 	config = function(_, opts)
 		require('cmp').setup(opts)
 	end
-}, }
+}

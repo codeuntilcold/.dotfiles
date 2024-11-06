@@ -1,4 +1,6 @@
 return {
+	'nvim-treesitter/nvim-treesitter-context',
+
 	{ -- Highlight, edit, and navigate code
 		'nvim-treesitter/nvim-treesitter',
 		event = 'VeryLazy',
@@ -17,19 +19,14 @@ return {
 				filetype = "move",
 			}
 
-			-- [[ Configure Treesitter ]]
-			-- See `:help nvim-treesitter`
 			require('nvim-treesitter.configs').setup {
-				-- Add languages to be installed here that you want installed for treesitter
 				ensure_installed = {
 					'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vim', 'html', 'javascript', 'json', 'vimdoc', 'move'
 				},
 				ignore_install = {},
 
-				-- So that LSP will not complain
 				modules = {},
 
-				-- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
 				auto_install = false,
 				sync_install = false,
 
@@ -47,7 +44,7 @@ return {
 				textobjects = {
 					select = {
 						enable = true,
-						lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
+						lookahead = true,
 						keymaps = {
 							-- You can use the capture groups defined in textobjects.scm
 							['aa'] = '@parameter.outer',
@@ -78,21 +75,8 @@ return {
 							['[]'] = '@class.outer',
 						},
 					},
-					-- swap = {
-					-- 	enable = true,
-					-- 	swap_next = {
-					-- 		['<leader>a'] = '@parameter.inner',
-					-- 	},
-					-- 	swap_previous = {
-					-- 		['<leader>A'] = '@parameter.inner',
-					-- 	},
-					-- },
 				},
 			}
 		end,
 	},
-
-	{
-		'nvim-treesitter/nvim-treesitter-context',
-	}
 }

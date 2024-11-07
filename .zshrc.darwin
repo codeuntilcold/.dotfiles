@@ -1,0 +1,71 @@
+export ZSH="$HOME/.oh-my-zsh"
+
+export HIST_STAMPS="dd.mm.yyyy"
+export HISTIGNORE="clear*"
+
+plugins=(git zsh-syntax-highlighting)
+
+source $ZSH/oh-my-zsh.sh
+
+[[ ! -z "$TMUX" ]] && export TERM="tmux-256color" && alias htop="TERM=xterm-256color htop"
+
+# Edit command using vi bindings
+set -o vi
+export EDITOR="nvim"
+
+alias upgrade="brew upgrade"
+
+### typos and quick access
+alias ez="nvim ~/.zshrc"
+alias sz="source ~/.zshrc"
+alias ck="nvim ~/.sdai/cookies"
+alias ncim="nvim"
+alias nivm="nvim"
+alias dbui="nvim -c DBUI"
+alias oil="nvim -c Oil"
+alias lvim='nvim -c "normal '\''0"'
+alias tmxu="tmux"
+alias tmuxa="tmux a"
+alias tma="tmux a"
+alias gitt="git"
+
+### misc
+function when() { date -r $(echo $1 | cut -c1-10) }
+function jcurl() { curl "$@" | jq }
+function unjail() { xattr -d com.apple.quarantine "$@" }
+function weather() { curl v2.wttr.in }
+function tellme() { sdai grug "$@" | say }
+
+# Audio related stuffs
+alias aud="audio-default"
+alias aub="audio-headphone-both"
+alias au1="audio-headphone-1"
+alias au2="audio-headphone-2"
+
+# Lazy
+alias lg="lazygit"
+alias ldk="lazydocker"
+
+# Kubectl specifics
+alias kpods="kubectl get pods --no-headers > /tmp/kubectl-get-pods"
+alias kbash="cat /tmp/kubectl-get-pods | fzf | awk '{print \$1}' | xargs -o -I % kubectl exec -it % bash"
+alias klogs="cat /tmp/kubectl-get-pods | fzf | awk '{print \$1}' | xargs -o -I % kubectl logs -f %"
+
+# Sui specifics
+alias suio="sui client object"
+alias suidf="sui client dynamic-field"
+
+# PATHS
+export PATH="/usr/local/sbin:/usr/local/opt/libpq/bin:$HOME/.local/scripts:$HOME/.local/bin:$PATH"
+source "$HOME/.cargo/env"
+export DOTFILES_PATH="$HOME/Desktop/DungNgo/.dotfiles"
+export CARGO="$HOME/.cargo/bin/cargo"
+export CARGO_HOME="$HOME/.cargo"
+export FZF_DEFAULT_OPTS='--layout=reverse'
+
+# Automatically create a new session
+tmux has-session -t main || tmux new-session -d -s main
+
+source <(fzf --zsh)
+eval "$(starship init zsh)"
+eval "$(zoxide init zsh)"

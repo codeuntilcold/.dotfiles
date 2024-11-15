@@ -6,6 +6,7 @@ CACHE_FILE="/tmp/sdai-cache.txt"
 CACHE_TIMEOUT=300 # 5 minutes
 
 COOKIE_FILE="$HOME/.sdai/cookies"
+COUNT_FILE="$HOME/.sdai/count.txt"
 HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
 
 BG='\e[1;32m'
@@ -17,7 +18,7 @@ models[cl-haiku]=5171
 models[gpt4o]=4094
 models[gpt4o-mini]=4430
 models[gem-flash]=5103
-models[gem-pro]=5139
+models[gem-pro]=5212
 
 streaming="false"
 conversation_id=""
@@ -122,6 +123,8 @@ post_user_message() {
 }
 
 get_response_stream() {
+  increment_message_count
+
   streaming="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer |
     tee $CURRENT_RESPONSE_FILE |
@@ -138,7 +141,16 @@ stop_response_stream() {
   printf "\n$BG[Interrupted]$CLR"
 }
 
+increment_message_count() {
+  local current=$(cat $COUNT_FILE)
+  echo $(( current + 1 )) > $COUNT_FILE
+}
+
 count_messages() {
+  cat $COUNT_FILE
+}
+
+count_messages_old() {
   local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
   (
     call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { num_of_unread_messages, created }' &
@@ -257,7 +269,7 @@ start_chat_session() {
     trap stop_response_stream SIGINT
 
     printf "$BG($model_name)$CLR\n"
-    get_response_stream
+    time get_response_stream
     echo
 
     trap - SIGINT

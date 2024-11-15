@@ -13,21 +13,17 @@ source $ZSH/oh-my-zsh.sh
 set -o vi
 export EDITOR="nvim"
 
-alias upgrade="brew upgrade"
-
 ### typos and quick access
+alias upgrade="brew upgrade"
 alias ez="nvim ~/.zshrc"
 alias sz="source ~/.zshrc"
 alias ck="nvim ~/.sdai/cookies"
-alias ncim="nvim"
 alias nivm="nvim"
 alias dbui="nvim -c DBUI"
-alias oil="nvim -c Oil"
 alias lvim='nvim -c "normal '\''0"'
 alias tmxu="tmux"
 alias tmuxa="tmux a"
 alias tma="tmux a"
-alias gitt="git"
 
 ### misc
 function when() { date -r $(echo $1 | cut -c1-10) }

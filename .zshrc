@@ -8,6 +8,10 @@ source $ZSH/oh-my-zsh.sh
 
 export PATH="${PATH}:${HOME}/.local/bin/:${HOME}/.local/scripts:/usr/local/go/bin:${HOME}/go/bin:/opt/nvim-linux64/bin"
 
+# tex
+# export TEXMFHOME=~/.TinyTeX/texmf-dist:~/texmf
+alias lmk=latexmk
+
 # Edit commands using vi bindings
 set -o vi
 

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+jq -R 'split(".") | .[1] | @base64d | fromjson |
+  # you can replace the "localtime" with "gmttime" if that makes sense
+  if .exp then (.expStr = (.exp | localtime | strftime("%Y-%m-%dT%H:%M:%S %Z"))) else . end |
+  if .iat then (.iatStr = (.iat | localtime | strftime("%Y-%m-%dT%H:%M:%S %Z"))) else . end |
+    .' <<<"${1:-$(cat)}"

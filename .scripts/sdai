@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -o vi
+set -o pipefail
+# set -x         # for debugging
+shopt -s nullglob
 
 BASE_URL="https://admin.skydeck.ai/api/v1"
 CURRENT_RESPONSE_FILE="/tmp/sdai-conv-000000.md"
@@ -26,24 +28,25 @@ MODELS["gem-exp"]=5271
 STREAMING="false"
 CONVERSATION_ID=""
 ASSI_MESSAGE_ID=""
-MODEL_NAME=$1
-MODEL_ID=${MODELS[$1]}
+MODEL_NAME=""
+MODEL_ID=""
 
-set_model() {
-  MODEL_NAME=$1
-  MODEL_ID=${MODELS[$1]}
+###
+# LOCAL OPS
+###
+
+fail() {
+  printf '%s\n' "$1" >&2
+  exit "${2-1}"
 }
 
 spinner() {
-  local rest=""
   local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-
-  while true; do
+  for ((i = 0; i < 100; i++)); do
     printf " %s " "${spinstr:0:1}"
-    rest=${spinstr#?}
-    spinstr=$rest${spinstr:0:1}
-    sleep 0.1
+    sleep 0.05
     printf "\r"
+    spinstr=${spinstr#?}${spinstr:0:1}
   done
 }
 
@@ -56,18 +59,49 @@ pick_model() {
 
   [[ -z "$selected" ]] && echo "Model selection cancelled" && return
 
-  set_model $selected
+  debug set_model $selected
   echo "Model changed to $MODEL_NAME (ID: $MODEL_ID)"
+}
+
+set_model() {
+  MODEL_NAME=$1 && MODEL_ID=${MODELS[$1]}
 }
 
 invalidate_cache() {
   [[ -f "$CACHE_FILE" ]] && rm $CACHE_FILE
 }
 
-refresh() {
-  local exp=$(grep "_access" $COOKIE_FILE | cut -f7 | jwt | jq '.exp')
+increment_message_count() {
+  local current=$(cat $COUNT_FILE)
+  echo $((current + 1)) >$COUNT_FILE
+}
 
-  [ "$(date +%s)" -gt "$exp" ] &&
+count_messages() {
+  cat $COUNT_FILE
+}
+
+dash() {
+  printf "$BG%$(tput cols)s$CLR" | tr " " "—"
+  echo
+}
+
+clean_message() {
+  # jq -Rrs '.' <<<"$1"
+  printf "$1"
+}
+
+get_access_token() {
+  grep "_access" $COOKIE_FILE | cut -f7
+}
+
+###
+# NETWORK CALLS
+###
+
+refresh() {
+  local exp=$(get_access_token | jwt | jq '.exp')
+
+  [[ "$(date +%s)" -gt "$exp" ]] &&
     curl -s -X POST -o /dev/null "$BASE_URL/authentication/token/refresh/" \
       -H "$HEADER_REFERER" --cookie "$COOKIE_FILE" --cookie-jar "$COOKIE_FILE"
 }
@@ -83,19 +117,15 @@ call_form() {
 }
 
 get_conversations() {
-  [ ! -f $CACHE_FILE ] && call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
+  [[ ! -f $CACHE_FILE ]] && call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
 
   local cur=$(date +%s)
-  local mod=$([ $(uname) = 'Linux' ] && stat --format=%Y $CACHE_FILE || stat -f %m $CACHE_FILE)
-  if [ $((cur - mod)) -lt $CACHE_TIMEOUT ]; then
+  local mod=$([[ $(uname) = 'Linux' ]] && stat --format=%Y $CACHE_FILE || stat -f %m $CACHE_FILE)
+  if [[ $((cur - mod)) -lt $CACHE_TIMEOUT ]]; then
     cat "$CACHE_FILE"
   else
     call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
   fi
-}
-
-pick_conversation_id() {
-  get_conversations | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
 }
 
 delete_conversation() {
@@ -107,8 +137,8 @@ patch_conversation() {
 }
 
 post_user_message() {
-  call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$1" -F "model_id=$MODEL_ID" \
-    -F "regenerate_message_id=-1" -F "conversation_id=$CONVERSATION_ID"
+  call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$(clean_message "$1")" \
+    -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1"
 }
 
 get_response_stream() {
@@ -123,22 +153,17 @@ get_response_stream() {
 }
 
 stop_response_stream() {
-  [ "$STREAMING" == "false" ] && exit
+  [ "$STREAMING" == "false" ] && return
 
   call "$BASE_URL/conversations/messages/$ASSI_MESSAGE_ID/stop-streaming/" -o /dev/null -d "{}"
   printf "\n$BG[Interrupted]$CLR"
 }
 
-increment_message_count() {
-  local current=$(cat $COUNT_FILE)
-  echo $((current + 1)) >$COUNT_FILE
+pick_conversation_id() {
+  get_conversations | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
 }
 
-count_messages() {
-  cat $COUNT_FILE
-}
-
-count_messages_old() {
+count_unread_messages() {
   local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
   (
     call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { num_of_unread_messages, created }' &
@@ -156,15 +181,18 @@ count_messages_old() {
   done | awk '{sum += $1} END {print sum / 2}'
 }
 
-dash() {
-  printf "$BG%$(tput cols)s$CLR" | tr " " "—"
-  echo
+get_conversation_history() {
+  wscat -c "wss://admin.skydeck.ai/ws/connect/" \
+    -H "Origin: https://eastagile.skydeck.ai" \
+    -H "Cookie: eastagile_access=$(get_access_token)" \
+    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$CONVERSATION_ID"'}}' |
+    jq -r '.data.messages.[].content' |
+    bat --paging=never --style=rule --language=markdown
 }
 
-clean_message() {
-  # jq -Rrs '.' <<<"$1"
-  printf "$1"
-}
+###
+# MAIN OPS
+###
 
 start_chat_session() {
   echo "SkyDeck.ai with $MODEL_NAME"
@@ -176,9 +204,9 @@ start_chat_session() {
     # use a local version of `gum` to map enter to new line, ctrl+d to submit
     message=$(
       ~/.local/bin/gum write --char-limit=0 --width=0 --height=0 --no-show-help
-    ) || exit 0
+    ) || return
 
-    if [[ "$message" = "" ]]; then
+    if [[ -z "$message" ]]; then
       nvim "$queryfile"
       message=$(cat "$queryfile")
     else
@@ -188,13 +216,13 @@ start_chat_session() {
     # setting conversation title using prefix [[ on first line
     local first_line=$(echo "$message" | head -n 1)
     if [[ "$first_line" =~ ^\[\[ ]]; then
-      conversation_title=$(echo "$first_line" | sed -n 's/^\[\[ \(.*\)/\1/p')
+      conversation_title=${first_line#* }
       message=$(echo "$message" | tail -n +2)
     fi
 
     # use aidd prompt
     if [[ "$message" =~ ^/u ]]; then
-      aidd $(echo $message | cut -f2- -d' ') >"$queryfile"
+      aidd ${message#* } >"$queryfile"
       nvim "$queryfile"
       message=$(cat "$queryfile")
     fi
@@ -254,16 +282,15 @@ start_chat_session() {
       continue
     fi
 
-    message=$(clean_message "$message")
-
     dash
 
     spinner &
     spinner_id=$!
 
-    response=$(post_user_message "$message")
-    CONVERSATION_ID=$(jq -r '.data.conversation_id' <<<"$response")
-    ASSI_MESSAGE_ID=$(jq -r '.data.assistant_message_id' <<<"$response")
+    read CONVERSATION_ID ASSI_MESSAGE_ID < <(
+      post_user_message "$message" |
+        jq -r '[.data.conversation_id, .data.assistant_message_id] | join(" ")'
+    )
 
     kill $spinner_id
     wait $! 2>/dev/null
@@ -283,33 +310,23 @@ start_chat_session() {
 }
 
 one_time_prompt() {
-  message=$(aidd "$@") || echo "No such aidd template: $1" && exit 1
+  message=$(aidd "$@") || fail "No such aidd template: $1"
 
   # setting conversation title using prefix [[ on first line
   local first_line=$(echo "$message" | head -n 1)
   if [[ "$first_line" =~ ^\[\[ ]]; then
-    conversation_title=$(echo "$first_line" | sed -n 's/^\[\[ \(.*\)/\1/p')
+    conversation_title=${first_line#* }
     message=$(echo "$message" | tail -n +2)
   fi
 
-  message=$(clean_message "$message")
-
-  response=$(post_user_message "$message")
-  CONVERSATION_ID=$(jq -r '.data.conversation_id' <<<"$response")
-  ASSI_MESSAGE_ID=$(jq -r '.data.assistant_message_id' <<<"$response")
+  read CONVERSATION_ID ASSI_MESSAGE_ID < <(
+    post_user_message "$message" |
+      jq -r '[.data.conversation_id, .data.assistant_message_id] | join(" ")'
+  )
 
   get_response_stream
 
   [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title"
-}
-
-get_conversation_history() {
-  wscat -c "wss://admin.skydeck.ai/ws/connect/" \
-    -H "Origin: https://eastagile.skydeck.ai" \
-    -H "Cookie: eastagile_access=$(grep "_access" $COOKIE_FILE | cut -f7)" \
-    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$CONVERSATION_ID"'}}' |
-    jq -r '.data.messages.[].content' |
-    bat --paging=never --style=rule --language=markdown
 }
 
 usage() {
@@ -322,47 +339,38 @@ main() {
 
   case "$1" in
   c | chat)
-    refresh &
+    start_chat_session
+    ;;
+  pc | pick-chat)
+    pick_model
     start_chat_session
     ;;
   cont | continue)
-    refresh
-    CONVERSATION_ID=$(pick_conversation_id)
+    CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
     start_chat_session
     ;;
   d | delete)
-    refresh
-    CONVERSATION_ID=$(pick_conversation_id) || echo "No conversation selected" && exit 1
-
+    CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
     delete_conversation
     invalidate_cache
     ;;
   p | patch)
-    refresh
-    CONVERSATION_ID=$(pick_conversation_id) || echo "No conversation selected" && exit 1
-
+    CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
     read -p "Enter new name: " name
     patch_conversation $name
     ;;
-  pc | pick-chat)
-    pick_model
-    refresh &
+  read-cont)
+    CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
+    get_conversation_history
     start_chat_session
     ;;
   query-models)
-    refresh
     call "$BASE_URL/models/" | jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -k2
     ;;
   count-conv)
     count_messages
     ;;
-  read-cont)
-    CONVERSATION_ID=$(pick_conversation_id) || echo "No conversation selected" && exit 1
-    get_conversation_history
-    start_chat_session
-    ;;
   *)
-    refresh
     one_time_prompt "$@"
     ;;
   esac

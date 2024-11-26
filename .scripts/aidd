@@ -6,7 +6,8 @@ rest="$@"
 
 case "$command" in
 "code")
-  echo "Given the below code, file structure, requirement and general rule:
+  echo "[[$rest
+Given the below code, file structure, requirement and general rule:
 
 <file_structure>
 $(tree --gitignore --noreport)

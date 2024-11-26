@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -o vi
+
 BASE_URL="https://admin.skydeck.ai/api/v1"
 CURRENT_RESPONSE_FILE="/tmp/sdai-conv-000000.md"
 CACHE_FILE="/tmp/sdai-cache.txt"
@@ -12,27 +14,25 @@ HEADER_REFERER="Referer: https://eastagile.skydeck.ai/"
 BG='\e[1;32m'
 CLR='\e[0m'
 
-declare -A models
-models[cl-sonnet]=5101
-models[cl-haiku]=5171
-models[gpt4o]=4094
-models[gpt4o-mini]=4430
-models[gem-flash]=5103
-models[gem-pro]=5212
+declare -A MODELS
+MODELS["cl-sonnet"]=5101
+MODELS["cl-haiku"]=5171
+MODELS["gpt4o"]=4094
+MODELS["gpt4o-mini"]=4430
+MODELS["gem-flash"]=5270
+MODELS["gem-pro"]=5269
+MODELS["gem-exp"]=5271
 
-streaming="false"
-conversation_id=""
-assistant_message_id=""
-
-set -o vi
+STREAMING="false"
+CONVERSATION_ID=""
+ASSI_MESSAGE_ID=""
+MODEL_NAME=$1
+MODEL_ID=${MODELS[$1]}
 
 set_model() {
-  model_name=$1
-  model_id=${models[$1]}
+  MODEL_NAME=$1
+  MODEL_ID=${MODELS[$1]}
 }
-
-# if interactive then use mini, else use claude to be more dependable
-set_model $([ -t 0 ] && echo "cl-haiku" || echo "cl-haiku")
 
 spinner() {
   local rest=""
@@ -49,18 +49,15 @@ spinner() {
 
 pick_model() {
   local selected=$(
-    [ ! -z $1 ] &&
-      (for key in ${!models[@]}; do echo $key; done | fzf --filter $1 | head -n 1) ||
-      (for key in ${!models[@]}; do echo $key; done | fzf --prompt="Select a model: ")
+    [[ -z $1 ]] &&
+      (for key in ${!MODELS[@]}; do echo $key; done | fzf --prompt="Select a model: ") ||
+      (for key in ${!MODELS[@]}; do echo $key; done | fzf --filter $1 | head -n 1)
   )
 
-  if [ ! -n "$selected" ]; then
-    echo "Model selection cancelled"
-    return
-  fi
+  [[ -z "$selected" ]] && echo "Model selection cancelled" && return
 
   set_model $selected
-  echo "Model changed to $model_name (ID: $model_id)"
+  echo "Model changed to $MODEL_NAME (ID: $MODEL_ID)"
 }
 
 invalidate_cache() {
@@ -68,10 +65,7 @@ invalidate_cache() {
 }
 
 refresh() {
-  local exp=$(
-    grep "_access" $COOKIE_FILE | cut -f7 | cut -d. -f2 | base64 -d 2>/dev/null |
-      grep -o '"exp":[0-9]*' | cut -d: -f2
-  )
+  local exp=$(grep "_access" $COOKIE_FILE | cut -f7 | jwt | jq '.exp')
 
   [ "$(date +%s)" -gt "$exp" ] &&
     curl -s -X POST -o /dev/null "$BASE_URL/authentication/token/refresh/" \
@@ -100,50 +94,44 @@ get_conversations() {
   fi
 }
 
-get_conversation_id() {
-  local response=$(get_conversations)
-  echo $response | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
+pick_conversation_id() {
+  get_conversations | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
 }
 
 delete_conversation() {
-  call "$BASE_URL/conversations/$1" -o /dev/null -X DELETE &
+  call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X DELETE &
 }
 
 patch_conversation() {
-  call "$BASE_URL/conversations/$1" -o /dev/null -X PATCH -d '{ "name": "'"$2"'" }' &
+  call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X PATCH -d '{ "name": "'"$1"'" }' &
 }
 
 post_user_message() {
-  local message="$1"
-  local model_id="$2"
-  local conversation_id="$3"
-
-  call_form "$BASE_URL/conversations/chat_v2/" -F "message=$message" -F "model_id=$model_id" \
-    -F "regenerate_message_id=-1" -F "conversation_id=$conversation_id"
+  call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$1" -F "model_id=$MODEL_ID" \
+    -F "regenerate_message_id=-1" -F "conversation_id=$CONVERSATION_ID"
 }
 
 get_response_stream() {
   increment_message_count
 
-  streaming="true"
-  call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$assistant_message_id"' }' --no-buffer |
+  STREAMING="true"
+  call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$ASSI_MESSAGE_ID"' }' --no-buffer |
     tee $CURRENT_RESPONSE_FILE |
     bat --paging=never --style=rule --language=markdown
-  # ([ ! -t 0 ] && cat || bat --paging=never --style=rule --language=markdown)
 
-  streaming="false"
+  STREAMING="false"
 }
 
 stop_response_stream() {
-  [ "$streaming" == "false" ] && exit
+  [ "$STREAMING" == "false" ] && exit
 
-  call "$BASE_URL/conversations/messages/$assistant_message_id/stop-streaming/" -o /dev/null -d "{}"
+  call "$BASE_URL/conversations/messages/$ASSI_MESSAGE_ID/stop-streaming/" -o /dev/null -d "{}"
   printf "\n$BG[Interrupted]$CLR"
 }
 
 increment_message_count() {
   local current=$(cat $COUNT_FILE)
-  echo $(( current + 1 )) > $COUNT_FILE
+  echo $((current + 1)) >$COUNT_FILE
 }
 
 count_messages() {
@@ -173,14 +161,17 @@ dash() {
   echo
 }
 
+clean_message() {
+  # jq -Rrs '.' <<<"$1"
+  printf "$1"
+}
+
 start_chat_session() {
-  echo "SkyDeck.ai with $model_name"
+  echo "SkyDeck.ai with $MODEL_NAME"
   dash
 
-  conversation_id="$1"
-
   while true; do
-    local queryfile="/tmp/sdai-query-$conversation_id.md"
+    local queryfile="/tmp/sdai-query-$CONVERSATION_ID.md"
 
     # use a local version of `gum` to map enter to new line, ctrl+d to submit
     message=$(
@@ -217,19 +208,20 @@ start_chat_session() {
 
     # model
     if [[ "$message" =~ ^/m ]]; then
-      pick_model $(cut -f2 -d' ' <<<"$message")
+      read -r _ model <<<"$message"
+      pick_model "$model"
       dash
       continue
     fi
 
     # yank
     if [[ "$message" =~ ^/y ]]; then
-      local block=$(echo "$message" | cut -f2 -d' ')
-      if [[ "$block" = "$message" ]]; then
+      read -r _ block <<<"$message"
+      if [[ -z "$block" ]]; then
         pbcopy <$CURRENT_RESPONSE_FILE
         echo "Yanked content to clipboard"
       else
-        cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'$/,/^```$/p' | sed '/^```/d' | pbcopy
+        cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d' | pbcopy
         echo "Yanked $block to clipboard"
       fi
       dash
@@ -238,19 +230,22 @@ start_chat_session() {
 
     if [[ "$message" = "/share" ]]; then
       echo https://eastagile.skydeck.ai/conversation/$(
-        call "$BASE_URL/conversations/collaboration/start" --data '{"conversation_id":'"$conversation_id"'}' |
-        jq '.data.collaboration_slug'
+        call "$BASE_URL/conversations/collaboration/start" --data '{"conversation_id":'"$CONVERSATION_ID"'}' |
+          jq -R '.data.collaboration_slug'
       )
+      dash
       continue
     fi
 
     if [[ "$message" = "/view" ]]; then
       nvim -R $CURRENT_RESPONSE_FILE
+      dash
       continue
     fi
 
     if [[ "$message" = "/viewdiff" ]]; then
       cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
+      dash
       continue
     fi
 
@@ -259,16 +254,16 @@ start_chat_session() {
       continue
     fi
 
-    message=$(jq -Rs '.' <<<"$message")
+    message=$(clean_message "$message")
 
     dash
 
     spinner &
     spinner_id=$!
 
-    response=$(post_user_message "$message" "$model_id" "$conversation_id")
-    conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
-    assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
+    response=$(post_user_message "$message")
+    CONVERSATION_ID=$(jq -r '.data.conversation_id' <<<"$response")
+    ASSI_MESSAGE_ID=$(jq -r '.data.assistant_message_id' <<<"$response")
 
     kill $spinner_id
     wait $! 2>/dev/null
@@ -276,19 +271,19 @@ start_chat_session() {
 
     trap stop_response_stream SIGINT
 
-    printf "$BG($model_name)$CLR\n"
+    printf "$BG($MODEL_NAME)$CLR\n"
     time get_response_stream
     echo
 
     trap - SIGINT
     dash
 
-    [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
+    [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title"
   done
 }
 
 one_time_prompt() {
-  message=$(aidd "$@")
+  message=$(aidd "$@") || echo "No such aidd template: $1" && exit 1
 
   # setting conversation title using prefix [[ on first line
   local first_line=$(echo "$message" | head -n 1)
@@ -297,22 +292,22 @@ one_time_prompt() {
     message=$(echo "$message" | tail -n +2)
   fi
 
-  message=$(jq -Rs '.' <<<"$message")
+  message=$(clean_message "$message")
 
-  response=$(post_user_message "$message" "$model_id" "$conversation_id")
-  conversation_id=$(jq -r '.data.conversation_id' <<<"$response")
-  assistant_message_id=$(jq -r '.data.assistant_message_id' <<<"$response")
+  response=$(post_user_message "$message")
+  CONVERSATION_ID=$(jq -r '.data.conversation_id' <<<"$response")
+  ASSI_MESSAGE_ID=$(jq -r '.data.assistant_message_id' <<<"$response")
 
   get_response_stream
 
-  [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
+  [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title"
 }
 
 get_conversation_history() {
   wscat -c "wss://admin.skydeck.ai/ws/connect/" \
     -H "Origin: https://eastagile.skydeck.ai" \
     -H "Cookie: eastagile_access=$(grep "_access" $COOKIE_FILE | cut -f7)" \
-    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$1"'}}' |
+    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$CONVERSATION_ID"'}}' |
     jq -r '.data.messages.[].content' |
     bat --paging=never --style=rule --language=markdown
 }
@@ -332,23 +327,26 @@ main() {
     ;;
   cont | continue)
     refresh
-    start_chat_session $(get_conversation_id)
+    CONVERSATION_ID=$(pick_conversation_id)
+    start_chat_session
     ;;
   d | delete)
     refresh
-    delete_conversation $(get_conversation_id)
+    CONVERSATION_ID=$(pick_conversation_id) || echo "No conversation selected" && exit 1
+
+    delete_conversation
     invalidate_cache
     ;;
   p | patch)
     refresh
-    local conversation_id=$(get_conversation_id)
-    [[ $? ]] && echo "No conversation selected" && exit 1
+    CONVERSATION_ID=$(pick_conversation_id) || echo "No conversation selected" && exit 1
+
     read -p "Enter new name: " name
-    patch_conversation $conversation_id $name
+    patch_conversation $name
     ;;
   pc | pick-chat)
-    refresh &
     pick_model
+    refresh &
     start_chat_session
     ;;
   query-models)
@@ -359,9 +357,9 @@ main() {
     count_messages
     ;;
   read-cont)
-    local conversation_id=$(get_conversation_id)
-    get_conversation_history $conversation_id
-    start_chat_session $conversation_id
+    CONVERSATION_ID=$(pick_conversation_id) || echo "No conversation selected" && exit 1
+    get_conversation_history
+    start_chat_session
     ;;
   *)
     refresh
@@ -369,5 +367,7 @@ main() {
     ;;
   esac
 }
+
+set_model $([ -t 0 ] && echo "cl-sonnet" || echo "cl-haiku")
 
 main "$@"

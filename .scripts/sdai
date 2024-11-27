@@ -59,7 +59,7 @@ pick_model() {
 
   [[ -z "$selected" ]] && echo "Model selection cancelled" && return
 
-  debug set_model $selected
+  set_model $selected
   echo "Model changed to $MODEL_NAME (ID: $MODEL_ID)"
 }
 

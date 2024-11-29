@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -o pipefail
-# set -x         # for debugging
+# set -x # for debugging
 shopt -s nullglob
 
 BASE_URL="https://admin.skydeck.ai/api/v1"
@@ -289,7 +289,7 @@ start_chat_session() {
 
     read CONVERSATION_ID ASSI_MESSAGE_ID < <(
       post_user_message "$message" |
-        jq -r '[.data.conversation_id, .data.assistant_message_id] | join(" ")'
+        jq -r '[.data.conversation_id, .data.messages.[-1].id] | join(" ")'
     )
 
     kill $spinner_id

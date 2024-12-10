@@ -87,7 +87,7 @@ dash() {
 
 clean_message() {
   # jq -Rrs '.' <<<"$1"
-  printf "$1"
+  echo "$1"
 }
 
 get_access_token() {
@@ -321,7 +321,7 @@ one_time_prompt() {
 
   read CONVERSATION_ID ASSI_MESSAGE_ID < <(
     post_user_message "$message" |
-      jq -r '[.data.conversation_id, .data.assistant_message_id] | join(" ")'
+      jq -r '[.data.conversation_id, .data.messages.[-1].id] | join(" ")'
   )
 
   get_response_stream

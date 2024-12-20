@@ -1,3 +1,37 @@
+vim.keymap.set('n', '<leader>sa', function()
+	local function pkg_source_path(pkg)
+		return '~/.move/https___github_com_aptos-labs_aptos-core_git_mainnet/aptos-move/framework/' ..
+			pkg .. '/sources/'
+	end
+	require('telescope.builtin').find_files({
+		path_display = { 'shorten' },
+		search_dirs = {
+			pkg_source_path('aptos-framework'),
+			pkg_source_path('aptos-stdlib'),
+			pkg_source_path('aptos-token'),
+			pkg_source_path('aptos-token-objects'),
+			pkg_source_path('move-stdlib'),
+		}
+	})
+end, { desc = '[S]earch [A]ptos' })
+
+vim.keymap.set('n', '<leader>ss', function()
+	local function pkg_source_path(pkg)
+		return '~/.move/https___github_com_MystenLabs_sui_git_framework__mainnet/crates/sui-framework/packages/' ..
+			pkg .. '/sources/'
+	end
+	require('telescope.builtin').find_files({
+		path_display = { 'shorten' },
+		search_dirs = {
+			pkg_source_path('bridge'),
+			pkg_source_path('deepbook'),
+			pkg_source_path('move-stdlib'),
+			pkg_source_path('sui-framework'),
+			pkg_source_path('sui-system'),
+		}
+	})
+end, { desc = '[S]earch [S]ui' })
+
 vim.o.tabstop = 4
 vim.o.softtabstop = 4
 vim.o.shiftwidth = 4

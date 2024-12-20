@@ -12,6 +12,7 @@ return {
 
             telescope.setup {
                 defaults = {
+                    path_display = 'shorten',
                     mappings = {
                         i = {
                             ['<C-u>'] = false,
@@ -19,7 +20,11 @@ return {
                         },
                     },
                 },
+                extension = {
+                    fzf = {}
+                }
             }
+            telescope.load_extension('fzf')
 
             local dropdown = require('telescope.themes').get_dropdown { winblend = 10, previewer = false }
 
@@ -29,15 +34,17 @@ return {
 
             nmap('<leader>?', builtin.oldfiles, '[?] Find recently opened files')
             nmap('<leader><space>', builtin.buffers, '[ ] Find existing buffers')
-            nmap('<leader>/', function() builtin.current_buffer_fuzzy_find(dropdown) end, '[/] Fuzzily search in current buffer')
+            nmap('<leader>/', function() builtin.current_buffer_fuzzy_find(dropdown) end,
+                '[/] Fuzzily search in current buffer')
 
-            nmap('<leader>sf', function () builtin.find_files(dropdown) end, '[S]earch [F]iles')
+            nmap('<leader>sf', function() builtin.find_files(dropdown) end, '[S]earch [F]iles')
             nmap('<leader>sh', builtin.help_tags, '[S]earch [H]elp')
-            nmap('<leader>sg', builtin.live_grep, '[S]earch by [G]rep')
+            -- Using multigrep for now
+            -- nmap('<leader>sg', builtin.live_grep, '[S]earch by [G]rep')
             nmap('<leader>sd', builtin.diagnostics, '[S]earch [D]iagnostics')
             nmap('<leader>sr', builtin.resume, '[S]earch [R]esume')
 
-            vim.keymap.set('n', '<leader>gl', function()
+            nmap('<leader>gl', function()
                 builtin.git_commits({
                     attach_mappings = function(_, map)
                         map('i', '<CR>', function(prompt_bufnr)
@@ -56,7 +63,9 @@ return {
                         return true
                     end
                 })
-            end, { desc = '[G]o get [L]ast commit' })
+            end, '[G]o get [L]ast commit')
+
+            require 'config.telescope.multigrep'.setup()
         end
     },
 }

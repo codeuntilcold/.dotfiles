@@ -68,4 +68,4 @@ tmux has-session -t main 2> /dev/null || tmux new-session -d -s main
 
 eval "$(zoxide init zsh)" 
 
-eval "$(starship init zsh)"
+# eval "$(starship init zsh)"

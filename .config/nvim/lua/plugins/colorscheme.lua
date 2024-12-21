@@ -1,7 +1,3 @@
-if os.getenv("USER") == "vpn" then
-    vim.cmd.set "background=light"
-end
-
 return {
     -- Transparent background
     {
@@ -14,7 +10,9 @@ return {
         name = "catppuccin",
         event = "VimEnter",
         config = function()
-        --     vim.cmd.colorscheme 'catppuccin-latte'
+            if os.getenv("USER") == "qd" then
+                vim.cmd.colorscheme 'catppuccin'
+            end
         end
     },
 
@@ -27,7 +25,10 @@ return {
             vim.g.zenwritten_lightness = 'dim'
             vim.g.zenwritten_darken_comments = 45
             vim.g.zenwritten_transparent_background = true
-            vim.cmd.colorscheme "zenwritten"
+            if os.getenv("USER") == "vpn" then
+                vim.cmd.set "background=light"
+                vim.cmd.colorscheme "zenwritten"
+            end
         end
     },
 

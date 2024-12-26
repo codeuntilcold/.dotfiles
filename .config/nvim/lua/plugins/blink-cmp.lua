@@ -12,7 +12,7 @@ return {
             nerd_font_variant = 'mono'
         },
         sources = {
-            default = { 'lsp', 'path', 'snippets', 'buffer', 'dadbod' },
+            default = { 'lsp', 'path', 'snippets', 'buffer' },
         },
         signature = { enabled = true },
     },

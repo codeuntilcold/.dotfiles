@@ -21,9 +21,8 @@ MODELS["cl-sonnet"]=5101
 MODELS["cl-haiku"]=5171
 MODELS["gpt4o"]=4094
 MODELS["gpt4o-mini"]=4430
-MODELS["gem-flash"]=5270
-MODELS["gem-pro"]=5269
-MODELS["gem-exp"]=5271
+MODELS["gem2-flash"]=5480
+MODELS["gem-exp"]=5428
 
 STREAMING="false"
 CONVERSATION_ID=""
@@ -146,8 +145,8 @@ get_response_stream() {
 
   STREAMING="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$ASSI_MESSAGE_ID"' }' --no-buffer |
-    tee $CURRENT_RESPONSE_FILE |
-    bat --paging=never --style=rule --language=markdown
+    tee $CURRENT_RESPONSE_FILE 
+    # | bat --paging=never --style=rule --language=markdown
 
   STREAMING="false"
 }
@@ -292,14 +291,14 @@ start_chat_session() {
         jq -r '[.data.conversation_id, .data.messages.[-1].id] | join(" ")'
     )
 
-    kill $spinner_id
+    kill $spinner_id 2>/dev/null
     wait $! 2>/dev/null
     echo -ne '\r   \r'
 
     trap stop_response_stream SIGINT
 
     printf "$BG($MODEL_NAME)$CLR\n"
-    time get_response_stream
+    get_response_stream
     echo
 
     trap - SIGINT

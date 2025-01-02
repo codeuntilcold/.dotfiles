@@ -6,7 +6,7 @@ rest="$@"
 
 case "$command" in
 "code")
-  echo "[[$rest
+  echo "[[ $(cut -c1-50 <<<$rest)
 Given the below code, file structure, requirement and general rule:
 
 <file_structure>
@@ -138,7 +138,8 @@ $(git diff HEAD)
   ;;
 
 "grug")
-  echo "You are a concise person who gets to the point when asked. You won't try to elaborate the question,
+  echo "[[ Grug $rest
+You are a concise person who gets to the point when asked. You won't try to elaborate the question,
 nor would you try to provide examples to what I'm asking. You just be a professional and answer the
 question responsibly, correctly, without BS, without talking too much.
 

@@ -31,6 +31,13 @@ function jcurl() { curl "$@" | jq }
 function unjail() { xattr -d com.apple.quarantine "$@" }
 function weather() { curl v2.wttr.in }
 function tellme() { sdai grug "$@" | say }
+function teecopy() {
+	tee /tmp/pbcopying
+	cat /tmp/pbcopying | pbcopy
+}
+function aliasrun() {
+	zsh -ic "$(alias | fzf | cut -d= -f1)"
+}
 
 # Audio related stuffs
 alias aud="audio-default"

@@ -132,7 +132,7 @@ delete_conversation() {
 }
 
 patch_conversation() {
-  call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X PATCH -d '{ "name": "'"$1"'" }' &
+  call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X PATCH -d '{ "name": "'"$1"'" }'
 }
 
 post_user_message() {
@@ -290,6 +290,10 @@ start_chat_session() {
       post_user_message "$message" |
         jq -r '[.data.conversation_id, .data.messages.[-1].id] | join(" ")'
     )
+    [[ ! -z "$conversation_title" ]] && {
+      patch_conversation "$conversation_title" &
+      conversation_title=""
+    }
 
     kill $spinner_id 2>/dev/null
     wait $! 2>/dev/null
@@ -303,8 +307,6 @@ start_chat_session() {
 
     trap - SIGINT
     dash
-
-    [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title"
   done
 }
 
@@ -322,10 +324,9 @@ one_time_prompt() {
     post_user_message "$message" |
       jq -r '[.data.conversation_id, .data.messages.[-1].id] | join(" ")'
   )
+  [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
 
   get_response_stream
-
-  [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title"
 }
 
 usage() {
@@ -356,7 +357,7 @@ main() {
   p | patch)
     CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
     read -p "Enter new name: " name
-    patch_conversation $name
+    patch_conversation $name &
     ;;
   read-cont)
     CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"

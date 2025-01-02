@@ -87,10 +87,10 @@ local function main()
 	local move_toml = vim.fs.find({ 'Move.toml' }, { upward = true })[1]
 	if not move_toml then return end
 
-	local repo_found = 'aptos'
+	local repo_found = 'sui'
 	for _, line in ipairs(vim.fn.readfile(move_toml)) do
-		if line:match("MystenLabs/sui") then
-			repo_found = 'sui'
+		if line:match("AptosFramework") then
+			repo_found = 'aptos'
 			break
 		end
 	end

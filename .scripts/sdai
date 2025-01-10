@@ -181,12 +181,15 @@ count_unread_messages() {
 }
 
 get_conversation_history() {
-  wscat -c "wss://admin.skydeck.ai/ws/connect/" \
-    -H "Origin: https://eastagile.skydeck.ai" \
-    -H "Cookie: eastagile_access=$(get_access_token)" \
-    -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$CONVERSATION_ID"'}}' |
-    jq -r '.data.messages.[].content' |
-    bat --paging=never --style=rule --language=markdown
+  # wscat -c "wss://admin.skydeck.ai/ws/connect/" \
+  #   -H "Origin: https://eastagile.skydeck.ai" \
+  #   -H "Cookie: eastagile_access=$(get_access_token)" \
+  #   -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$CONVERSATION_ID"'}}' |
+  #   jq -r '.data.messages.[].content' |
+  #   bat --paging=never --style=rule --language=markdown
+
+  call "$BASE_URL/conversations/$CONVERSATION_ID" |
+    jq -r '[.data.messages.[].content] | join("\n=============================================\n")'
 }
 
 ###

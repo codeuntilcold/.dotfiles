@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+current_brightness=$(
+  xrandr --verbose | rg " connected" -A5 | rg "Brightness" | cut -d" " -f2
+)
+
+# +0.05 for example
+step="$@"
+[[ -z $step ]] && echo $current_brightness
+
+new_brightness=$(echo $current_brightness $step | bc)
+
+[[ $new_brightness -gt 1 || $new_brightness -lt 0 ]] && exit 1
+
+xrandr --output DP-0 --brightness $new_brightness

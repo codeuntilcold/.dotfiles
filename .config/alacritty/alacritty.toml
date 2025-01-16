@@ -1,8 +1,8 @@
+[general]
 import = [
     # this file is symlinked to the appropriate config
     "~/.config/alacritty/host_configs.toml",
 ]
-
 live_config_reload = true
 
 [window]

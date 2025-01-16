@@ -25,7 +25,7 @@ return {
             vim.g.zenwritten_lightness = 'dim'
             vim.g.zenwritten_darken_comments = 45
             vim.g.zenwritten_transparent_background = true
-            if os.getenv("USER") == "vpn" then
+            if os.getenv("USER") == "vpn" or os.getenv("USER") == "dungngo" then
                 vim.cmd.set "background=light"
                 vim.cmd.colorscheme "zenwritten"
             end

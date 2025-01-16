@@ -1,0 +1,44 @@
+[general]
+import = [
+    "~/.config/alacritty/themes/themes/zenwritten_light.toml",
+]
+
+working_directory = "/home/dungngo"
+
+[terminal.shell]
+program = "/usr/bin/zsh"
+args = ["--login"]
+
+[window]
+decorations = "full"
+opacity = 1
+
+[font]
+size = 13.0
+
+[font.normal]
+family = "IosevkaTerm NFM"
+# family = "JetBrainsMono NF"
+style = "Medium"
+
+[font.bold]
+family = "IosevkaTerm NFM"
+# family = "JetBrainsMono NF"
+style = "ExtraBold"
+
+[font.bold_italic]
+family = "IosevkaTerm NFM"
+# family = "JetBrainsMono NF"
+style = "BoldItalic"
+
+[font.italic]
+family = "IosevkaTerm NFM"
+# family = "JetBrainsMono NF"
+style = "Italic"
+
+[font.offset]
+x = 0
+y = 6
+
+[font.glyph_offset]
+y = 2

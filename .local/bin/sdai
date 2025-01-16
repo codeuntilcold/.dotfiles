@@ -291,7 +291,7 @@ start_chat_session() {
 
     read CONVERSATION_ID ASSI_MESSAGE_ID < <(
       post_user_message "$message" |
-        jq -r '[.data.conversation_id, .data.messages.[-1].id] | join(" ")'
+        jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
     )
     [[ ! -z "$conversation_title" ]] && {
       patch_conversation "$conversation_title" &
@@ -325,7 +325,7 @@ one_time_prompt() {
 
   read CONVERSATION_ID ASSI_MESSAGE_ID < <(
     post_user_message "$message" |
-      jq -r '[.data.conversation_id, .data.messages.[-1].id] | join(" ")'
+      jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
   )
   [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
 

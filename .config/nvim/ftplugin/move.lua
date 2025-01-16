@@ -17,7 +17,7 @@ end, { desc = '[S]earch [A]ptos' })
 
 vim.keymap.set('n', '<leader>ss', function()
 	local function pkg_source_path(pkg)
-		return '~/.move/https___github_com_MystenLabs_sui_git_framework__mainnet/crates/sui-framework/packages/' ..
+		return '~/.move/https___github_com_MystenLabs_sui_git_framework__testnet/crates/sui-framework/packages/' ..
 			pkg .. '/sources/'
 	end
 	require('telescope.builtin').find_files({

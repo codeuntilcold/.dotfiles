@@ -80,7 +80,7 @@ count_messages() {
 }
 
 dash() {
-  printf "$BG%$(tput cols)s$CLR" | tr " " "—"
+  printf "$BG%$(tput cols)s$CLR" | tr ' ' '-'
   echo
 }
 
@@ -205,7 +205,7 @@ start_chat_session() {
 
     # use a local version of `gum` to map enter to new line, ctrl+d to submit
     message=$(
-      ~/.local/bin/gum write --char-limit=0 --width=0 --height=0 --no-show-help
+      gum write --char-limit=0 --width=0 --height=0 --no-show-help
     ) || return
 
     if [[ -z "$message" ]]; then

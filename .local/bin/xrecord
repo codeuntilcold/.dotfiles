@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+start() {
+    ffmpeg -f x11grab -i :1 -f pulse -i default -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
+    echo $! > /tmp/recpid
+    notify-send -t 1000 "Recording started"
+}
+
+end() {
+    kill -15 $(cat /tmp/recpid) && rm -f /tmp/recpid
+    notify-send -t 1000 "Recording stopped"
+}
+
+[[ -f /tmp/recpid ]] && end || start

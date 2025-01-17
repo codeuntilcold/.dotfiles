@@ -10,6 +10,10 @@ step="$@"
 
 new_brightness=$(echo $current_brightness $step | bc)
 
-[[ $new_brightness -gt 1 || $new_brightness -lt 0 ]] && exit 1
+if (( $(echo "$new_brightness > 1" | bc -l) )); then
+    new_brightness=1
+elif (( $(echo "$new_brightness < 0.25" | bc -l) )); then
+    new_brightness=0.25
+fi
 
 xrandr --output DP-0 --brightness $new_brightness

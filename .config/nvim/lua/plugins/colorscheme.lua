@@ -1,3 +1,16 @@
+local function is_ssh()
+    return os.getenv("SSH_CLIENT") ~= nil or os.getenv("SSH_TTY") ~= nil
+end
+
+local function getcolorscheme()
+    if os.getenv("USER") == "qd" or is_ssh() then
+        vim.cmd.colorscheme 'catppuccin'
+        return
+    end
+    vim.cmd.set "background=light"
+    vim.cmd.colorscheme "zenwritten"
+end
+
 return {
     -- Transparent background
     {
@@ -10,9 +23,7 @@ return {
         name = "catppuccin",
         event = "VimEnter",
         config = function()
-            if os.getenv("USER") == "qd" then
-                vim.cmd.colorscheme 'catppuccin'
-            end
+            getcolorscheme()
         end
     },
 
@@ -25,18 +36,12 @@ return {
             vim.g.zenwritten_lightness = 'dim'
             vim.g.zenwritten_darken_comments = 45
             vim.g.zenwritten_transparent_background = true
-            if os.getenv("USER") == "vpn" or os.getenv("USER") == "dungngo" then
-                vim.cmd.set "background=light"
-                vim.cmd.colorscheme "zenwritten"
-            end
+            getcolorscheme()
         end
     },
 
     {
         'NLKNguyen/papercolor-theme',
         event = "VimEnter",
-        config = function()
-            -- vim.cmd.colorscheme "PaperColor"
-        end
     },
 }

@@ -3,11 +3,13 @@
 start() {
     ffmpeg -f x11grab -i :1 -f pulse -i default -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
     echo $! > /tmp/recpid
+    screenkey &
+    echo $! > /tmp/screenkeypid
     notify-send -t 1000 "Recording started"
 }
 
 end() {
-    kill -15 $(cat /tmp/recpid) && rm -f /tmp/recpid
+    kill -15 $(cat /tmp/recpid /tmp/screenkeypid) && rm -f /tmp/recpid /tmp/screenkeypid
     notify-send -t 1000 "Recording stopped"
 }
 

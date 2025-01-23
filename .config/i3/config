@@ -8,6 +8,7 @@ exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -i /home/dungngo/Downloads/colin-watts-2fWZ9jsoIe0-unsplash.jpg
 # exec --no-startup-id nm-applet
 exec --no-startup-id feh --bg-scale /home/dungngo/Downloads/colin-watts-2fWZ9jsoIe0-unsplash.jpg
+exec --no-startup-id ibus-daemon --daemonize --replace
 
 # alt is on right hand...
 floating_modifier Mod4

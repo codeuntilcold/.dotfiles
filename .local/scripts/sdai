@@ -133,11 +133,14 @@ delete_conversation() {
 
 patch_conversation() {
   call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X PATCH -d '{ "name": "'"$1"'" }'
+  notify-send "Changed conversation name to $1" -t 3000
 }
 
 post_user_message() {
-  call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$(clean_message "$1")" \
-    -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1"
+  local cleaned_message="$(clean_message "$1")"
+  shift
+  call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$cleaned_message" \
+    -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" $@
 }
 
 get_response_stream() {
@@ -189,7 +192,7 @@ get_conversation_history() {
   #   bat --paging=never --style=rule --language=markdown
 
   call "$BASE_URL/conversations/$CONVERSATION_ID" |
-    jq -r '[.data.messages.[].content] | join("\n=============================================\n")'
+    jq -r "[.data.messages[].content] | join(\"\\n$(dash)\\n\")"
 }
 
 ###
@@ -221,6 +224,13 @@ start_chat_session() {
       conversation_title=${first_line#* }
       message=$(echo "$message" | tail -n +2)
     fi
+
+    # add images
+    local post_ext=""
+    while read -r line; do
+      post_ext+=" -F files=@${line#@@@ }"
+    done < <(rg ^@@@ <<<"$message")
+    message=$(sed '/^@@@/d' <<<"$message")
 
     # use aidd prompt
     if [[ "$message" =~ ^/u ]]; then
@@ -290,7 +300,7 @@ start_chat_session() {
     spinner_id=$!
 
     read CONVERSATION_ID ASSI_MESSAGE_ID < <(
-      post_user_message "$message" |
+      post_user_message "$message" "$post_ext" |
         jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
     )
     [[ ! -z "$conversation_title" ]] && {

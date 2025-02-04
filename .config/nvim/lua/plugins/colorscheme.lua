@@ -1,5 +1,5 @@
 local function is_ssh()
-    return os.getenv("SSH_CLIENT") ~= nil or os.getenv("SSH_TTY") ~= nil
+    return os.getenv("SSH_CONNECTION") ~= nil
 end
 
 local function getcolorscheme()

@@ -34,7 +34,8 @@ for now and the rest of this session:
 - Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
   that got changed, and ignore the parts that is unchanged).
 - The change must be compatible to be used in the 'patch' program to apply the changes. Follow the
-  line numbers correctly, especially the starting line of the change.
+  line numbers correctly, especially the starting line of the change. Make sure to add 'a/' and 'b/'
+  so that the program knows to patch which file.
 - If printing out 'diff' file, then do not print out any other code block.
 - Make sure you output professional-grade, production-ready code that is clean, optimized, maintain-
   able and follow best practices.

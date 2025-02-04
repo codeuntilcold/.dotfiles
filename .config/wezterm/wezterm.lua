@@ -2,7 +2,7 @@ local wezterm = require 'wezterm'
 
 local config = wezterm.config_builder()
 
-config.font = wezterm.font('JetBrainsMono Nerd Font', { weight = 'Regular' })
+config.font = wezterm.font('IosevkaTerm Nerd Font Mono', { weight = 'Regular' })
 config.font_size = 18.0
 config.line_height = 1.2
 config.color_scheme = 'zenwritten_light'

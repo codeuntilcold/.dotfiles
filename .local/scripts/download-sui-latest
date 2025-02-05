@@ -5,6 +5,15 @@ tag=$(curl -sS https://api.github.com/repos/MystenLabs/sui/releases/latest | jq 
 [[ "$(uname)" = "Darwin" ]] && os=macos
 [[ "$(uname)" = "Linux" ]] && os=ubuntu
 
-read -p "Continue download $tag for $os? (Y/N): " confirm && [[ $confirm == [yY] ]] || exit 1
+sui_name=sui-$tag-$os-x86_64
+read -p "Continue download $sui_name? (Y/N): " confirm && [[ $confirm == [yY] ]] || exit 1
 
-curl -L "https://github.com/MystenLabs/sui/releases/download/$tag/sui-$tag-$os-x86_64.tgz" --output "sui-$tag-$os-x86_64.tgz"
+curl -L https://github.com/MystenLabs/sui/releases/download/$tag/$sui_name.tgz --output $sui_name.tgz
+
+mkdir $sui_name
+tar -xvf $sui_name.tgz -C $sui_name
+
+mv sui-$tag-$os-x86_64/sui ~/.cargo/bin
+mv sui-$tag-$os-x86_64/move-analyzer ~/.cargo/bin/sui-move-analyzer
+
+read -p "Clean up $sui_name? (Y/N): " confirm && [[ $confirm == [yY] ]] && rm -r $sui_name

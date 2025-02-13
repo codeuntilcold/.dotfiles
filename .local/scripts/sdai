@@ -22,7 +22,8 @@ MODELS["cl-haiku"]=5171
 MODELS["gpt4o"]=4094
 MODELS["gpt4o-mini"]=4430
 MODELS["gem2-flash"]=5480
-MODELS["gem-exp"]=5428
+MODELS["gem-exp"]=5851
+MODELS["deepseek-r1"]=5971
 
 STREAMING="false"
 CONVERSATION_ID=""
@@ -258,10 +259,12 @@ start_chat_session() {
     if [[ "$message" =~ ^/y ]]; then
       read -r _ block <<<"$message"
       if [[ -z "$block" ]]; then
-        pbcopy <$CURRENT_RESPONSE_FILE
+        [[ $(uname) = 'Darwin' ]] && pbcopy <$CURRENT_RESPONSE_FILE
+        [[ $(uname) = 'Linux' ]] && xclip -sel c <$CURRENT_RESPONSE_FILE
         echo "Yanked content to clipboard"
       else
-        cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d' | pbcopy
+        [[ $(uname) = 'Darwin' ]] && cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d' | pbcopy
+        [[ $(uname) = 'Linux' ]] && cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d' | xclip -sel c
         echo "Yanked $block to clipboard"
       fi
       dash
@@ -390,5 +393,6 @@ main() {
 }
 
 set_model $([ -t 0 ] && echo "cl-sonnet" || echo "cl-haiku")
+# set_model $([ -t 0 ] && echo "deepseek-r1" || echo "cl-haiku")
 
 main "$@"

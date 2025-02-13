@@ -16,4 +16,4 @@ tar -xvf $sui_name.tgz -C $sui_name
 mv sui-$tag-$os-x86_64/sui ~/.cargo/bin
 mv sui-$tag-$os-x86_64/move-analyzer ~/.cargo/bin/sui-move-analyzer
 
-read -p "Clean up $sui_name? (Y/N): " confirm && [[ $confirm == [yY] ]] && rm -r $sui_name
+read -p "Clean up $sui_name? (Y/N): " confirm && [[ $confirm == [yY] ]] && rm -r $sui_name $sui_name.tgz

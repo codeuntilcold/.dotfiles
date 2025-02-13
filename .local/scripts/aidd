@@ -101,7 +101,10 @@ $(git log main..HEAD)
 </format>
 
 Please follow this requirement closely
+- Only output the actual PR content, do not add things like HEre is your PR...
 - Note that proof of work is omited if the code is backend-only
+- Only include this proof of work if it's front end related, or if there is something that can be
+  demo-ed easily in the PR.
 - Only list out high level changes in the "What have we done" part; I dont want to hear things like
   'move code from here to there' or 'add test to cover this or that' since those are just noise
 - Specifically note out things like api changes, tricky code logic, etc
@@ -133,7 +136,7 @@ $(git branch --show-current)
 </branch>
 
 <diff>
-$(git diff HEAD)
+$(git diff --staged)
 </diff>
 "
   ;;

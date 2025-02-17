@@ -2,5 +2,5 @@
 
 curl --silent https://chogia.vn/get-live-price.php\?k\=8fgY0d9s%25238g023j5lagu9%25248G72935jsaf987DF2935%255EuflskaB%2540j9873Y5\&t\=currencynames |
   rg 'usd-buy' |
-  rg -oP "data-price='\K.*?(?='>)" |
+  rg -oP "data-price=['\"]\K.*?(?=['\"]>)" |
   cut -c1-5

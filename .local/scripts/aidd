@@ -40,6 +40,7 @@ for now and the rest of this session:
 - Make sure you output professional-grade, production-ready code that is clean, optimized, maintain-
   able and follow best practices.
 - No need for comment. Try to write semanticly rich code instead of littering the code with comments.
+- Unless I have confirmed, do not try to write diff incrementally, i.e diff on the code that you wrote
 </general_rule>
 "
   ;;

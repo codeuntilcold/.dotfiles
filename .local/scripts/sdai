@@ -17,13 +17,17 @@ BG='\e[1;32m'
 CLR='\e[0m'
 
 declare -A MODELS
-MODELS["cl-sonnet"]=5101
-MODELS["cl-haiku"]=5171
-MODELS["gpt4o"]=4094
-MODELS["gpt4o-mini"]=4430
-MODELS["gem2-flash"]=5480
-MODELS["gem-exp"]=5851
-MODELS["deepseek-r1"]=5971
+MODELS["cld-3.5-sonnet"]=5101
+MODELS["cld-3.5-haiku"]=5171
+MODELS["gpt-4o"]=4094
+MODELS["gpt-4o-mini"]=4430
+MODELS["gpt-o1"]=6006
+MODELS["gpt-o3-mini"]=6006
+MODELS["gem-2-pro"]=6137
+MODELS["gem-2-flash"]=6061
+MODELS["deep-r1"]=5971
+MODELS["snr-pro"]=6111
+MODELS["snr-reason-pro"]=6112
 
 STREAMING="false"
 CONVERSATION_ID=""
@@ -60,7 +64,6 @@ pick_model() {
   [[ -z "$selected" ]] && echo "Model selection cancelled" && return
 
   set_model $selected
-  echo "Model changed to $MODEL_NAME (ID: $MODEL_ID)"
 }
 
 set_model() {
@@ -392,7 +395,6 @@ main() {
   esac
 }
 
-set_model $([ -t 0 ] && echo "cl-sonnet" || echo "cl-haiku")
-# set_model $([ -t 0 ] && echo "deepseek-r1" || echo "cl-haiku")
+pick_model $([ -t 0 ] && echo "sonnet" || echo "deep")
 
 main "$@"

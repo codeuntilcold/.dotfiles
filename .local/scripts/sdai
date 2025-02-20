@@ -152,8 +152,8 @@ get_response_stream() {
 
   STREAMING="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$ASSI_MESSAGE_ID"' }' --no-buffer |
-    tee $CURRENT_RESPONSE_FILE 
-    # | bat --paging=never --style=rule --language=markdown
+    tee $CURRENT_RESPONSE_FILE
+  # bat --paging=never --style=rule --language=markdown
 
   STREAMING="false"
 }
@@ -185,6 +185,33 @@ count_unread_messages() {
     )
     [ $created -gt "$last_monday" ] && echo $unread
   done | awk '{sum += $1} END {print sum / 2}'
+}
+
+count_dollars_spent() {
+  local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
+
+  (
+    call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { id, created }' &
+    call "$BASE_URL/conversations/?sort_by=created&page=2" | jq -c '.results[] | { id, created }' &
+    wait
+  ) |
+    while IFS= read -r conv; do
+      local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
+      local id=$(echo "$conv" | jq -r '.id')
+
+      local created=$(
+        [ $(uname) = 'Linux' ] &&
+          date --date="$created" +%s || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
+      )
+      [ $created -gt "$last_monday" ] && echo $id
+    done |
+    (
+      while IFS= read -r id; do
+        call "$BASE_URL/conversations/$id/cost" | jq -r '.conversation_total_usage_cost' &
+      done
+      wait
+    ) |
+    LC_NUMERIC=C awk '{sum += $1} END {print sum}'
 }
 
 get_conversation_history() {
@@ -388,6 +415,9 @@ main() {
     ;;
   count-conv)
     count_messages
+    ;;
+  count-dollars)
+    count_dollars_spent
     ;;
   *)
     one_time_prompt "$@"

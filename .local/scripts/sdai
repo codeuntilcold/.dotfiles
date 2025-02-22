@@ -312,6 +312,12 @@ start_chat_session() {
       continue
     fi
 
+    if [[ "$message" = "/colab" ]]; then
+      call "$BASE_URL/conversations/$CONVERSATION_ID/create_snapshot" --data '{"anonymize":"false"}' | jq -r '.url'
+      dash
+      continue
+    fi
+
     if [[ "$message" = "/view" ]]; then
       nvim -R $CURRENT_RESPONSE_FILE
       dash

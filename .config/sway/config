@@ -10,7 +10,7 @@ set $right l
 set $dot_local /home/qd/.local
 
 # Executable
-set $term alacritty
+set $term /home/qd/.cargo/bin/alacritty
 set $menu wofi --show run
 set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle

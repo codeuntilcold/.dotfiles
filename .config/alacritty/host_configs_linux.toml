@@ -1,10 +1,11 @@
+[general]
 import = [
     "~/.config/alacritty/themes/themes/zenwritten_dark.toml",
 ]
 
 working_directory = "/home/qd"
 
-[shell]
+[terminal.shell]
 program = "/usr/bin/zsh"
 args = ["--login"]
 

@@ -15,7 +15,7 @@ max-icon-size=64
 default-timeout=5000
 ignore-timeout=1
 
-font=monospace 12
+font=JetBrainsMono Nerd Font 12
 
 [urgency=low]
 border-color=#cccccc

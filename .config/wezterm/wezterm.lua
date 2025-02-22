@@ -2,10 +2,18 @@ local wezterm = require 'wezterm'
 
 local config = wezterm.config_builder()
 
-config.font = wezterm.font('IosevkaTerm Nerd Font Mono', { weight = 'Regular' })
-config.font_size = 18.0
-config.line_height = 1.2
-config.color_scheme = 'zenwritten_light'
+
+if os.getenv('USER') == 'dungngo' then
+  config.font = wezterm.font('IosevkaTerm Nerd Font Mono', { weight = 'Regular' })
+  config.font_size = 14.0
+  config.line_height = 1.2
+  config.color_scheme = 'zenwritten_light'
+else
+  config.font = wezterm.font('JetBrainsMono NF', { weight = 'Regular' })
+  config.font_size = 14.0
+  config.line_height = 1.2
+end
+
 config.window_decorations = 'RESIZE'
 
 config.hide_mouse_cursor_when_typing = false
@@ -17,10 +25,10 @@ config.tab_bar_at_bottom = true
 config.freetype_load_target = 'HorizontalLcd'
 
 config.window_padding = {
-  left    =  16,
-  right   =  16,
-  top     =  16,
-  bottom  =  16,
+  left   = 16,
+  right  = 16,
+  top    = 16,
+  bottom = 16,
 }
 
 function scheme_for_appearance(appearance)

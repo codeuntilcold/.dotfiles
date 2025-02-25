@@ -10,7 +10,7 @@ case "$command" in
 Given the below code, file structure, requirement and general rule:
 
 <file_structure>
-$(tree --gitignore --noreport)
+$(fd --type f --hidden --exclude .git | tree --fromfile)
 </file_structure>
 
 <code>

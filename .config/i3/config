@@ -2,23 +2,21 @@
 set $mod Mod1
 
 font pango:JetBrainsMono NF 9
-# font pango:monospace 8
-# font pango:DejaVu Sans Mono 8
 
 exec --no-startup-id dex --autostart --environment i3
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork -i /home/dungngo/Downloads/colin-watts-2fWZ9jsoIe0-unsplash.png
-exec --no-startup-id feh --bg-scale /home/dungngo/Downloads/colin-watts-2fWZ9jsoIe0-unsplash.jpg
+exec --no-startup-id feh --bg-scale /home/dungngo/Downloads/wallpapers/tilak-baloni-9mqtxq83ODw-unsplash.jpg
 exec --no-startup-id ibus-daemon --daemonize --replace
+exec picom -b
 
 # alt is on right hand...
 floating_modifier Mod4
 
 gaps inner 10px
 smart_gaps on
-default_border pixel 2
-default_floating_border pixel 2
+default_border pixel 0
+# default_floating_border pixel 2
 # class                 border  backgr. text    indicator child_border
-client.focused          #e07000 #e07000 #ffffff #2e9ef4   #e07000
+# client.focused          #e07000 #e07000 #ffffff #2e9ef4   #e07000
 
 set $refresh_i3status killall -SIGUSR1 i3status
 bindsym XF86MonBrightnessUp   exec --no-startup-id xbrightness +0.05                                   && $refresh_i3status
@@ -37,7 +35,6 @@ bindsym $mod+d     exec --no-startup-id dmenu_run -fn "JetBrainsMono NF"
 bindsym $mod+t     exec alacritty
 bindsym $mod+b     exec google-chrome
 
-# testing out new stuffs
 bindsym $mod+F1 exec --no-startup-id xscreenshot
 bindsym $mod+F2 exec xrecord
 
@@ -104,18 +101,10 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
 
-mode "resize" {
-        bindsym h resize shrink width 30 px or 10 ppt
-        bindsym j resize grow height 30 px or 10 ppt
-        bindsym k resize shrink height 30 px or 10 ppt
-        bindsym l resize grow width 30 px or 10 ppt
-
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-        bindsym $mod+r mode "default"
-}
-
-bindsym $mod+r mode "resize"
+bindsym $mod+Shift+y resize shrink width 30 px or 10 ppt
+bindsym $mod+Shift+u resize grow height 30 px or 10 ppt
+bindsym $mod+Shift+i resize shrink height 30 px or 10 ppt
+bindsym $mod+Shift+o resize grow width 30 px or 10 ppt
 
 bar {
         status_command start-i3status

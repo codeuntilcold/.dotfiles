@@ -411,7 +411,7 @@ main() {
     start_chat_session
     ;;
   query-models)
-    call "$BASE_URL/models/" | jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -k2
+    call "$BASE_URL/models/" | jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -u -k2
     ;;
   count-conv)
     count_messages

@@ -4,7 +4,7 @@ set $mod Mod1
 font pango:JetBrainsMono NF 9
 
 exec --no-startup-id dex --autostart --environment i3
-exec --no-startup-id feh --bg-scale /home/dungngo/Downloads/wallpapers/tilak-baloni-9mqtxq83ODw-unsplash.jpg
+exec --no-startup-id ~/.fehbg
 exec --no-startup-id ibus-daemon --daemonize --replace
 exec picom -b
 

@@ -4,7 +4,7 @@ start() {
     ffmpeg -f x11grab -i :1 -f pulse -i default -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
     # ffmpeg -f x11grab -i :1 -f alsa -ac 2 -i hw:0 -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
     echo $! > /tmp/recpid
-    screenkey --opacity 0.4 &
+    screenkey -p fixed -g 800x100+1700+1300 --opacity 0.4 &
     echo $! > /tmp/screenkeypid
     notify-send -t 1000 "Recording started"
 }

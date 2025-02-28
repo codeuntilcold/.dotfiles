@@ -5,6 +5,66 @@ shift
 rest="$@"
 
 case "$command" in
+"agent")
+  echo "[[ $(cut -c1-50 <<<$rest)
+Given the below file structure, requirement and general rule:
+
+<file_structure>
+$(fd --type f --hidden --exclude .git | tree --fromfile)
+</file_structure>
+
+<requirement>
+Help me $rest.
+</requirement>
+
+<general_rule>
+As a coding agent, you have some tools available at your disposal, mainly the way to execute shell
+commands. You will use these commands to perform queries, changes, and anything you want on the
+host machine. The commands should be encapsulated in one line, wrapped in the 'agentexecute' block,
+where block is a triple-backticks fenced block like in markdown. Those must lie at the end of your
+response since it is an information that is obtained outside of our conversation.
+
+As an example, some of your helpful shell commands would be: curl (http request), grep (search),
+parker (applying your change in diffs), tree (for listing files), git, cat, ls, and so on so forth.
+
+Remember: you can only execute one agentexecute block at a time. That's why it's at the end of your
+response. those commands must be put at the end of the file, the shell command must be in one line,
+and its response will be sent back to you. Which means you can read files, write code in diff, and
+commit. DO NOT PUSH though as the coder will make the ultimate decision. Decide for yourself what is
+an irreversible thing and stop yourself before doing that.
+
+So to be easy for you to understand, here is a recap of the flow:
+- my request
+- your response; if you want to execute something, END WITH ONE agentexecute block. it must only
+contain one line of bash command
+- if there's agentexecute block, the next message from me is the result of that block
+- repeat until you've considered the task complete.
+
+Coding task wise, you will start with high level ideas on how you would implement this, considering
+all security and performance issues with it. Think for as much as you want. Then, for now and the
+rest of this session:
+
+- If the context provided to you has missing files, do yourself a favor and read them using cat.
+- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
+  that got changed, and ignore the parts that is unchanged).
+- The change must be compatible to be used in the 'patch' program to apply the changes. Follow the
+  line numbers correctly, especially the starting line of the change. Make sure to add 'a/' and 'b/'
+  so that the program knows to patch which file.
+- After you're satisfied with the code, use a special shell command called 'parker' to patch the code.
+  No arguments needed. If patching failed, you're welcome to look into the .rej file to figure out
+  what went wrong and suggest a change in diff.
+- Only after you have all the ideas about the changes to make (feel free to reflect yourself on that)
+  are you able to use 'parker'. Do not mix up the diffs with other things, only diffs and then 'parker'
+- Make sure you output professional-grade, production-ready code that is clean, optimized, maintain-
+  able and follow best practices.
+- No need for comment. Try to write semanticly rich code instead of littering the code with comments.
+
+REMEMBER: if you want to execute something, you can only do it at the end; none of the ones proceeding
+it matters.
+</general_rule>
+"
+  ;;
+
 "code")
   echo "[[ $(cut -c1-50 <<<$rest)
 Given the below code, file structure, requirement and general rule:

@@ -21,14 +21,14 @@ MODELS["cld-35-haiku"]=5171
 MODELS["cld-35-sonnet"]=5101
 MODELS["cld-37-sonnet"]=6188
 MODELS["gem-2-flash"]=6182
+MODELS["gem-2-flash-lite"]=6215
+MODELS["gem-2-flash-lite-thinking"]=6216
 MODELS["gem-2-pro"]=6137
 MODELS["gpt-4o"]=4094
 MODELS["gpt-4o-mini"]=4430
 MODELS["gpt-o1"]=5728
 MODELS["gpt-o3-mini"]=6006
 MODELS["deep-r1"]=5971
-MODELS["snr-pro"]=6111
-MODELS["snr-reason-pro"]=6112
 
 STREAMING="false"
 CONVERSATION_ID=""
@@ -238,10 +238,17 @@ start_chat_session() {
   while true; do
     local queryfile="/tmp/sdai-query-$CONVERSATION_ID.md"
 
+    local aicommand=$(tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d')
+    if [[ -n $CONVERSATION_ID && -n "$aicommand" ]]; then
+      echo ">>>>>>>>> Executing $aicommand"
+      eval "$aicommand" |& tee /tmp/heyyy
+      message=$(cat /tmp/heyyy)
+    else
     # use a local version of `gum` to map enter to new line, ctrl+d to submit
     message=$(
       gum write --char-limit=0 --width=0 --height=0 --no-show-help
     ) || return
+    fi
 
     if [[ -z "$message" ]]; then
       nvim "$queryfile"
@@ -334,6 +341,9 @@ start_chat_session() {
       clear
       continue
     fi
+
+    # local aicommand=$(cat $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d')
+    # [[ -n $aicommand ]] && message=$(eval $aicommand)
 
     dash
 
@@ -433,6 +443,6 @@ main() {
   esac
 }
 
-pick_model $([ -t 0 ] && echo "37-sonnet" || echo "deep")
+pick_model $([ -t 0 ] && echo "37-sonnet" || echo "gem-2-flash-lite-thinking")
 
 main "$@"

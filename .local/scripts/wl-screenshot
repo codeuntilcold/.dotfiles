@@ -1,3 +1,4 @@
 #!/bin/bash
 
-/home/qd/.local/bin/grim -g "$(/home/qd/.local/bin/slurp)" - | wl-copy -t image/png
+/home/qd/.local/bin/grim -g "$(/home/qd/.local/bin/slurp)" - > /home/qd/Pictures/Screenshots/grim-$(date +"%Y%m%d-%H%M").png
+cat /home/qd/Pictures/Screenshots/grim-$(date +"%Y%m%d-%H%M").png | wl-copy -t image/png

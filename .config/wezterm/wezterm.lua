@@ -10,7 +10,7 @@ if os.getenv('USER') == 'dungngo' then
   config.color_scheme = 'zenwritten_light'
 else
   config.font = wezterm.font('JetBrainsMono NF', { weight = 'Regular' })
-  config.font_size = 14.0
+  config.font_size = 13.0
   config.line_height = 1.2
 end
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-filename=~/Pictures/screenshot-$(date +%s).jpg
+filename=~/Pictures/screenshot-$(date +%s).png
 import $filename
 cat $filename | xclip -selection clipboard -target image/png

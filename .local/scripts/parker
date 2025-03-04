@@ -15,7 +15,7 @@ content=$(cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d')
 
 echo "$content" >$filediff
 
-nvim $filediff
+# nvim $filediff
 
 ### Else just patch the latest response
 patch --strip=1 --verbose < <(cat $filediff | diffix)

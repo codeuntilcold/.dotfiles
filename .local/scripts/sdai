@@ -241,6 +241,13 @@ start_chat_session() {
     local aicommand=$(tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d')
     if [[ -n $CONVERSATION_ID && -n "$aicommand" ]]; then
       echo ">>>>>>>>> Executing $aicommand"
+      spinner &
+      spinner_id=$!
+      sleep 3
+      kill $spinner_id 2>/dev/null
+      wait $! 2>/dev/null
+      echo -ne '\r   \r'
+
       eval "$aicommand" |& tee /tmp/heyyy
       message=$(cat /tmp/heyyy)
     else

@@ -2,18 +2,15 @@ local wezterm = require 'wezterm'
 
 local config = wezterm.config_builder()
 
-
 if os.getenv('USER') == 'dungngo' then
-  config.font = wezterm.font('IosevkaTerm Nerd Font Mono', { weight = 'Regular' })
-  config.font_size = 14.0
-  config.line_height = 1.2
-  config.color_scheme = 'zenwritten_light'
+  config.font = wezterm.font('IosevkaTerm NFM', { weight = 'Regular' })
+  config.font_size = 16.0
+  config.line_height = 1.3
 else
   config.font = wezterm.font('JetBrainsMono NF', { weight = 'Regular' })
   config.font_size = 13.0
   config.line_height = 1.2
 end
-
 config.window_decorations = 'RESIZE'
 
 config.hide_mouse_cursor_when_typing = false
@@ -32,6 +29,10 @@ config.window_padding = {
 }
 
 function scheme_for_appearance(appearance)
+  if os.getenv('USER') == 'dungngo' then
+    return 'zenwritten_light'
+  end
+
   if appearance:find 'Dark' then
     return 'zenwritten_dark'
   else

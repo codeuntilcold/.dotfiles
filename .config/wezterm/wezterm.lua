@@ -22,6 +22,10 @@ config.tab_bar_at_bottom = true
 config.freetype_load_target = 'HorizontalLcd'
 config.warn_about_missing_glyphs = false
 
+config.keys = {
+  { mods = 'SHIFT | CTRL', key = '^', action = wezterm.action.DisableDefaultAssignment, },
+}
+
 config.window_padding = {
   left   = 16,
   right  = 16,

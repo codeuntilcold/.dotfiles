@@ -19,7 +19,13 @@ Help me $rest.
 
 <general_rule>
 You will start with high level ideas on how you would implement this, considering all security and
-performance issues with it. Think for as much as you want.
+performance issues with it. Lay out the plan for me to review. No code is needed at this moment
+as we just want a broad overview of the situation. Maybe lay out the user story in the feature in
+gherkin format to better present the feature.
+
+After you get my approval of the plan, you can move on to the following steps.
+
+First, consider if you should write tests first.
 
 Then, for now and the rest of this session:
 - As a coding agent, you have some tools available at your disposal, mainly the way to execute shell
@@ -31,7 +37,7 @@ Then, for now and the rest of this session:
 - Get context by executing 'agentexecute' command. ONE command only. ONE command only. Stop as soon
   as you want to run a command.
 
-When you've got an idea of how to code this:
+When you're ready to implement:
 - Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
   that got changed, and ignore the parts that is unchanged).
 - The change must be compatible to be used in the 'patch' program to apply the changes. Follow the

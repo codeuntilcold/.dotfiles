@@ -20,6 +20,7 @@ config.enable_scroll_bar = false
 config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = true
 config.freetype_load_target = 'HorizontalLcd'
+config.warn_about_missing_glyphs = false
 
 config.window_padding = {
   left   = 16,

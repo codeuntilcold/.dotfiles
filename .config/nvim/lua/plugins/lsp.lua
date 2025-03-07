@@ -34,13 +34,16 @@ return {
         end
 
         local servers = {
-            -- clangd = {},
             gopls = {},
             pyright = {
+                pyright = {
+                    disableOrganizeImports = true,
+                },
                 python = {
                     analysis = {
                         autoSearchPaths = true,
                         typeCheckingMode = 'off',
+                        ignore = { '*' }
                     },
                 },
             },
@@ -52,6 +55,7 @@ return {
                     telemetry = { enable = false },
                 },
             },
+            ruff = {},
         }
 
         -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
@@ -62,6 +66,7 @@ return {
         -- Setup mason so it can manage external tooling
         require('mason').setup()
         require('mason-lspconfig').setup {
+            automatic_installation = false,
             ensure_installed = vim.tbl_keys(servers),
             handlers = {
                 function(server_name)

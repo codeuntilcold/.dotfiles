@@ -1,0 +1,74 @@
+export ZSH="$HOME/.oh-my-zsh"
+
+ZSH_THEME="robbyrussell"
+HISTSIZE=999999999
+SAVEHIST=$HISTSIZE
+
+plugins=(git)
+
+source $ZSH/oh-my-zsh.sh
+
+# Edit commands using vi bindings
+set -o vi
+
+export EDITOR=nvim
+export PATH="$PATH:$HOME/.local/bin/:$HOME/.local/scripts:/usr/local/go/bin:$HOME/go/bin"
+# lineageOS
+export PATH="$HOME/Downloads/zips/platform-tools:$PATH"
+# export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+export DEV_HOME="$HOME/dev"
+
+alias supra="docker exec -it supra_cli /supra/supra"
+
+# tex
+# export TEXMFHOME=~/.TinyTeX/texmf-dist:~/texmf
+alias lmk=latexmk
+
+alias upgrade='sudo apt update && sudo apt upgrade'
+
+alias v="nvim"
+alias ez='nvim ~/.zshrc'
+alias sz='source ~/.zshrc'
+alias dot='nvim ~/Dev/personal/dotfiles'
+alias ck='nvim ~/.sdai/cookies'
+alias tma='tmux -2 a'
+
+function dailyzoom() {
+  xdg-open 'https://app.zoom.us/wc/84023662781/join?pwd=N1U3enJ4T0c3bGQwdWw3N3JEdkxKUT09'
+}
+
+alias lg='lazygit'
+alias ldk='lazydocker'
+alias zl='zellij'
+alias dbui='nvim -c "DBUI"'
+alias oil='nvim -c "Oil"'
+alias ccal='ncal -3Mbw'
+alias pbcopy='xclip -sel c'
+alias pbpaste='xclip -sel c -o'
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
+source "$HOME/.cargo/env"
+
+# For fzf
+source /usr/share/doc/fzf/examples/key-bindings.zsh
+source /usr/share/doc/fzf/examples/completion.zsh
+
+export FZF_DEFAULT_OPTS="--layout=reverse"
+
+# Automatically create a new session
+tmux has-session -t main 2> /dev/null || tmux new-session -d -s main
+
+eval "$(zoxide init zsh)"
+eval "$(starship init zsh)"
+
+[ -s "$HOME/.nvm/nvm.sh" ] && \. "$HOME/.nvm/nvm.sh"
+
+. "$HOME/.local/bin/env"

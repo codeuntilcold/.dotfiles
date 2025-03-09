@@ -1,0 +1,7 @@
+[manager]
+ratio = [1, 1, 4]
+
+[preview]
+max_height = 1920
+max_width = 1080
+image_quality = 50

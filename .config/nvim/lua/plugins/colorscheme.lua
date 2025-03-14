@@ -39,9 +39,4 @@ return {
             getcolorscheme()
         end
     },
-
-    {
-        'NLKNguyen/papercolor-theme',
-        event = "VimEnter",
-    },
 }

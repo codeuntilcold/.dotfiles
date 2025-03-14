@@ -32,6 +32,7 @@ alias sz='source ~/.zshrc'
 alias dot='nvim ~/Dev/personal/dotfiles'
 alias ck='nvim ~/.sdai/cookies'
 alias tma='tmux -2 a'
+alias mkdir='mkdir -v'
 
 function dailyzoom() {
   xdg-open 'https://app.zoom.us/wc/84023662781/join?pwd=N1U3enJ4T0c3bGQwdWw3N3JEdkxKUT09'

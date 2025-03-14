@@ -1,3 +1,6 @@
+[push]
+autoSetupRemote = true
+
 [includeIf "gitdir:~/Dev/personal/"]
 path = ~/Dev/personal/.gitconfig.personal
 

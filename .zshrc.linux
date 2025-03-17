@@ -1,4 +1,5 @@
-set -o vi
+bindkey -v
+export KEYTIMEOUT=1
 
 PATH="$PATH:/opt/nvim-linux64/bin"
 PATH="$PATH:/usr/local/go/bin"
@@ -20,10 +21,6 @@ alias tma='tmux -2 a'
 alias lg='lazygit'
 alias ldk='lazydocker'
 alias dbui='nvim -c "DBUI"'
-
-dailyzoom() {
-  xdg-open 'https://app.zoom.us/wc/84023662781/join?pwd=N1U3enJ4T0c3bGQwdWw3N3JEdkxKUT09'
-}
 
 y() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd

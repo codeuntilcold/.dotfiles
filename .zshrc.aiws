@@ -8,8 +8,9 @@ plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
 
-# Edit commands using vi bindings
-set -o vi
+# Edit commands using vi bindings -- better than `set -o vi`
+bindkey -v
+export KEYTIMEOUT=1
 
 export EDITOR=nvim
 export PATH="$PATH:$HOME/.local/bin/:$HOME/.local/scripts:/usr/local/go/bin:$HOME/go/bin"
@@ -33,10 +34,6 @@ alias dot='nvim ~/Dev/personal/dotfiles'
 alias ck='nvim ~/.sdai/cookies'
 alias tma='tmux -2 a'
 alias mkdir='mkdir -v'
-
-function dailyzoom() {
-  xdg-open 'https://app.zoom.us/wc/84023662781/join?pwd=N1U3enJ4T0c3bGQwdWw3N3JEdkxKUT09'
-}
 
 alias lg='lazygit'
 alias ldk='lazydocker'

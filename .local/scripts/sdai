@@ -24,6 +24,7 @@ MODELS["gem-2-flash"]=6182
 MODELS["gem-2-flash-lite"]=6215
 MODELS["gem-2-flash-lite-thinking"]=6216
 MODELS["gem-2-pro"]=6137
+MODELS["gem-25-pro"]=6324
 MODELS["gpt-4o"]=4094
 MODELS["gpt-4o-mini"]=4430
 MODELS["gpt-o1"]=5728

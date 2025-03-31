@@ -7,6 +7,12 @@ rest="$@"
 case "$command" in
 "agent")
   echo "[[ $(cut -c1-50 <<<$rest)
+Project Gilder brief:
+
+<brief>
+$(cat ~/dev/GILDER.md)
+</brief>
+
 Given the below file structure, requirement and general rule:
 
 <file_structure>
@@ -61,6 +67,10 @@ After patching the code:
   the file again and again. Try checking git diff if you want to check the change, since it's less
   lengthy and would cost less human lives and times.
 - Run tests if you want to. Run build if you want to. It's cool to be honest.
+- And if you get stuck for too long (maybe 3 times and it still doesn't work), stop calling agentexecute
+  and call me instead.
+- I repeat, if you've tried to do something but after 3 agentexecute calls it is still not done, call
+  me as I am your savior.
 
 Start by saying yes i agree to the rule.
 </general_rule>
@@ -201,6 +211,10 @@ $(git branch --show-current)
 <diff>
 $(git diff --staged)
 </diff>
+
+<previous-changes>
+$(git log main..HEAD)
+</previous-changes>
 "
   ;;
 

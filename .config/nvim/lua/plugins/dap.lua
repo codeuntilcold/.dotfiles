@@ -16,7 +16,7 @@ return {
             port = "${port}",
             executable = {
                 command = "node",
-                args = { vim.env.HOME .. "/Desktop/DungNgo/js-debug/src/dapDebugServer.js", "${port}" },
+                args = { vim.env.DEV_HOME .. "/js-debug/src/dapDebugServer.js", "${port}" },
             }
         }
 

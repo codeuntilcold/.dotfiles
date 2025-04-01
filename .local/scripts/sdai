@@ -41,11 +41,6 @@ MODEL_ID=""
 # LOCAL OPS
 ###
 
-fail() {
-  printf '%s\n' "$1" >&2
-  exit "${2-1}"
-}
-
 spinner() {
   local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
   for ((i = 0; i < 100; i++)); do
@@ -86,13 +81,7 @@ count_messages() {
 }
 
 dash() {
-  printf "$BG%$(tput cols)s$CLR" | tr ' ' '-'
-  echo
-}
-
-clean_message() {
-  # jq -Rrs '.' <<<"$1"
-  echo "$1"
+  printf "$BG%80s$CLR\n" | tr ' ' '-'
 }
 
 get_access_token() {
@@ -143,7 +132,7 @@ patch_conversation() {
 }
 
 post_user_message() {
-  local cleaned_message="$(clean_message "$1")"
+  local cleaned_message="$1"
   shift
   call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$cleaned_message" \
     -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" $@
@@ -155,7 +144,6 @@ get_response_stream() {
   STREAMING="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$ASSI_MESSAGE_ID"' }' --no-buffer |
     tee $CURRENT_RESPONSE_FILE
-  # bat --paging=never --style=rule --language=markdown
 
   STREAMING="false"
 }
@@ -171,26 +159,8 @@ pick_conversation_id() {
   get_conversations | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
 }
 
-count_unread_messages() {
-  local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
-  (
-    call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { num_of_unread_messages, created }' &
-    call "$BASE_URL/conversations/?sort_by=created&page=2" | jq -c '.results[] | { num_of_unread_messages, created }' &
-    wait
-  ) | while IFS= read -r conv; do
-    local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
-    local unread=$(echo "$conv" | jq -r '.num_of_unread_messages')
-
-    local created=$(
-      [ $(uname) = 'Linux' ] &&
-        date --date="$created" +%s || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
-    )
-    [ $created -gt "$last_monday" ] && echo $unread
-  done | awk '{sum += $1} END {print sum / 2}'
-}
-
 count_dollars_spent() {
-  local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-mon +%s || date -v-sun -u +%s)
+  local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-sun +%s || date -v-sun -u +%s)
 
   (
     call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { id, created }' &
@@ -217,13 +187,6 @@ count_dollars_spent() {
 }
 
 get_conversation_history() {
-  # wscat -c "wss://admin.skydeck.ai/ws/connect/" \
-  #   -H "Origin: https://eastagile.skydeck.ai" \
-  #   -H "Cookie: eastagile_access=$(get_access_token)" \
-  #   -x '{"type":"user_opened_conversation","data":{"conversation_id":'"$CONVERSATION_ID"'}}' |
-  #   jq -r '.data.messages.[].content' |
-  #   bat --paging=never --style=rule --language=markdown
-
   call "$BASE_URL/conversations/$CONVERSATION_ID" |
     jq -r "[.data.messages[].content] | join(\"\\n$(dash)\\n\")"
 }
@@ -234,50 +197,48 @@ get_conversation_history() {
 
 start_chat_session() {
   echo "SkyDeck.ai with $MODEL_NAME"
-  dash
 
   while true; do
     local queryfile="/tmp/sdai-query-$CONVERSATION_ID.md"
 
-    local aicommand=$(tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d')
+    dash
+
+    local aicommand=$(
+      tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d'
+    )
     if [[ -n $CONVERSATION_ID && -n "$aicommand" ]]; then
       echo ">>>>>>>>> Executing $aicommand"
       spinner &
       spinner_id=$!
+
       sleep 3
+
       kill $spinner_id 2>/dev/null
       wait $! 2>/dev/null
       echo -ne '\r   \r'
 
-      eval "$aicommand" |& tee /tmp/heyyy
+      eval "$aicommand" >&/tmp/heyyy
       message=$(cat /tmp/heyyy)
+      [[ -z "$message" ]] && message="empty response"
     else
-    # use a local version of `gum` to map enter to new line, ctrl+d to submit
-    message=$(
-      gum write --char-limit=0 --width=0 --height=0 --no-show-help
-    ) || return
-    fi
+      # use a local version of `gum` to map enter to new line, ctrl+d to submit
+      message=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
 
-    if [[ -z "$message" ]]; then
-      nvim "$queryfile"
-      message=$(cat "$queryfile")
-    else
-      echo "$message"
+      if [[ -z "$message" ]]; then
+        nvim "$queryfile"
+        message=$(cat "$queryfile")
+      else
+        echo "$message"
+      fi
     fi
 
     # setting conversation title using prefix [[ on first line
     local first_line=$(echo "$message" | head -n 1)
-    if [[ "$first_line" =~ ^\[\[ ]]; then
+    local comment_regex="^\[\["
+    if [[ "$first_line" =~ $comment_regex ]]; then
       conversation_title=${first_line#* }
       message=$(echo "$message" | tail -n +2)
     fi
-
-    # add images
-    local post_ext=""
-    while read -r line; do
-      post_ext+=" -F files=@${line#@@@ }"
-    done < <(rg ^@@@ <<<"$message")
-    message=$(sed '/^@@@/d' <<<"$message")
 
     # use aidd prompt
     if [[ "$message" =~ ^/u ]]; then
@@ -289,7 +250,6 @@ start_chat_session() {
     # parker
     if [[ "$message" =~ ^/p ]]; then
       parker
-      dash
       continue
     fi
 
@@ -297,7 +257,6 @@ start_chat_session() {
     if [[ "$message" =~ ^/m ]]; then
       read -r _ model <<<"$message"
       pick_model "$model"
-      dash
       continue
     fi
 
@@ -313,35 +272,20 @@ start_chat_session() {
         [[ $(uname) = 'Linux' ]] && cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d' | xclip -sel c
         echo "Yanked $block to clipboard"
       fi
-      dash
       continue
     fi
 
-    if [[ "$message" = "/share" ]]; then
+    if [[ "$message" = "/colab" ]]; then
       call "$BASE_URL/conversations/collaboration/stop" --data '{"conversation_id":'"$CONVERSATION_ID"'}' >/dev/null
       echo https://eastagile.skydeck.ai/conversation/$(
         call "$BASE_URL/conversations/collaboration/start" --data '{"conversation_id":'"$CONVERSATION_ID"'}' |
           jq -r '.data.collaboration_slug'
       )
-      dash
       continue
     fi
 
-    if [[ "$message" = "/colab" ]]; then
+    if [[ "$message" = "/snap" ]]; then
       call "$BASE_URL/conversations/$CONVERSATION_ID/create_snapshot" --data '{"anonymize":"false"}' | jq -r '.url'
-      dash
-      continue
-    fi
-
-    if [[ "$message" = "/view" ]]; then
-      nvim -R $CURRENT_RESPONSE_FILE
-      dash
-      continue
-    fi
-
-    if [[ "$message" = "/viewdiff" ]]; then
-      cat $CURRENT_RESPONSE_FILE | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d' | nvim -R -
-      dash
       continue
     fi
 
@@ -350,17 +294,11 @@ start_chat_session() {
       continue
     fi
 
-    # local aicommand=$(cat $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d')
-    # [[ -n $aicommand ]] && message=$(eval $aicommand)
-
-    dash
-
     spinner &
     spinner_id=$!
 
     read CONVERSATION_ID ASSI_MESSAGE_ID < <(
-      post_user_message "$message" "$post_ext" |
-        jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
+      post_user_message "$message" | jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
     )
     [[ ! -z "$conversation_title" ]] && {
       patch_conversation "$conversation_title" &
@@ -378,23 +316,22 @@ start_chat_session() {
     echo
 
     trap - SIGINT
-    dash
   done
 }
 
 one_time_prompt() {
-  message=$(aidd "$@") || fail "No such aidd template: $1"
+  message=$(aidd "$@") || abort "No such aidd template: $1"
 
   # setting conversation title using prefix [[ on first line
   local first_line=$(echo "$message" | head -n 1)
-  if [[ "$first_line" =~ ^\[\[ ]]; then
+  local comment_regex="^\[\["
+  if [[ "$first_line" =~ $comment_regex ]]; then
     conversation_title=${first_line#* }
     message=$(echo "$message" | tail -n +2)
   fi
 
   read CONVERSATION_ID ASSI_MESSAGE_ID < <(
-    post_user_message "$message" |
-      jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
+    post_user_message "$message" | jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
   )
   [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
 

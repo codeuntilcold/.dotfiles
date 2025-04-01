@@ -1,3 +1,6 @@
+# Notification daemon
+# https://github.com/emersion/mako
+exec mako
 exec ibus-daemon --daemonize --replace
 exec nm-applet
 
@@ -16,9 +19,6 @@ set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle
 set $ibus_zalo $dot_local/scripts/toggle-zalo-ggdocs
 set $screenshot $dot_local/scripts/wl-screenshot
-# set $clipboard_manager cliphist list | wofi --dmenu | cliphist decode | wl-copy
-
-include /etc/sway/config-vars.d/*
 
 # Pywal colors
 include "$HOME/.cache/wal/colors-sway"
@@ -44,126 +44,80 @@ input "type:touchpad" {
 }
 
 # Key bindings
-    bindsym $mod+t exec $term
+bindsym XF86AudioMute         exec pactl     set-sink-mute   @DEFAULT_SINK@ toggle
+bindsym XF86AudioRaiseVolume  exec pactl     set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume  exec pactl     set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioPlay         exec playerctl play-pause
+bindsym XF86AudioPause        exec playerctl play-pause
+bindsym XF86AudioNext         exec playerctl next
+bindsym XF86AudioPrev         exec playerctl previous
+bindsym XF86MonBrightnessUp   exec light -A 5
+bindsym XF86MonBrightnessDown exec light -U 5
 
-    bindsym $mod+Shift+q kill
+bindsym $mod+t exec $term
+bindsym $mod+b exec firefox
+bindsym $mod+d exec $menu
+bindsym $mod+p exec $flatpak_menu
+bindsym $mod+Shift+space exec $ibus_toggle
+bindsym $mod+Shift+p exec $screenshot
+bindsym $mod+Shift+e exec swaynag -t warning -m 'This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+bindsym $mod+Shift+x exec swaynag -t warning -m 'Shut down the machine.' -B 'Yes, shutdown now' 'shutdown now' -B 'Yes, shutdown' 'shutdown'
 
-    bindsym $mod+d exec $menu
-    bindsym $mod+p exec $flatpak_menu
-    bindsym $mod+Shift+space exec $ibus_toggle
-    bindsym $mod+Shift+z exec $ibus_zalo
-    bindsym $mod+Shift+p exec $screenshot
-    bindsym $mod+Shift+v exec $clipboard_manager
-    floating_modifier $mod normal
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+q kill
 
-    bindsym $mod+Shift+c reload
+floating_modifier $mod normal
+bindsym $mod+Shift+s floating toggle; resize set width 600px height 400px; move position 1300px 0px; sticky toggle
 
-    bindsym $mod+Shift+e exec swaynag -t warning -m 'This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
-    bindsym $mod+Shift+x exec swaynag -t warning -m 'Shut down the machine.' -B 'Yes, shutdown now' 'shutdown now' -B 'Yes, shutdown' 'shutdown'
+# Moving around
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
 
-    bindsym $mod+Shift+s floating toggle; resize set width 600px height 400px; move position 1300px 0px; sticky toggle
+bindsym $mod+Shift+$left move left 70px
+bindsym $mod+Shift+$down move down 30px
+bindsym $mod+Shift+$up move up 30px
+bindsym $mod+Shift+$right move right 70px
 
-    bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
-    bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
-    bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+# Workspaces
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+bindsym $mod+0 workspace number 10
+bindsym $mod+Shift+1 move container to workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9
+bindsym $mod+Shift+0 move container to workspace number 10
 
-    # Media player controls
-    bindsym XF86AudioPlay exec playerctl play-pause
-    bindsym XF86AudioPause exec playerctl play-pause
-    bindsym XF86AudioNext exec playerctl next
-    bindsym XF86AudioPrev exec playerctl previous
+# Layout stuff
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+bindsym $mod+f fullscreen
+bindsym $mod+Shift+t floating toggle
 
-    bindsym XF86MonBrightnessUp exec light -A 5
-    bindsym XF86MonBrightnessDown exec light -U 5
+# Scratchpad
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
 
-# Moving around:
-    bindsym $mod+$left focus left
-    bindsym $mod+$down focus down
-    bindsym $mod+$up focus up
-    bindsym $mod+$right focus right
-    bindsym $mod+Left focus left
-    bindsym $mod+Down focus down
-    bindsym $mod+Up focus up
-    bindsym $mod+Right focus right
-    bindsym $mod+Shift+$left move left 70px
-    bindsym $mod+Shift+$down move down 30px
-    bindsym $mod+Shift+$up move up 30px
-    bindsym $mod+Shift+$right move right 70px
-    bindsym $mod+Shift+Left move left 70px
-    bindsym $mod+Shift+Down move down 30px
-    bindsym $mod+Shift+Up move up 30px
-    bindsym $mod+Shift+Right move right 70px
-
-
-# Workspaces:
-    bindsym $mod+1 workspace number 1
-    bindsym $mod+2 workspace number 2
-    bindsym $mod+3 workspace number 3
-    bindsym $mod+4 workspace number 4
-    bindsym $mod+5 workspace number 5
-    bindsym $mod+6 workspace number 6
-    bindsym $mod+7 workspace number 7
-    bindsym $mod+8 workspace number 8
-    bindsym $mod+9 workspace number 9
-    bindsym $mod+0 workspace number 10
-    bindsym $mod+Shift+1 move container to workspace number 1
-    bindsym $mod+Shift+2 move container to workspace number 2
-    bindsym $mod+Shift+3 move container to workspace number 3
-    bindsym $mod+Shift+4 move container to workspace number 4
-    bindsym $mod+Shift+5 move container to workspace number 5
-    bindsym $mod+Shift+6 move container to workspace number 6
-    bindsym $mod+Shift+7 move container to workspace number 7
-    bindsym $mod+Shift+8 move container to workspace number 8
-    bindsym $mod+Shift+9 move container to workspace number 9
-    bindsym $mod+Shift+0 move container to workspace number 10
-
-
-# Layout stuff:
-    bindsym $mod+b splith
-    bindsym $mod+v splitv
-
-    bindsym $mod+s layout stacking
-    bindsym $mod+w layout tabbed
-    bindsym $mod+e layout toggle split
-
-    bindsym $mod+f fullscreen
-
-    bindsym $mod+Shift+t floating toggle
-
-    # Swap focus between the tiling area and the floating area
-    bindsym $mod+space focus mode_toggle
-
-    # Move focus to the parent container
-    bindsym $mod+a focus parent
-
-
-# Scratchpad:
-    bindsym $mod+Shift+minus move scratchpad
-    bindsym $mod+minus scratchpad show
-
-
-mode "resize" {
-    bindsym $left resize shrink width 70px
-    bindsym $down resize grow height 70px
-    bindsym $up resize shrink height 70px
-    bindsym $right resize grow width 70px
-
-    bindsym Left resize shrink width 70px
-    bindsym Down resize grow height 70px
-    bindsym Up resize shrink height 70px
-    bindsym Right resize grow width 70px
-
-    bindsym Return mode "default"
-    bindsym Escape mode "default"
-}
-bindsym $mod+Return mode "resize"
-
+bindsym $mod+Shift+y resize shrink width 70px
+bindsym $mod+Shift+u resize grow height 70px
+bindsym $mod+Shift+i resize shrink height 70px
+bindsym $mod+Shift+o resize grow width 70px
 
 bar swaybar_command waybar
 
-# Notification daemon
-# https://github.com/emersion/mako
-exec mako
-
 include /etc/sway/config.d/*
-

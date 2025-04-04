@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+RESOLUTION=$(xrandr | grep -w connected | grep -o '[0-9]\+x[0-9]\+' | head -n 1)
+WIDTH=$(echo $RESOLUTION | cut -d'x' -f1)
+HEIGHT=$(echo $RESOLUTION | cut -d'x' -f2)
+
 start() {
     ### no audio
     ffmpeg -f x11grab -i :1 -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
@@ -7,7 +11,7 @@ start() {
     # ffmpeg -f x11grab -i :1 -f pulse -i default -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
     echo $! > /tmp/recpid
 
-    screenkey -p fixed -g 800x100+1700+1300 --opacity 0.4 &
+    screenkey -p fixed -g 23%x8%+$(($WIDTH * 3/4))+$(($HEIGHT * 9/10)) --opacity 0.4 &
     echo $! > /tmp/screenkeypid
 
     notify-send -t 1000 "Recording started"

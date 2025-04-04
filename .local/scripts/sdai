@@ -31,11 +31,13 @@ MODELS["gpt-o1"]=5728
 MODELS["gpt-o3-mini"]=6006
 MODELS["deep-r1"]=5971
 
+# global context
 STREAMING="false"
 CONVERSATION_ID=""
 ASSI_MESSAGE_ID=""
 MODEL_NAME=""
 MODEL_ID=""
+MESSAGE=""
 
 ###
 # LOCAL OPS
@@ -44,9 +46,7 @@ MODEL_ID=""
 spinner() {
   local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
   for ((i = 0; i < 100; i++)); do
-    printf " %s " "${spinstr:0:1}"
-    sleep 0.05
-    printf "\r"
+    printf " %s " "${spinstr:0:1}" && sleep 0.05 && printf "\r"
     spinstr=${spinstr#?}${spinstr:0:1}
   done
 }
@@ -57,9 +57,7 @@ pick_model() {
       (for key in ${!MODELS[@]}; do echo $key; done | fzf --prompt="Select a model: ") ||
       (for key in ${!MODELS[@]}; do echo $key; done | fzf --filter $1 | head -n 1)
   )
-
   [[ -z "$selected" ]] && echo "Model selection cancelled" && return
-
   set_model $selected
 }
 
@@ -76,16 +74,16 @@ increment_message_count() {
   echo $((current + 1)) >$COUNT_FILE
 }
 
-count_messages() {
-  cat $COUNT_FILE
-}
-
 dash() {
-  printf "$BG%80s$CLR\n" | tr ' ' '-'
+  printf "$BG%$(tput cols)s$CLR\n" | tr ' ' '-'
 }
 
 get_access_token() {
   grep "_access" $COOKIE_FILE | cut -f7
+}
+
+abort() {
+  echo "$1" && exit 1
 }
 
 ###
@@ -110,18 +108,6 @@ call_form() {
   curl -s --cookie "$COOKIE_FILE" -H "Content-Type: multipart/form-data" -H "$HEADER_REFERER" "$@"
 }
 
-get_conversations() {
-  [[ ! -f $CACHE_FILE ]] && call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
-
-  local cur=$(date +%s)
-  local mod=$([[ $(uname) = 'Linux' ]] && stat --format=%Y $CACHE_FILE || stat -f %m $CACHE_FILE)
-  if [[ $((cur - mod)) -lt $CACHE_TIMEOUT ]]; then
-    cat "$CACHE_FILE"
-  else
-    call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
-  fi
-}
-
 delete_conversation() {
   call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X DELETE &
 }
@@ -132,9 +118,7 @@ patch_conversation() {
 }
 
 post_user_message() {
-  local cleaned_message="$1"
-  shift
-  call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$cleaned_message" \
+  call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$MESSAGE" \
     -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" $@
 }
 
@@ -155,12 +139,24 @@ stop_response_stream() {
   printf "\n$BG[Interrupted]$CLR"
 }
 
+get_conversations() {
+  [[ ! -f $CACHE_FILE ]] && call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
+
+  local cur=$(date +%s)
+  local mod=$([[ $(uname) = 'Linux' ]] && stat --format=%Y $CACHE_FILE || stat -f %m $CACHE_FILE)
+  if [[ $((cur - mod)) -lt $CACHE_TIMEOUT ]]; then
+    cat "$CACHE_FILE"
+  else
+    call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
+  fi
+}
+
 pick_conversation_id() {
   get_conversations | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
 }
 
 count_dollars_spent() {
-  local last_monday=$([ $(uname) = 'Linux' ] && date -dlast-sun +%s || date -v-sun -u +%s)
+  local last_monday=$([[ $(uname) = 'Linux' ]] && date -d last-sun +%s || date -v -sun -u +%s)
 
   (
     call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { id, created }' &
@@ -172,10 +168,10 @@ count_dollars_spent() {
       local id=$(echo "$conv" | jq -r '.id')
 
       local created=$(
-        [ $(uname) = 'Linux' ] &&
+        [[ $(uname) = 'Linux' ]] &&
           date --date="$created" +%s || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
       )
-      [ $created -gt "$last_monday" ] && echo $id
+      [[ $created -gt "$last_monday" ]] && echo $id
     done |
     (
       while IFS= read -r id; do
@@ -218,64 +214,54 @@ start_chat_session() {
       echo -ne '\r   \r'
 
       eval "$aicommand" >&/tmp/heyyy
-      message=$(cat /tmp/heyyy)
-      [[ -z "$message" ]] && message="empty response"
+      MESSAGE=$(cat /tmp/heyyy)
+      [[ -z "$MESSAGE" ]] && MESSAGE="empty response"
     else
       # use a local version of `gum` to map enter to new line, ctrl+d to submit
-      message=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
-
-      if [[ -z "$message" ]]; then
-        nvim "$queryfile"
-        message=$(cat "$queryfile")
-      else
-        echo "$message"
-      fi
+      MESSAGE=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
     fi
 
-    # setting conversation title using prefix [[ on first line
-    local first_line=$(echo "$message" | head -n 1)
-    local comment_regex="^\[\["
-    if [[ "$first_line" =~ $comment_regex ]]; then
-      conversation_title=${first_line#* }
-      message=$(echo "$message" | tail -n +2)
+    if [[ -z "$MESSAGE" ]]; then
+      nvim "$queryfile"
+      MESSAGE=$(cat "$queryfile")
+    else
+      echo "$MESSAGE"
     fi
 
     # use aidd prompt
-    if [[ "$message" =~ ^/u ]]; then
-      aidd ${message#* } >"$queryfile"
+    if [[ "$MESSAGE" =~ ^/u ]]; then
+      aidd ${MESSAGE#* } >"$queryfile"
       nvim "$queryfile"
-      message=$(cat "$queryfile")
+      MESSAGE=$(cat "$queryfile")
     fi
 
     # parker
-    if [[ "$message" =~ ^/p ]]; then
+    if [[ "$MESSAGE" =~ ^/p ]]; then
       parker
       continue
     fi
 
     # model
-    if [[ "$message" =~ ^/m ]]; then
-      read -r _ model <<<"$message"
+    if [[ "$MESSAGE" =~ ^/m ]]; then
+      read -r _ model <<<"$MESSAGE"
       pick_model "$model"
       continue
     fi
 
     # yank
-    if [[ "$message" =~ ^/y ]]; then
-      read -r _ block <<<"$message"
+    if [[ "$MESSAGE" =~ ^/y ]]; then
+      read -r _ block <<<"$MESSAGE"
       if [[ -z "$block" ]]; then
-        [[ $(uname) = 'Darwin' ]] && pbcopy <$CURRENT_RESPONSE_FILE
-        [[ $(uname) = 'Linux' ]] && xclip -sel c <$CURRENT_RESPONSE_FILE
-        echo "Yanked content to clipboard"
+        cat $CURRENT_RESPONSE_FILE
       else
-        [[ $(uname) = 'Darwin' ]] && cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d' | pbcopy
-        [[ $(uname) = 'Linux' ]] && cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d' | xclip -sel c
-        echo "Yanked $block to clipboard"
-      fi
+        cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d'
+      fi | {
+        [[ $(uname) = 'Darwin' ]] && pbcopy || xclip -sel c
+      }
       continue
     fi
 
-    if [[ "$message" = "/colab" ]]; then
+    if [[ "$MESSAGE" = "/colab" ]]; then
       call "$BASE_URL/conversations/collaboration/stop" --data '{"conversation_id":'"$CONVERSATION_ID"'}' >/dev/null
       echo https://eastagile.skydeck.ai/conversation/$(
         call "$BASE_URL/conversations/collaboration/start" --data '{"conversation_id":'"$CONVERSATION_ID"'}' |
@@ -284,58 +270,39 @@ start_chat_session() {
       continue
     fi
 
-    if [[ "$message" = "/snap" ]]; then
+    if [[ "$MESSAGE" = "/snap" ]]; then
       call "$BASE_URL/conversations/$CONVERSATION_ID/create_snapshot" --data '{"anonymize":"false"}' | jq -r '.url'
       continue
     fi
 
-    if [[ "$message" = "/clear" ]]; then
+    if [[ "$MESSAGE" = "/clear" ]]; then
       clear
       continue
     fi
 
-    spinner &
-    spinner_id=$!
-
-    read CONVERSATION_ID ASSI_MESSAGE_ID < <(
-      post_user_message "$message" | jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
-    )
-    [[ ! -z "$conversation_title" ]] && {
-      patch_conversation "$conversation_title" &
-      conversation_title=""
-    }
-
-    kill $spinner_id 2>/dev/null
-    wait $! 2>/dev/null
-    echo -ne '\r   \r'
-
-    trap stop_response_stream SIGINT
-
-    printf "$BG($MODEL_NAME)$CLR\n"
-    get_response_stream
-    echo
-
-    trap - SIGINT
+    send_and_recv_cancellable
   done
 }
 
-one_time_prompt() {
-  message=$(aidd "$@") || abort "No such aidd template: $1"
-
-  # setting conversation title using prefix [[ on first line
-  local first_line=$(echo "$message" | head -n 1)
-  local comment_regex="^\[\["
-  if [[ "$first_line" =~ $comment_regex ]]; then
-    conversation_title=${first_line#* }
-    message=$(echo "$message" | tail -n +2)
-  fi
+send_and_recv_cancellable() {
+  spinner &
+  spinner_id=$!
 
   read CONVERSATION_ID ASSI_MESSAGE_ID < <(
-    post_user_message "$message" | jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
+    post_user_message | jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
   )
-  [[ ! -z "$conversation_title" ]] && patch_conversation "$conversation_title" &
 
+  kill $spinner_id 2>/dev/null
+  wait $! 2>/dev/null
+  echo -ne '\r   \r'
+
+  trap stop_response_stream SIGINT
+
+  printf "$BG($MODEL_NAME)$CLR\n"
   get_response_stream
+  echo
+
+  trap - SIGINT
 }
 
 usage() {
@@ -374,16 +341,18 @@ main() {
     start_chat_session
     ;;
   query-models)
-    call "$BASE_URL/models/" | jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -u -k2
+    call "$BASE_URL/models/" |
+      jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -u -k2
     ;;
   count-conv)
-    count_messages
+    cat $COUNT_FILE
     ;;
   count-dollars)
     count_dollars_spent
     ;;
   *)
-    one_time_prompt "$@"
+    MESSAGE=$(aidd "$@") || abort "No such aidd template: $1"
+    send_and_recv_cancellable
     ;;
   esac
 }

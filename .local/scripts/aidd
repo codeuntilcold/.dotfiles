@@ -6,8 +6,7 @@ rest="$@"
 
 case "$command" in
 "agent")
-  echo "[[ $(cut -c1-50 <<<$rest)
-Project Gilder brief:
+  echo "Project Gilder brief:
 
 <brief>
 $(cat ~/dev/GILDER.md)
@@ -63,12 +62,12 @@ parker
 After patching the code:
 - If patching failed, you're welcome to look into the .rej file to figure out what went wrong and
   suggest a change in diff.
-- If all succeeded, then you don't need to check whether the file is applied sucessfully. Avoid catting
-  the file again and again. Try checking git diff if you want to check the change, since it's less
-  lengthy and would cost less human lives and times.
+- If all succeeded, then you don't need to check whether the file is applied sucessfully. Avoid cat-
+  ting the file again and again. Try checking git diff if you want to check the change, since it's
+  less lengthy and would cost less human lives and times.
 - Run tests if you want to. Run build if you want to. It's cool to be honest.
-- And if you get stuck for too long (maybe 3 times and it still doesn't work), stop calling agentexecute
-  and call me instead.
+- And if you get stuck for too long (maybe 3 times and it still doesn't work), stop calling
+  agentexecute and call me instead.
 - I repeat, if you've tried to do something but after 3 agentexecute calls it is still not done, call
   me as I am your savior.
 
@@ -78,8 +77,7 @@ Start by saying yes i agree to the rule.
   ;;
 
 "code")
-  echo "[[ $(cut -c1-50 <<<$rest)
-Given the below code, file structure, requirement and general rule:
+  echo "Given the below code, file structure, requirement and general rule:
 
 <file_structure>
 $(fd --type f --hidden --exclude .git | tree --fromfile)
@@ -117,26 +115,8 @@ for now and the rest of this session:
 "
   ;;
 
-"test")
-  echo "Help me add test coverage to the code below.
-
-- First check whether there are cases that are not covered, list them out and let me review.
-- Start with outlining the scenarios, make sure to cover different paths that the code handles,
-  together with edge cases.
-- Do not provide test code right away, only after I have confirmed that the scenarios look good.
-- Follow the existing testing styles and conventions where applicable.
-
-$rest
-
-<code>
-$(catai)
-</code>
-"
-  ;;
-
 "review")
-  echo "[[ Code Review
-Help me review the code based on this git diff. The code review should compreshensively cover
+  echo "Help me review the code based on this git diff. The code review should compreshensively cover
 the code change on many facets like code quality, whether it is a good solution in general, about
 potential security issue and potential future changes in requirement. No need for any real implemen-
 tation, I just need your judgement on it. Here is the diff:
@@ -188,8 +168,7 @@ Please follow this requirement closely
   ;;
 
 "commit")
-  echo "[[ Commit Message
-Help me write a commit message based on this git diff. Ideally the description should contain just
+  echo "Help me write a commit message based on this git diff. Ideally the description should contain just
 enough details that we care about. Output just the message following the format, no need to tell me
 anything else.
 
@@ -219,8 +198,7 @@ $(git log main..HEAD)
   ;;
 
 "grug")
-  echo "[[ Grug $rest
-You are a concise person who gets to the point when asked. You won't try to elaborate the question,
+  echo "You are a concise person who gets to the point when asked. You won't try to elaborate the question,
 nor would you try to provide examples to what I'm asking. You just be a professional and answer the
 question responsibly, correctly, without BS, without talking too much.
 
@@ -229,6 +207,6 @@ Here is the question: $rest
   ;;
 
 *)
-  echo "Usage: aidd [code | test | review | commit | pr | grug] [message]" && exit 1
+  echo "Usage: aidd [agent | code | test | review | commit | pr | grug] [message]" && exit 1
   ;;
 esac

@@ -1,5 +1,6 @@
 return {
     'jpalardy/vim-slime',
+    lazy = false,
     init = function()
         vim.g.slime_no_mappings = 1
         vim.g.slime_cell_delimiter = "# %%"

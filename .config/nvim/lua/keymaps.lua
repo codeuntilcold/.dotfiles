@@ -16,18 +16,9 @@ vim.keymap.set('n', '<leader>-', '<CMD>Oil<CR>')
 vim.keymap.set('n', '<leader>ee', '<CMD>new .env<CR>', { desc = '[E]dit [E]nv' })
 vim.keymap.set('n', '<leader>ej', '<CMD>new .envs/.local/.django<CR>', { desc = '[E]dit D[J]ango env' })
 
--- No need for vim surround
-vim.keymap.set('v', "<leader>'", "<ESC>gv<ESC>a'<ESC>gvo<ESC>i'<ESC>gv", { desc = 'Surround with [\']' })
-vim.keymap.set('v', "<leader>r'", "<ESC>gv<ESC>lr'gvo<ESC>hr'", { desc = '[R]eplace surround with [\']' })
-vim.keymap.set('v', '<leader>"', '<ESC>gv<ESC>a"<ESC>gvo<ESC>i"<ESC>gv', { desc = 'Surround with ["]' })
-vim.keymap.set('v', '<leader>r"', '<ESC>gv<ESC>lr"gvo<ESC>hr"', { desc = '[R]eplace surround with ["]' })
-vim.keymap.set('v', '<leader>`', '<ESC>gv<ESC>a`<ESC>gvo<ESC>i`<ESC>gv', { desc = 'Surround with [`]' })
-vim.keymap.set('v', '<leader>r`', '<ESC>gv<ESC>lr`gvo<ESC>hr`', { desc = '[R]eplace surround with [`]' })
-
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience
--- See `:help vim.keymap.set()`
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 
 -- Remap for dealing with word wrap

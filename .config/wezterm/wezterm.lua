@@ -4,7 +4,7 @@ local config = wezterm.config_builder()
 
 if os.getenv('USER') == 'dungngo' then
   config.font = wezterm.font('IosevkaTerm NFM', { weight = 'Regular' })
-  config.font_size = 20.0
+  config.font_size = 24.0
   config.line_height = 1.3
 else
   config.font = wezterm.font('JetBrainsMono NF', { weight = 'Regular' })

@@ -1,7 +1,6 @@
 return {
     {
         "ThePrimeagen/harpoon",
-        event = "VimEnter",
         branch = "harpoon2",
         dependencies = { "nvim-lua/plenary.nvim" },
         config = function()

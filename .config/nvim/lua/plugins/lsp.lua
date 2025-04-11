@@ -1,6 +1,5 @@
 return {
     'neovim/nvim-lspconfig',
-    event = 'VeryLazy',
     dependencies = {
         'williamboman/mason.nvim',
         'williamboman/mason-lspconfig.nvim',
@@ -53,8 +52,7 @@ return {
         }
 
         -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
-        local capabilities = vim.lsp.protocol.make_client_capabilities()
-        capabilities = require('blink.cmp').get_lsp_capabilities()
+        local capabilities = require('blink.cmp').get_lsp_capabilities({}, true)
 
         -- Setup mason so it can manage external tooling
         require('mason').setup()

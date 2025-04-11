@@ -21,7 +21,6 @@ return {
     {
         "catppuccin/nvim",
         name = "catppuccin",
-        event = "VimEnter",
         config = function()
             getcolorscheme()
         end

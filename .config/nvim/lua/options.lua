@@ -67,4 +67,4 @@ vim.opt.scrolloff = 10
 vim.opt.exrc = true
 
 -- nvim 0.11.0: multi line diagnostic
-vim.diagnostic.config({ virtual_lines = { current_line = true } })
+vim.diagnostic.config({ virtual_text = { current_line = true } })

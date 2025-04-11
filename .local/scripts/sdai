@@ -23,8 +23,7 @@ MODELS["cld-37-sonnet"]=6188
 MODELS["gem-2-flash"]=6182
 MODELS["gem-2-flash-lite"]=6215
 MODELS["gem-2-flash-lite-thinking"]=6216
-MODELS["gem-2-pro"]=6137
-MODELS["gem-25-pro"]=6324
+MODELS["gem-25-pro"]=6337
 MODELS["gpt-4o"]=4094
 MODELS["gpt-4o-mini"]=4430
 MODELS["gpt-o1"]=5728
@@ -38,6 +37,7 @@ ASSI_MESSAGE_ID=""
 MODEL_NAME=""
 MODEL_ID=""
 MESSAGE=""
+EXECUTING_AGENT=false
 
 ###
 # LOCAL OPS
@@ -191,6 +191,32 @@ get_conversation_history() {
 # MAIN OPS
 ###
 
+execute_agent_command() {
+  local aicommand="$1"
+
+  echo ">>>>>>>>> Executing $aicommand"
+
+  EXECUTING_AGENT=true
+  trap cancel_agent_execution SIGINT
+
+  sleep 3
+  # if the trap is set then this should trigger
+  [[ "$EXECUTING_AGENT" = "false" ]] && return 1
+
+  trap - SIGINT
+  EXECUTING_AGENT=false
+
+  local output_file="/tmp/sdai-agent-output.txt"
+  eval "$aicommand" >&"$output_file"
+  MESSAGE="Exit code $(echo $?): $(cat "$output_file")"
+}
+
+cancel_agent_execution() {
+  echo -e "\n$BG[Agent execution cancelled]$CLR"
+  EXECUTING_AGENT=false
+  dash
+}
+
 start_chat_session() {
   echo "SkyDeck.ai with $MODEL_NAME"
 
@@ -203,19 +229,8 @@ start_chat_session() {
       tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d'
     )
     if [[ -n $CONVERSATION_ID && -n "$aicommand" ]]; then
-      echo ">>>>>>>>> Executing $aicommand"
-      spinner &
-      spinner_id=$!
-
-      sleep 3
-
-      kill $spinner_id 2>/dev/null
-      wait $! 2>/dev/null
-      echo -ne '\r   \r'
-
-      eval "$aicommand" >&/tmp/heyyy
-      MESSAGE=$(cat /tmp/heyyy)
-      [[ -z "$MESSAGE" ]] && MESSAGE="empty response"
+      execute_agent_command "$aicommand" ||
+        MESSAGE=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
     else
       # use a local version of `gum` to map enter to new line, ctrl+d to submit
       MESSAGE=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
@@ -226,6 +241,12 @@ start_chat_session() {
       MESSAGE=$(cat "$queryfile")
     else
       echo "$MESSAGE"
+    fi
+
+    # shell execute
+    if [[ "$MESSAGE" =~ ^/! ]]; then
+      eval "${MESSAGE#/! }"
+      continue
     fi
 
     # use aidd prompt
@@ -298,6 +319,7 @@ send_and_recv_cancellable() {
 
   trap stop_response_stream SIGINT
 
+  dash
   printf "$BG($MODEL_NAME)$CLR\n"
   get_response_stream
   echo
@@ -305,13 +327,9 @@ send_and_recv_cancellable() {
   trap - SIGINT
 }
 
-usage() {
-  echo "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv | read-cont]"
-  exit 1
-}
-
 main() {
-  [[ "$#" -lt 1 ]] && usage
+  [[ "$#" -lt 1 ]] &&
+    abort "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv | read-cont]"
 
   case "$1" in
   c | chat)
@@ -357,6 +375,6 @@ main() {
   esac
 }
 
-pick_model $([ -t 0 ] && echo "37-sonnet" || echo "gem-2-flash-lite-thinking")
+pick_model $([ -t 0 ] && echo "gem-pro" || echo "gem-think")
 
 main "$@"

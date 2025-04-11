@@ -35,7 +35,7 @@ vim.o.timeoutlen = 300
 
 -- Set completeopt to have a better completion experience
 vim.o.complete = vim.o.complete .. ',i,kspell'
-vim.o.completeopt = 'menuone,noselect'
+vim.o.completeopt = 'fuzzy,menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
@@ -65,3 +65,6 @@ vim.opt.scrolloff = 10
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.exrc = true
+
+-- nvim 0.11.0: multi line diagnostic
+vim.diagnostic.config({ virtual_lines = { current_line = true } })

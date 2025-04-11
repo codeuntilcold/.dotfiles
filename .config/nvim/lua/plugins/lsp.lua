@@ -1,5 +1,4 @@
 return {
-    -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     event = 'VeryLazy',
     dependencies = {
@@ -20,13 +19,8 @@ return {
                 vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
             end
 
-            nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-            nmap('<leader>k', vim.lsp.buf.signature_help, 'Signature Documentation')
-            nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-            nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
             nmap('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
-            nmap('gr', telescope.lsp_references, '[G]oto [R]eferences')
-            nmap('<leader>ds', telescope.lsp_document_symbols, '[D]ocument [S]ymbols')
+            nmap('grr', telescope.lsp_references, '[G]oto [R]eferences') -- grr
 
             vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
                 vim.lsp.buf.format()

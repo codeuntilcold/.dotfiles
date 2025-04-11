@@ -225,6 +225,7 @@ start_chat_session() {
 
     dash
 
+    [[ ! -f $CURRENT_RESPONSE_FILE ]] && touch $CURRENT_RESPONSE_FILE
     local aicommand=$(
       tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d'
     )

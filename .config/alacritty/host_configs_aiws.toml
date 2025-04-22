@@ -29,7 +29,7 @@ style = "ExtraBold"
 [font.bold_italic]
 family = "IosevkaTerm NFM"
 # family = "JetBrainsMono NF"
-style = "BoldItalic"
+style = "Bold Italic"
 
 [font.italic]
 family = "IosevkaTerm NFM"

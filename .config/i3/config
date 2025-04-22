@@ -10,6 +10,7 @@ exec picom -b
 
 # alt is on right hand...
 floating_modifier Mod4
+for_window [class="^zoom$"] floating enable
 
 gaps inner 10px
 smart_gaps on
@@ -99,7 +100,7 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 
 bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Do you really want to exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"
 
 bindsym $mod+Shift+y resize shrink width 30 px or 10 ppt
 bindsym $mod+Shift+u resize grow height 30 px or 10 ppt

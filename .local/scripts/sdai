@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# require: fzf jq nvim gum
+# require(custom): aidd parker diffix jwt
+
 set -o pipefail
 # set -x # for debugging
 shopt -s nullglob
@@ -24,8 +27,9 @@ MODELS["gem-2-flash"]=6182
 MODELS["gem-2-flash-lite"]=6215
 MODELS["gem-2-flash-lite-thinking"]=6216
 MODELS["gem-25-pro"]=6337
-MODELS["gpt-4o"]=4094
-MODELS["gpt-4o-mini"]=4430
+MODELS["gpt-41"]=6360
+MODELS["gpt-41-mini"]=6464
+MODELS["gpt-41-nano"]=6412
 MODELS["gpt-o1"]=5728
 MODELS["gpt-o3-mini"]=6006
 MODELS["deep-r1"]=5971
@@ -114,12 +118,13 @@ delete_conversation() {
 
 patch_conversation() {
   call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X PATCH -d '{ "name": "'"$1"'" }'
-  notify-send "Changed conversation name to $1" -t 3000
 }
 
 post_user_message() {
   call_form "$BASE_URL/conversations/chat_v2/" --form-string "message=$MESSAGE" \
-    -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" $@
+    -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" \
+    -F "user_model_parameters=$(jq --null-input --argjson temperature 0.1 '{temperature}')" \
+    $@
 }
 
 get_response_stream() {
@@ -218,7 +223,7 @@ cancel_agent_execution() {
 }
 
 start_chat_session() {
-  echo "SkyDeck.ai with $MODEL_NAME"
+  printf "$BG($MODEL_NAME)$CLR\n"
 
   while true; do
     local queryfile="/tmp/sdai-query-$CONVERSATION_ID.md"
@@ -233,7 +238,6 @@ start_chat_session() {
       execute_agent_command "$aicommand" ||
         MESSAGE=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
     else
-      # use a local version of `gum` to map enter to new line, ctrl+d to submit
       MESSAGE=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
     fi
 
@@ -267,6 +271,7 @@ start_chat_session() {
     if [[ "$MESSAGE" =~ ^/m ]]; then
       read -r _ model <<<"$MESSAGE"
       pick_model "$model"
+      printf "$BG($MODEL_NAME)$CLR\n"
       continue
     fi
 
@@ -302,7 +307,11 @@ start_chat_session() {
       continue
     fi
 
+    dash
     send_and_recv_cancellable
+
+    printf "\n%s\n" $(call "$BASE_URL/conversations/$CONVERSATION_ID/cost" |
+      jq -r '.conversation_total_usage_cost')
   done
 }
 
@@ -320,17 +329,15 @@ send_and_recv_cancellable() {
 
   trap stop_response_stream SIGINT
 
-  dash
   printf "$BG($MODEL_NAME)$CLR\n"
   get_response_stream
-  echo
 
   trap - SIGINT
 }
 
 main() {
   [[ "$#" -lt 1 ]] &&
-    abort "Usage: $(basename $0) [chat | continue | delete | patch | query-models | count-conv | read-cont]"
+    abort "Usage: sdai [chat | continue | delete | patch | query-models | count-conv | read-cont]"
 
   case "$1" in
   c | chat)
@@ -376,6 +383,6 @@ main() {
   esac
 }
 
-pick_model $([ -t 0 ] && echo "gem-pro" || echo "gem-think")
+pick_model $([ -t 0 ] && echo "25-pro" || echo "flash-think")
 
 main "$@"

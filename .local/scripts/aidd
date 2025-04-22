@@ -4,17 +4,33 @@ command="$1"
 shift
 rest="$@"
 
+code_change_guide="- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
+  that got changed, and ignore the parts that is unchanged).
+- If changes involve multiple interleaving of removing and adding lines, make it easy on yourself by
+  removing then adding the code in a contiguous manner. But, if the change you want to make is by
+  replacing more than 100 lines of code for example, maybe reconsider a bit and do not perform such
+  expensive change just to be easy on yourself.
+- The change must be compatible to be used in the 'patch' program to apply the changes. Follow the
+  line numbers correctly, especially the starting line of the change. Make sure to add 'a/' and 'b/'
+  so that the program knows to patch which file.
+- No need for comment. Try to write semanticly rich code instead of littering the code with comments.
+- Make sure you output professional-grade, production-ready code that is clean, optimized, maintain-
+  able and follow best practices.
+"
+
 case "$command" in
 "agent")
-  echo "Project Gilder brief:
+  echo "It's agentic coding time.
+
+Given the below project brief, file structure, requirement and general rule:
 
 <brief>
-$(cat ~/dev/GILDER.md)
+Gilder Project Brief: $(cat ~/dev/GILDER.md)
 </brief>
 
-Given the below file structure, requirement and general rule:
-
 <file_structure>
+Current working directory: $(pwd)
+
 $(fd --type f --hidden --exclude .git | tree --fromfile)
 </file_structure>
 
@@ -36,19 +52,14 @@ Then, for now and the rest of this session:
 - As a coding agent, you have some tools available at your disposal, mainly the way to execute shell
   commands. Some of your helpful shell commands would be: curl (http request), grep (search), tree
   (for listing files), git, cat, ls, and so on so forth.
-- The commands MUST be encapsulated in one line, wrapped in the 'agentexecute' block like in
-  markdown. You can ONLY EXECUTE ONE 'agentexecute' BLOCK AT A TIME. A command must be put at the
+- The command MUST be encapsulated in one line, wrapped in the 'agentexecute' block like in
+  markdown. You can ONLY EXECUTE ONE 'agentexecute' BLOCK AT A TIME. The command must be put at the
   end of the response.
 - Get context by executing 'agentexecute' command. ONE command only. ONE command only. Stop as soon
   as you want to run a command.
 
 When you're ready to implement:
-- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
-  that got changed, and ignore the parts that is unchanged).
-- The change must be compatible to be used in the 'patch' program to apply the changes. Follow the
-  line numbers correctly, especially the starting line of the change. Make sure to add 'a/' and 'b/'
-  so that the program knows to patch which file.
-- No need for comment. Try to write semanticly rich code instead of littering the code with comments.
+$code_change_guide
 
 After you're satisfied with the code:
 - use a special shell command called 'parker' to patch the code. No arguments needed since it
@@ -77,7 +88,7 @@ Start by saying yes i agree to the rule.
   ;;
 
 "code")
-  echo "Given the below code, file structure, requirement and general rule:
+  echo "It's coding time. Given the below code, file structure, requirement and general rule:
 
 <file_structure>
 $(fd --type f --hidden --exclude .git | tree --fromfile)
@@ -101,15 +112,7 @@ for now and the rest of this session:
   + For example, if a constant is imported but you don't know exactly which file it is in, ask me.
   + If you want to know the content of a specific file, ask me.
   + This is absolutely crucial to make sure that the following requirements works.
-- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
-  that got changed, and ignore the parts that is unchanged).
-- The change must be compatible to be used in the 'patch' program to apply the changes. Follow the
-  line numbers correctly, especially the starting line of the change. Make sure to add 'a/' and 'b/'
-  so that the program knows to patch which file.
-- If printing out 'diff' file, then do not print out any other code block.
-- Make sure you output professional-grade, production-ready code that is clean, optimized, maintain-
-  able and follow best practices.
-- No need for comment. Try to write semanticly rich code instead of littering the code with comments.
+$code_change_guide
 - Unless I have confirmed, do not try to write diff incrementally, i.e diff on the code that you wrote
 </general_rule>
 "

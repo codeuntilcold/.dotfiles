@@ -4,8 +4,6 @@ return {
         'nvim-treesitter/nvim-treesitter-textobjects',
     },
     config = function()
-        pcall(require('nvim-treesitter.install').update { with_sync = true })
-
         local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
         parser_config.move = {
             install_info = {

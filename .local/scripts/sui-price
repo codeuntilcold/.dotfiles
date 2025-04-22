@@ -16,5 +16,5 @@ three=$(curl --silent "$moveurl" | jq '.price | tonumber' | cut -c1-4 &)
 
 wait
 
-# echo S$one A$two M$three $(echo "20.165 * $one + 81.918 * $three" | bc)
+echo S$one A$two M$three
 echo $(echo "20.165 * $one + 81.918 * $three" | bc)

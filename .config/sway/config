@@ -17,7 +17,6 @@ set $term /home/qd/.cargo/bin/alacritty
 set $menu wofi --show run
 set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle
-set $ibus_zalo $dot_local/scripts/toggle-zalo-ggdocs
 set $screenshot $dot_local/scripts/wl-screenshot
 
 # Pywal colors

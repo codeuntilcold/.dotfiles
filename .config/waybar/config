@@ -1,27 +1,13 @@
-// =============================================================================
-//
-// Waybar configuration
-//
-// Configuration reference: https://github.com/Alexays/Waybar/wiki/Configuration
-//
-// =============================================================================
-
 {
-    // -------------------------------------------------------------------------
-    // Global configuration
-    // -------------------------------------------------------------------------
-
-    "layer": "top",
-
+    "layer": "bottom",
     "position": "top",
-
-    // If height property would be not present, it'd be calculated dynamically
     "height": 30,
 
     "modules-left": [
         "sway/workspaces",
         "sway/mode",
-        "sway/window",
+        // "sway/window",
+        "custom/player",
     ],
     "modules-center": [
         "clock#date",
@@ -35,10 +21,9 @@
         "cpu",
         // "temperature",
         "custom/keyboard-layout",
-        "custom/brightness",
+        "backlight",
         "pulseaudio",
     ],
-
 
     // -------------------------------------------------------------------------
     // Modules
@@ -87,12 +72,19 @@
     },
 
     "custom/keyboard-layout": {
-        "exec": "ibus engine ",
-        "on-click": "/home/qd/Dev/personal/dotfiles/.scripts/ibus-toggle",
-        "interval": 5,
+        "exec": "ibus engine",
+        "on-click": "/home/qd/Dev/personal/dotfiles/.local/scripts/ibus-toggle",
+        "signal": 3,
         "format": "  {}", // Icon: keyboard
-        // "signal": 1, // SIGHUP
         "tooltip": false
+    },
+
+    "custom/player": {
+        "exec": "playerctl metadata title",
+        "interval": 5,
+        "format": "  {}",
+        "tooltip": true,
+        "tooltip-format": "playerctl metadata artist",
     },
 
     "memory": {
@@ -173,12 +165,11 @@
         "spacing": 10
     },
 
-    "custom/brightness": {
-        "exec": "light -G",
-        "interval": 30,
-        "format": "  {}",
-        "on-scroll-up":  "light -A 0.4",
-        "on-scroll-down":  "light -U 0.4",
+    "backlight": {
+        "device": "intel_backlight",
+        "format": "  {percent}%",
     },
+
 }
 
+// vim:et:

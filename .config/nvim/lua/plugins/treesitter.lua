@@ -2,6 +2,13 @@ return {
     'nvim-treesitter/nvim-treesitter',
     dependencies = {
         'nvim-treesitter/nvim-treesitter-textobjects',
+        {
+            'nvim-treesitter/nvim-treesitter-context',
+            opts = {
+                multiline_threshold = 1,
+                max_lines = 4,
+            },
+        },
     },
     config = function()
         local parser_config = require "nvim-treesitter.parsers".get_parser_configs()

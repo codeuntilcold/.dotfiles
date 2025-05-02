@@ -7,6 +7,7 @@ exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id ~/.fehbg
 exec --no-startup-id ibus-daemon --daemonize --replace
 exec picom -b
+exec --no-startup-id systemctl --user start clipmenud.service
 
 # alt is on right hand...
 floating_modifier Mod4
@@ -33,6 +34,7 @@ bindsym XF86AudioPrev         exec --no-startup-id playerctl   previous
 
 bindsym $mod+space exec --no-startup-id ibus-toggle && $refresh_i3status
 bindsym $mod+d     exec --no-startup-id dmenu_run -fn "JetBrainsMono NF"
+bindsym $mod+v     exec --no-startup-id clipmenu -fn "JetBrainsMono NF"
 bindsym $mod+t     exec alacritty
 bindsym $mod+b     exec google-chrome
 
@@ -50,9 +52,6 @@ bindsym $mod+Shift+h move left
 bindsym $mod+Shift+j move down
 bindsym $mod+Shift+k move up
 bindsym $mod+Shift+l move right
-
-bindsym $mod+% split h
-bindsym $mod+v split v
 
 bindsym $mod+f fullscreen toggle
 

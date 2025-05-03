@@ -3,12 +3,12 @@ local function is_ssh()
 end
 
 local function getcolorscheme()
-    if os.getenv("USER") == "qd" or is_ssh() then
-        vim.cmd.colorscheme 'catppuccin'
-        return
-    end
-    vim.cmd.set "background=light"
-    vim.cmd.colorscheme "zenwritten"
+    -- if os.getenv("USER") == "qd" or is_ssh() then
+    --     vim.cmd.colorscheme 'catppuccin'
+    --     return
+    -- end
+    -- vim.cmd.set "background=light"
+    -- vim.cmd.colorscheme "zenwritten"
 end
 
 return {

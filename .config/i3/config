@@ -14,7 +14,8 @@ floating_modifier Mod4
 for_window [class="^zoom$"] floating enable
 
 gaps inner 10px
-smart_gaps on
+gaps horizontal 300px
+smart_gaps inverse_outer
 default_border pixel 0
 # default_floating_border pixel 2
 # class                 border  backgr. text    indicator child_border

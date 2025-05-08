@@ -1,0 +1,85 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#     "rich>=13.9.4",
+# ]
+# ///
+
+"""
+Real-time Markdown renderer using Rich.
+
+This script renders Markdown content in real-time as it's being piped in,
+providing immediate visual feedback of the formatted text.
+
+Original inspiration:
+https://github.com/simonw/llm/issues/12#issuecomment-2558147310
+"""
+
+import sys
+import signal
+from typing import Optional
+
+from rich.console import Console
+from rich.live import Live
+from rich.markdown import Markdown
+
+
+class MarkdownRenderer:
+    def __init__(self):
+        self.console = Console(highlight=True)
+        self.md_content = "\n"
+        self.live: Optional[Live] = None
+
+    def create_markdown(self, content: str) -> Markdown:
+        return Markdown(content, code_theme="bw")
+
+    def handle_signal(self, signum: int, frame) -> None:
+        if self.live:
+            self.live.stop()
+
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+        signal.signal(signal.SIGTERM, signal.default_int_handler)
+
+        sys.exit(0)
+
+    def read_chunk(self):
+        chunk = sys.stdin.read(10)
+        self.md_content += chunk
+        return chunk
+
+    def render_stream(self) -> None:
+        with Live(
+            self.create_markdown(""),
+            console=self.console,
+            refresh_per_second=10,
+            # vertical_overflow="visible",
+        ) as live:
+            self.live = live
+            while True:
+                if not self.read_chunk():
+                    break
+                live.update(self.create_markdown(self.md_content))
+
+    def run(self) -> None:
+        signal.signal(signal.SIGINT, self.handle_signal)
+        signal.signal(signal.SIGTERM, self.handle_signal)
+
+        if sys.stdin.isatty():
+            while True:
+                if not self.read_chunk():
+                    break
+            print(self.md_content)
+        else:
+            self.render_stream()
+
+
+def main() -> None:
+    renderer = MarkdownRenderer()
+    renderer.run()
+
+
+if __name__ == "__main__":
+    main()
+
+# vim:ft=python:

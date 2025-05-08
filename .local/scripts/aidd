@@ -119,13 +119,17 @@ $code_change_guide
   ;;
 
 "review")
-  echo "Help me review the code based on this git diff. The code review should compreshensively cover
-the code change on many facets like code quality, whether it is a good solution in general, about
-potential security issue and potential future changes in requirement. No need for any real implemen-
-tation, I just need your judgement on it. Here is the diff:
+  echo "Help me review the code of my enemy. Although he is my enemy, I respect and want to learn
+from him, while also I want to exploit his weakness.
+
+Based on this git diff, the code review should compreshensively cover the code change on many facets
+like what this code change likely does, does it cover meaningful cases, does the code follow the current
+convention of the whole app, whether it is a good solution in general, about potential security issue and
+potential future changes in requirement. No need for any real implementation, I just need your
+judgement on it. Here is the diff:
 
 <diff>
-$(git diff main)
+$(git diff $(git merge-base @ main))
 </diff>
 "
   ;;
@@ -136,11 +140,11 @@ You are a meticulous code reviewer. After you have looked at the diff below, hel
 pull request description for this code change, following this format:
 
 <diff>
-$(git diff main)
+$(git diff $(git merge-base @ main))
 </diff>
 
 <git_log>
-$(git log main..HEAD)
+$(git log ^main HEAD)
 </git_log>
 
 <format>
@@ -195,7 +199,7 @@ $(git diff --staged)
 </diff>
 
 <previous-changes>
-$(git log main..HEAD)
+$(git log ^main HEAD)
 </previous-changes>
 "
   ;;

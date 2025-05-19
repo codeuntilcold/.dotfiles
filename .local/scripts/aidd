@@ -57,6 +57,8 @@ Then, for now and the rest of this session:
   end of the response.
 - Get context by executing 'agentexecute' command. ONE command only. ONE command only. Stop as soon
   as you want to run a command.
+- When using cat, it is advised that you use the flag that adds the line number as well. That will
+  help you a lot to make code changes.
 
 When you're ready to implement:
 $code_change_guide

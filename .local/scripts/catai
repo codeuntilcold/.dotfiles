@@ -6,9 +6,9 @@ fzf_command() {
 
 print_file() {
   cat <<EOF
-File: $1
-\`\`\`$(basename $1 | rev | cut -d. -f1 | rev)
-$(cat -n $1)
+File: "$1"
+\`\`\`$(basename "$1" | rev | cut -d. -f1 | rev)
+$(cat "$1")
 \`\`\`
 EOF
   echo
@@ -25,4 +25,4 @@ else
 fi |
   fzf_command --multi --ansi --filepath-word --preview='bat {}' --bind ctrl-t:toggle-all |
   tee /tmp/sdai-files-cache.txt |
-  xargs -I{} bash -c "print_file {}"
+  xargs -I{} bash -c 'print_file "{}"'

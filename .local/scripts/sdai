@@ -22,18 +22,17 @@ CLR='\e[0m'
 
 declare -A MODELS
 MODELS["cld-35-haiku"]=5171
-MODELS["cld-35-sonnet"]=5101
 MODELS["cld-37-sonnet"]=6188
 MODELS["gem-2-flash"]=6182
-MODELS["gem-2-flash-lite"]=6215
-MODELS["gem-2-flash-lite-thinking"]=6216
-MODELS["gem-25-pro"]=6337
+MODELS["gem-25-pro"]=6705
 MODELS["gpt-41"]=6360
 MODELS["gpt-41-mini"]=6464
 MODELS["gpt-41-nano"]=6412
 MODELS["gpt-o3"]=6568
 MODELS["gpt-o4-mini"]=6516
 MODELS["deep-r1"]=5971
+MODELS["deep-v3"]=6699
+MODELS["grok-3-beta"]=6613
 
 # global context
 STREAMING="false"
@@ -374,6 +373,6 @@ main() {
   esac
 }
 
-pick_model $([ -t 0 ] && echo "25-pro" || echo "flash-think")
+pick_model $([ -t 0 ] && echo "37" || echo "flash-think")
 
 main "$@"

@@ -23,7 +23,9 @@ CLR='\e[0m'
 declare -A MODELS
 MODELS["cld-35-haiku"]=5171
 MODELS["cld-37-sonnet"]=6188
-MODELS["gem-2-flash"]=6182
+MODELS["cld-4-opus"]=6850
+MODELS["cld-4-sonnet"]=6834
+MODELS["gem-25-flash"]=6829
 MODELS["gem-25-pro"]=6705
 MODELS["gpt-41"]=6360
 MODELS["gpt-41-mini"]=6464
@@ -32,7 +34,6 @@ MODELS["gpt-o3"]=6568
 MODELS["gpt-o4-mini"]=6516
 MODELS["deep-r1"]=5971
 MODELS["deep-v3"]=6699
-MODELS["grok-3-beta"]=6613
 
 # global context
 STREAMING="false"
@@ -64,13 +65,14 @@ abort() {
 }
 
 pick_model() {
-  local selected=$(
-    [[ -z $1 ]] &&
-      (for key in ${!MODELS[@]}; do echo $key; done | fzf --prompt="Select a model: ") ||
-      (for key in ${!MODELS[@]}; do echo $key; done | fzf --filter $1 | head -n 1)
+  local selected
+  selected=$(
+    ([[ -z $1 ]] &&
+      (for key in "${!MODELS[@]}"; do echo "$key"; done | fzf --prompt="Select a model: ")) ||
+      (for key in "${!MODELS[@]}"; do echo "$key"; done | fzf --filter "$1" | head -n 1)
   )
   [[ -z "$selected" ]] && echo "Model selection cancelled" && return
-  set_model $selected
+  set_model "$selected"
 }
 
 set_model() {
@@ -82,12 +84,13 @@ invalidate_cache() {
 }
 
 increment_message_count() {
-  local current=$(cat $COUNT_FILE)
-  echo $((current + 1)) >$COUNT_FILE
+  local current
+  current=$(cat "$COUNT_FILE")
+  echo $((current + 1)) >"$COUNT_FILE"
 }
 
 get_access_token() {
-  grep "_access" $COOKIE_FILE | cut -f7
+  grep "_access" "$COOKIE_FILE" | cut -f7
 }
 
 ###
@@ -95,7 +98,8 @@ get_access_token() {
 ###
 
 refresh() {
-  local exp=$(get_access_token | jwt | jq '.exp')
+  local exp
+  exp=$(get_access_token | jwt | jq '.exp')
 
   [[ "$(date +%s)" -gt "$exp" ]] &&
     curl -s -X POST -o /dev/null "$BASE_URL/authentication/token/refresh/" \
@@ -122,11 +126,11 @@ patch_conversation() {
 
 post_user_message() {
   # {"top_k":40,"top_p":1,"max_tokens":64000,"temperature":1}
+  # -F "user_model_parameters=$(jq --null-input --argjson temperature 0.1 '{temperature}')" \
   echo "$MESSAGE" > $OUTPUT_FILE
   call_form "$BASE_URL/conversations/chat_v2/" -F "message=<$OUTPUT_FILE" \
     -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" \
-    -F "user_model_parameters=$(jq --null-input --argjson temperature 0.1 '{temperature}')" \
-    $@
+    -F 'user_model_parameters={"top_k":40,"top_p":0.17,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
 }
 
 get_response_stream() {
@@ -143,14 +147,16 @@ stop_response_stream() {
   [ "$STREAMING" == "false" ] && return
 
   call "$BASE_URL/conversations/messages/$ASSI_MESSAGE_ID/stop-streaming/" -o /dev/null -d "{}"
-  printf "\n$BG[Interrupted]$CLR"
+  printf "\n%s\[Interrupted\]%s" "$BG" "$CLR"
 }
 
 get_conversations() {
   [[ ! -f $CACHE_FILE ]] && call "$BASE_URL/conversations/?sort_by=created" | tee "$CACHE_FILE"
 
-  local cur=$(date +%s)
-  local mod=$([[ $(uname) = 'Linux' ]] && stat --format=%Y $CACHE_FILE || stat -f %m $CACHE_FILE)
+  local cur
+  cur=$(date +%s)
+  local mod
+  mod=$( ([[ $(uname) = 'Linux' ]] && stat --format=%Y $CACHE_FILE) || stat -f %m $CACHE_FILE)
   if [[ $((cur - mod)) -lt $CACHE_TIMEOUT ]]; then
     cat "$CACHE_FILE"
   else
@@ -163,7 +169,8 @@ pick_conversation_id() {
 }
 
 count_dollars_spent() {
-  local last_monday=$([[ $(uname) = 'Linux' ]] && date -d last-sun +%s || date -v -sun -u +%s)
+  local last_monday
+  last_monday=$( ([[ $(uname) = 'Linux' ]] && date -d last-sun +%s) || date -v -sun -u +%s)
 
   (
     call "$BASE_URL/conversations/?sort_by=created" | jq -c '.results[] | { id, created }' &
@@ -171,14 +178,17 @@ count_dollars_spent() {
     wait
   ) |
     while IFS= read -r conv; do
-      local created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
-      local id=$(echo "$conv" | jq -r '.id')
+      local created
+      created=$(echo "$conv" | jq -r '.created' | sed 's/\.[0-9]*Z$//') # trim off milliseconds
+      local id
+      id=$(echo "$conv" | jq -r '.id')
 
-      local created=$(
-        [[ $(uname) = 'Linux' ]] &&
-          date --date="$created" +%s || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
+      local created
+      created=$(
+        ([[ $(uname) = 'Linux' ]] &&
+          date --date="$created" +%s) || date -u -j -f %Y-%m-%dT%H:%M:%S +%s "$created"
       )
-      [[ $created -gt "$last_monday" ]] && echo $id
+      [[ $created -gt "$last_monday" ]] && echo "$id"
     done |
     (
       while IFS= read -r id; do
@@ -214,17 +224,17 @@ execute_agent_command() {
   EXECUTING_AGENT=false
 
   eval "$aicommand" >&"$OUTPUT_FILE"
-  MESSAGE="Exit code $(echo $?): $(cat "$OUTPUT_FILE")"
+  MESSAGE="Exit code $?: $(cat "$OUTPUT_FILE")"
 }
 
 cancel_agent_execution() {
-  echo -e "\n$BG[Agent execution cancelled]$CLR"
+  echo -e "\n$BG\[Agent execution cancelled\]$CLR"
   EXECUTING_AGENT=false
   dash
 }
 
 start_chat_session() {
-  printf "$BG($MODEL_NAME)$CLR\n"
+  printf "%s(%s)%s\n" "$BG" "$MODEL_NAME" "$CLR"
 
   while true; do
     local queryfile="/tmp/sdai-query-$CONVERSATION_ID.md"
@@ -232,7 +242,8 @@ start_chat_session() {
     dash
 
     [[ ! -f $CURRENT_RESPONSE_FILE ]] && touch $CURRENT_RESPONSE_FILE
-    local aicommand=$(
+    local aicommand
+    aicommand=$(
       tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d'
     )
     if [[ -n $CONVERSATION_ID && -n "$aicommand" ]]; then
@@ -257,7 +268,7 @@ start_chat_session() {
 
     # use aidd prompt
     if [[ "$MESSAGE" =~ ^/u ]]; then
-      aidd ${MESSAGE#* } >"$queryfile"
+      aidd "${MESSAGE#* }" >"$queryfile"
       nvim "$queryfile"
       MESSAGE=$(cat "$queryfile")
     fi
@@ -272,7 +283,7 @@ start_chat_session() {
     if [[ "$MESSAGE" =~ ^/m ]]; then
       read -r _ model <<<"$MESSAGE"
       pick_model "$model"
-      printf "$BG($MODEL_NAME)$CLR\n"
+      printf "%s(%s)%s\n" "$BG" "$MODEL_NAME" "$CLR"
       continue
     fi
 
@@ -284,17 +295,17 @@ start_chat_session() {
       else
         cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d'
       fi | {
-        [[ $(uname) = 'Darwin' ]] && pbcopy || xclip -sel c
+        ([[ $(uname) = 'Darwin' ]] && pbcopy) || xclip -sel c
       }
       continue
     fi
 
     if [[ "$MESSAGE" = "/colab" ]]; then
       call "$BASE_URL/conversations/collaboration/stop" --data '{"conversation_id":'"$CONVERSATION_ID"'}' >/dev/null
-      echo https://eastagile.skydeck.ai/conversation/$(
+      echo "https://eastagile.skydeck.ai/conversation/$(
         call "$BASE_URL/conversations/collaboration/start" --data '{"conversation_id":'"$CONVERSATION_ID"'}' |
           jq -r '.data.collaboration_slug'
-      )
+      )"
       continue
     fi
 
@@ -311,13 +322,13 @@ start_chat_session() {
     dash
     send_and_recv_cancellable
 
-    printf "\n%s\n" $(call "$BASE_URL/conversations/$CONVERSATION_ID/cost" |
-      jq -r '.conversation_total_usage_cost')
+    printf "\n%s\n" "$(call "$BASE_URL/conversations/$CONVERSATION_ID/cost" |
+      jq -r '.conversation_total_usage_cost')"
   done
 }
 
 send_and_recv_cancellable() {
-  read CONVERSATION_ID ASSI_MESSAGE_ID < <(
+  read -r CONVERSATION_ID ASSI_MESSAGE_ID < <(
     post_user_message | jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
   )
   trap stop_response_stream SIGINT
@@ -348,8 +359,8 @@ main() {
     ;;
   p | patch)
     CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
-    read -p "Enter new name: " name
-    patch_conversation $name &
+    read -r -p "Enter new name: " name
+    patch_conversation "$name" &
     ;;
   read-cont)
     CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
@@ -361,7 +372,7 @@ main() {
       jq -r '.[] | [ .id, .name, .context_window ] | @tsv' | column -t -s $'\t' | sort -u -k2
     ;;
   count-conv)
-    cat $COUNT_FILE
+    cat "$COUNT_FILE"
     ;;
   count-dollars)
     count_dollars_spent
@@ -373,6 +384,6 @@ main() {
   esac
 }
 
-pick_model $([ -t 0 ] && echo "37" || echo "flash-think")
+pick_model "$([ -t 0 ] && echo "cld-4-sonnet" || echo "gpt-41-nano")"
 
 main "$@"

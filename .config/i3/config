@@ -1,16 +1,16 @@
 # Mod1 is alt, Mod4 is super
-set $mod Mod1
+set $mod Mod4
 
 font pango:JetBrainsMono NF 9
 
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id ~/.fehbg
 exec --no-startup-id ibus-daemon --daemonize --replace
-exec picom -b
+exec --no-startup-id picom -b
 exec --no-startup-id systemctl --user start clipmenud.service
 
 # alt is on right hand...
-floating_modifier Mod4
+floating_modifier $mod
 for_window [class="^zoom$"] floating enable
 
 gaps inner 10px
@@ -33,14 +33,13 @@ bindsym XF86AudioPause        exec --no-startup-id playerctl   play-pause
 bindsym XF86AudioNext         exec --no-startup-id playerctl   next
 bindsym XF86AudioPrev         exec --no-startup-id playerctl   previous
 
-bindsym $mod+space exec --no-startup-id ibus-toggle && $refresh_i3status
 bindsym $mod+d     exec --no-startup-id dmenu_run -fn "JetBrainsMono NF"
 bindsym $mod+v     exec --no-startup-id clipmenu -fn "JetBrainsMono NF"
-bindsym $mod+t     exec alacritty
-bindsym $mod+b     exec google-chrome
-
-bindsym $mod+F1 exec --no-startup-id xscreenshot
-bindsym $mod+F2 exec xrecord
+bindsym $mod+t     exec --no-startup-id alacritty
+bindsym $mod+b     exec --no-startup-id google-chrome
+bindsym $mod+space exec --no-startup-id ibus-toggle && $refresh_i3status
+bindsym $mod+F1    exec --no-startup-id xscreenshot
+bindsym $mod+F2    exec --no-startup-id xrecord
 
 bindsym $mod+Shift+q kill
 

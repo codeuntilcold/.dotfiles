@@ -1,5 +1,7 @@
-vim.bo.makeprg = 'forge build'
+vim.bo.makeprg = 'forge'
 
 vim.o.errorformat = table.concat({
-    '%.%# --> %f:%l:%c:'
+    '%.%# --> %f:%l:%c:',
+    '%-G[PASS%.%#',
+    '%-GSuite%.%#',
 }, ',')

@@ -1,17 +1,10 @@
 #!/bin/bash
 
-# BASE_URL="https://dev-gilder-index-b0c127db6aa5.herokuapp.com/currency-price?chain="
-# suiurl="${BASE_URL}sui"
-# apturl="${BASE_URL}aptos"
-# moveurl="${BASE_URL}movement"
-
 BASE_URL="https://api.binance.com/api/v3/ticker/price?symbol="
-suiurl="${BASE_URL}SUIUSDT"
-apturl="${BASE_URL}APTUSDT"
 
-one=$(curl --silent "$suiurl" | jq '.price | tonumber' | cut -c1-4 &)
-two=$(curl --silent "$apturl" | jq '.price | tonumber' | cut -c1-4 &)
+one=$(curl --silent "${BASE_URL}SUIUSDT" | jq '.price | tonumber' | cut -c1-4 &)
+# two=$(curl --silent "${BASE_URL}APTUSDT" | jq '.price | tonumber' | cut -c1-4 &)
 
 wait
 
-echo S$one A$two $(echo "20.165 * $one + 4.568 * $one" | bc)
+echo \$"$one"~\$"$(echo "24.733 * $one" | bc)"

@@ -2,14 +2,9 @@
 
 command -v diffix &>/dev/null || echo "diffix required"
 
-file=/tmp/sdai-conv-000000.md
-filediff=/tmp/sdai-conv-000000.diff
-
-### If passed in an additional [m]anual option
-[[ "$1" = "m" ]] && file=$(
-  ls /tmp/sdai-conv* |
-    fzf --height ~50% --preview 'bat --theme=Dracula --line-range=:500 {}'
-)
+id=${1:-new}
+file=/tmp/sdai-conv-$id.md
+filediff=/tmp/sdai-conv-$id.diff
 
 content=$(cat "$file" | sed -n '/^```diff$/,/^```$/p' | sed '/^```/d')
 

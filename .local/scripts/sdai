@@ -8,10 +8,8 @@ set -o pipefail
 shopt -s nullglob
 
 BASE_URL="https://admin.skydeck.ai/api/v1"
-CURRENT_RESPONSE_FILE="/tmp/sdai-conv-000000.md"
 CACHE_FILE="/tmp/sdai-cache.txt"
 CACHE_TIMEOUT=300 # 5 minutes
-OUTPUT_FILE="/tmp/sdai-agent-output.txt"
 
 COOKIE_FILE="$HOME/.sdai/cookies"
 COUNT_FILE="$HOME/.sdai/count.txt"
@@ -43,6 +41,16 @@ MODEL_NAME=""
 MODEL_ID=""
 MESSAGE=""
 EXECUTING_AGENT=false
+
+QUERY_FILE() {
+  echo "/tmp/sdai-query-${CONVERSATION_ID:-new}.md"
+}
+RESPONSE_FILE() {
+  echo "/tmp/sdai-conv-${CONVERSATION_ID:-new}.md"
+}
+OUTPUT_FILE() {
+  echo "/tmp/sdai-agent-output-${CONVERSATION_ID:-new}.txt"
+}
 
 ###
 # LOCAL OPS
@@ -127,8 +135,8 @@ patch_conversation() {
 post_user_message() {
   # {"top_k":40,"top_p":1,"max_tokens":64000,"temperature":1}
   # -F "user_model_parameters=$(jq --null-input --argjson temperature 0.1 '{temperature}')" \
-  echo "$MESSAGE" > $OUTPUT_FILE
-  call_form "$BASE_URL/conversations/chat_v2/" -F "message=<$OUTPUT_FILE" \
+  echo "$MESSAGE" > $(OUTPUT_FILE)
+  call_form "$BASE_URL/conversations/chat_v2/" -F "message=<$(OUTPUT_FILE)" \
     -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" \
     -F 'user_model_parameters={"top_k":40,"top_p":0.17,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
 }
@@ -138,7 +146,7 @@ get_response_stream() {
 
   STREAMING="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$ASSI_MESSAGE_ID"' }' --no-buffer |
-    tee $CURRENT_RESPONSE_FILE
+    tee $(RESPONSE_FILE)
 
   STREAMING="false"
 }
@@ -147,7 +155,7 @@ stop_response_stream() {
   [ "$STREAMING" == "false" ] && return
 
   call "$BASE_URL/conversations/messages/$ASSI_MESSAGE_ID/stop-streaming/" -o /dev/null -d "{}"
-  printf "\n%s\[Interrupted\]%s" "$BG" "$CLR"
+  echo -e "${BG}Interrupted${CLR}"
 }
 
 get_conversations() {
@@ -223,28 +231,33 @@ execute_agent_command() {
   trap - SIGINT
   EXECUTING_AGENT=false
 
-  eval "$aicommand" >&"$OUTPUT_FILE"
-  MESSAGE="Exit code $?: $(cat "$OUTPUT_FILE")"
+  if [[ "$aicommand" = "parker" ]]; then
+    parker $CONVERSATION_ID >&"$(OUTPUT_FILE)"
+  else
+    eval "$aicommand" >&"$(OUTPUT_FILE)"
+  fi
+  MESSAGE="Exit code $?: $(cat "$(OUTPUT_FILE)")"
 }
 
 cancel_agent_execution() {
-  echo -e "\n$BG\[Agent execution cancelled\]$CLR"
+  echo -e "\n${BG}Agent execution cancelled${CLR}"
   EXECUTING_AGENT=false
   dash
 }
 
 start_chat_session() {
-  printf "%s(%s)%s\n" "$BG" "$MODEL_NAME" "$CLR"
+  echo -e "${BG}($MODEL_NAME)${CLR}"
 
   while true; do
-    local queryfile="/tmp/sdai-query-$CONVERSATION_ID.md"
+    local queryfile
+    queryfile=$(QUERY_FILE)
 
     dash
 
-    [[ ! -f $CURRENT_RESPONSE_FILE ]] && touch $CURRENT_RESPONSE_FILE
+    [[ ! -f $(RESPONSE_FILE) ]] && touch $(RESPONSE_FILE)
     local aicommand
     aicommand=$(
-      tail -n 4 $CURRENT_RESPONSE_FILE | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d'
+      tail -n 4 $(RESPONSE_FILE) | sed -n '/^```agentexecute$/,/^```$/p' | sed '/^```/d'
     )
     if [[ -n $CONVERSATION_ID && -n "$aicommand" ]]; then
       execute_agent_command "$aicommand" ||
@@ -254,8 +267,8 @@ start_chat_session() {
     fi
 
     if [[ -z "$MESSAGE" ]]; then
-      nvim "$queryfile"
-      MESSAGE=$(cat "$queryfile")
+      nvim $(QUERY_FILE)
+      MESSAGE=$(cat $(QUERY_FILE))
     else
       echo "$MESSAGE"
     fi
@@ -268,14 +281,14 @@ start_chat_session() {
 
     # use aidd prompt
     if [[ "$MESSAGE" =~ ^/u ]]; then
-      aidd "${MESSAGE#* }" >"$queryfile"
-      nvim "$queryfile"
-      MESSAGE=$(cat "$queryfile")
+      aidd ${MESSAGE#* } >$(QUERY_FILE)
+      nvim "$(QUERY_FILE)"
+      MESSAGE=$(cat "$(QUERY_FILE)")
     fi
 
     # parker
     if [[ "$MESSAGE" =~ ^/p ]]; then
-      parker
+      parker $CONVERSATION_ID
       continue
     fi
 
@@ -283,7 +296,7 @@ start_chat_session() {
     if [[ "$MESSAGE" =~ ^/m ]]; then
       read -r _ model <<<"$MESSAGE"
       pick_model "$model"
-      printf "%s(%s)%s\n" "$BG" "$MODEL_NAME" "$CLR"
+      echo -e "${BG}${MODEL_NAME}${CLR}"
       continue
     fi
 
@@ -291,9 +304,9 @@ start_chat_session() {
     if [[ "$MESSAGE" =~ ^/y ]]; then
       read -r _ block <<<"$MESSAGE"
       if [[ -z "$block" ]]; then
-        cat $CURRENT_RESPONSE_FILE
+        cat $(RESPONSE_FILE)
       else
-        cat $CURRENT_RESPONSE_FILE | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d'
+        cat $(RESPONSE_FILE) | sed -n '/^```'"$block"'.*$/,/^```$/p' | sed '/^```/d'
       fi | {
         ([[ $(uname) = 'Darwin' ]] && pbcopy) || xclip -sel c
       }

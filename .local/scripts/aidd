@@ -6,6 +6,7 @@ rest="$@"
 
 code_change_guide="- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines
   that got changed, and ignore the parts that is unchanged).
+- DO NOT include the line number in the diffs themselves.
 - If changes involve multiple interleaving of removing and adding lines, make it easy on yourself by
   removing then adding the code in a contiguous manner. But, if the change you want to make is by
   replacing more than 100 lines of code for example, maybe reconsider a bit and do not perform such

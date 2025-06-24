@@ -20,18 +20,18 @@ CLR='\e[0m'
 
 declare -A MODELS
 MODELS["cld-35-haiku"]=5171
-MODELS["cld-37-sonnet"]=6188
 MODELS["cld-4-opus"]=6850
 MODELS["cld-4-sonnet"]=6834
 MODELS["gem-25-flash"]=6829
-MODELS["gem-25-pro"]=6705
+MODELS["gem-25-pro"]=6907
 MODELS["gpt-41"]=6360
 MODELS["gpt-41-mini"]=6464
 MODELS["gpt-41-nano"]=6412
 MODELS["gpt-o3"]=6568
 MODELS["gpt-o4-mini"]=6516
-MODELS["deep-r1"]=5971
-MODELS["deep-v3"]=6699
+MODELS["grok-3"]=6891
+MODELS["grok-3-fast"]=6897
+MODELS["grok-3-mini"]=6894
 
 # global context
 STREAMING="false"
@@ -138,7 +138,7 @@ post_user_message() {
   echo "$MESSAGE" > $(OUTPUT_FILE)
   call_form "$BASE_URL/conversations/chat_v2/" -F "message=<$(OUTPUT_FILE)" \
     -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" \
-    -F 'user_model_parameters={"top_k":40,"top_p":0.17,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
+    -F 'user_model_parameters={"top_p":0.17,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
 }
 
 get_response_stream() {
@@ -334,6 +334,7 @@ start_chat_session() {
 
     dash
     send_and_recv_cancellable
+    echo
 
     printf "\n%s\n" "$(call "$BASE_URL/conversations/$CONVERSATION_ID/cost" |
       jq -r '.conversation_total_usage_cost')"
@@ -341,12 +342,20 @@ start_chat_session() {
 }
 
 send_and_recv_cancellable() {
-  read -r CONVERSATION_ID ASSI_MESSAGE_ID < <(
-    post_user_message | jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")'
-  )
-  trap stop_response_stream SIGINT
-  get_response_stream
-  trap - SIGINT
+  local response
+  response="$(post_user_message)"
+
+  if [[ $? ]]; then
+    read -r CONVERSATION_ID ASSI_MESSAGE_ID < <(
+      jq -r '[.data.conversation_id, .data.messages[-1].id] | join(" ")' <<<"$response"
+    )
+    trap stop_response_stream SIGINT
+    get_response_stream
+    echo
+    trap - SIGINT
+  else
+    echo "$response"
+  fi
 }
 
 main() {

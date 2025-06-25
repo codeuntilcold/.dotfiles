@@ -253,9 +253,9 @@ start_chat_session() {
     )
     if [[ -n $CONVERSATION_ID && -n "$aicommand" ]]; then
       execute_agent_command "$aicommand" ||
-        MESSAGE=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
+        MESSAGE=$(gum write --char-limit=0 --width=0 --no-show-help --prompt="") || return
     else
-      MESSAGE=$(gum write --char-limit=0 --width=0 --height=0 --no-show-help) || return
+      MESSAGE=$(gum write --char-limit=0 --width=0 --no-show-help --prompt="") || return
     fi
 
     if [[ -z "$MESSAGE" ]]; then
@@ -326,7 +326,6 @@ start_chat_session() {
 
     dash
     send_and_recv_cancellable
-    echo
 
     printf "\n%s\n" "$(call "$BASE_URL/conversations/$CONVERSATION_ID/cost" |
       jq -r '.conversation_total_usage_cost')"
@@ -343,7 +342,6 @@ send_and_recv_cancellable() {
     )
     trap stop_response_stream SIGINT
     get_response_stream
-    echo
     trap - SIGINT
   else
     echo "$response"

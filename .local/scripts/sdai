@@ -117,7 +117,7 @@ call_form() {
 }
 
 delete_conversation() {
-  call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X DELETE &
+  call "$BASE_URL/conversations/${1:-$CONVERSATION_ID}" -o /dev/null -X DELETE &
 }
 
 post_user_message() {
@@ -162,6 +162,10 @@ get_conversations() {
 
 pick_conversation_id() {
   get_conversations | jq -c '.results[] | { id, name, size }' | fzf | jq '.id'
+}
+
+pick_conversation_ids() {
+  get_conversations | jq -c '.results[] | { id, name, size }' | fzf -m | jq '.id'
 }
 
 count_dollars_spent() {
@@ -362,17 +366,14 @@ main() {
     ;;
   cont | continue)
     CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
+    get_conversation_history
     start_chat_session
     ;;
   d | delete)
-    CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
-    delete_conversation
+    for id in $(pick_conversation_ids); do
+      delete_conversation "$id"
+    done
     invalidate_cache
-    ;;
-  read-cont)
-    CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
-    get_conversation_history
-    start_chat_session
     ;;
   query-models)
     call "$BASE_URL/models/" |

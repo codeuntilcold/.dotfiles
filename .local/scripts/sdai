@@ -56,14 +56,6 @@ OUTPUT_FILE() {
 # LOCAL OPS
 ###
 
-spinner() {
-  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-  for ((i = 0; i < 100; i++)); do
-    printf " %s " "${spinstr:0:1}" && sleep 0.05 && printf "\r"
-    spinstr=${spinstr#?}${spinstr:0:1}
-  done
-}
-
 dash() {
   printf "$BG%$(tput cols)s$CLR\n" | tr ' ' '-'
 }
@@ -128,17 +120,13 @@ delete_conversation() {
   call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X DELETE &
 }
 
-patch_conversation() {
-  call "$BASE_URL/conversations/$CONVERSATION_ID" -o /dev/null -X PATCH -d '{ "name": "'"$1"'" }'
-}
-
 post_user_message() {
   # {"top_k":40,"top_p":1,"max_tokens":64000,"temperature":1}
   # -F "user_model_parameters=$(jq --null-input --argjson temperature 0.1 '{temperature}')" \
   echo "$MESSAGE" > $(OUTPUT_FILE)
   call_form "$BASE_URL/conversations/chat_v2/" -F "message=<$(OUTPUT_FILE)" \
     -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" \
-    -F 'user_model_parameters={"top_p":0.17,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
+    -F 'user_model_parameters={"prompt_caching":true,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
 }
 
 get_response_stream() {
@@ -246,7 +234,7 @@ cancel_agent_execution() {
 }
 
 start_chat_session() {
-  echo -e "${BG}($MODEL_NAME)${CLR}"
+  echo -e "${BG}${MODEL_NAME}${CLR}"
 
   while true; do
     local queryfile
@@ -362,6 +350,8 @@ main() {
   [[ "$#" -lt 1 ]] &&
     abort "Usage: sdai [chat | continue | delete | patch | query-models | count-conv | read-cont]"
 
+  pick_model "$([ -t 0 ] && echo "cld-4-sonnet" || echo "gpt-41-nano")"
+
   case "$1" in
   c | chat)
     start_chat_session
@@ -378,11 +368,6 @@ main() {
     CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
     delete_conversation
     invalidate_cache
-    ;;
-  p | patch)
-    CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
-    read -r -p "Enter new name: " name
-    patch_conversation "$name" &
     ;;
   read-cont)
     CONVERSATION_ID=$(pick_conversation_id) || abort "No conversation selected"
@@ -405,7 +390,5 @@ main() {
     ;;
   esac
 }
-
-pick_model "$([ -t 0 ] && echo "cld-4-sonnet" || echo "gpt-41-nano")"
 
 main "$@"

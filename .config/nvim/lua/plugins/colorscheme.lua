@@ -1,14 +1,8 @@
-local function is_ssh()
-    return os.getenv("SSH_CONNECTION") ~= nil
-end
-
 local function getcolorscheme()
-    -- if os.getenv("USER") == "qd" or is_ssh() then
-    --     vim.cmd.colorscheme 'catppuccin'
-    --     return
-    -- end
-    -- vim.cmd.set "background=light"
-    -- vim.cmd.colorscheme "zenwritten"
+    if os.getenv("USER") == "qd" or os.getenv("SSH_CONNECTION") ~= nil then
+        return
+    end
+    vim.cmd.set "background=light"
 end
 
 return {
@@ -20,6 +14,7 @@ return {
 
     {
         "catppuccin/nvim",
+        enable = false,
         name = "catppuccin",
         config = function()
             getcolorscheme()
@@ -28,6 +23,7 @@ return {
 
     {
         "zenbones-theme/zenbones.nvim",
+        enable = false,
         lazy = false,
         priority = 1000,
         config = function()

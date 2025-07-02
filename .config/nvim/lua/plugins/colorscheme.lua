@@ -3,6 +3,7 @@ local function getcolorscheme()
         return
     end
     vim.cmd.set "background=light"
+    -- vim.cmd.colorscheme "zenwritten"
 end
 
 return {

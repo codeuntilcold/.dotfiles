@@ -33,7 +33,7 @@ code_change_guide="- Print the code addition or change in 'git diff' format (mea
 
 case "$command" in
 "agent")
-  echo "It's agentic coding time. Aim: $(cut -c1-50 <<<"$rest")
+  echo "It's agentic coding time. Aim: $(cut -c1-100 <<<"$rest")
 
 Given the below project brief, file structure, requirement and general rule:
 

@@ -327,7 +327,7 @@ start_chat_session() {
     dash
     send_and_recv_cancellable
 
-    printf "\n%s\n" "$(call "$BASE_URL/conversations/$CONVERSATION_ID/cost" |
+    printf "\n${BG}%s${CLR}\n" "$(call "$BASE_URL/conversations/$CONVERSATION_ID/cost" |
       jq -r '.conversation_total_usage_cost')"
   done
 }

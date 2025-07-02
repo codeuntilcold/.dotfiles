@@ -1,6 +1,6 @@
 [general]
 import = [
-    "~/.config/alacritty/themes/themes/zenwritten_light.toml",
+    "~/.config/alacritty/themes/themes/nvim_light.toml",
 ]
 
 working_directory = "/home/dungngo"
@@ -14,7 +14,7 @@ decorations = "full"
 opacity = 1
 
 [font]
-size = 15.0
+size = 14.0
 
 [font.normal]
 family = "IosevkaTerm NFM"

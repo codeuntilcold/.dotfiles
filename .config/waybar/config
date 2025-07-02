@@ -6,8 +6,6 @@
     "modules-left": [
         "sway/workspaces",
         "sway/mode",
-        // "sway/window",
-        "custom/player",
     ],
     "modules-center": [
         "clock#date",

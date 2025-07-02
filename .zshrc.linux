@@ -6,6 +6,7 @@ PATH="$PATH:/usr/local/go/bin"
 PATH="$PATH:$HOME/go/bin"
 PATH="$PATH:$HOME/.local/bin"
 PATH="$PATH:$HOME/.local/scripts"
+PATH="$PATH:${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
 export PATH
 export EDITOR=nvim
 export MANPAGER='nvim +Man!'

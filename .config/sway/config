@@ -20,8 +20,8 @@ set $ibus_toggle $dot_local/scripts/ibus-toggle
 set $screenshot $dot_local/scripts/wl-screenshot
 
 # Pywal colors
-include "$HOME/.cache/wal/colors-sway"
-output * background $wallpaper fill
+# include "$HOME/.cache/wal/colors-sway"
+# output * background $wallpaper fill
 
 # Window borders
 default_border pixel 2

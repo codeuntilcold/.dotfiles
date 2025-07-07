@@ -14,6 +14,8 @@ agentexecute_guide="- You have some tools available at your disposal, mainly the
   as you want to run a command.
 - If using cat, it is advised that you use the flag that adds the line number as well. That will
   help you a lot to make code changes.
+- If you want to try if the web server or the worker is initializing properly after all the changes,
+  consider running it with the 'timeout' command, so that control is yielded back to you.
 "
 
 code_change_guide="- Print the code addition or change in 'git diff' format (meaning they have the filename, the lines

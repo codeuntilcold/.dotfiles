@@ -134,8 +134,7 @@ get_response_stream() {
 
   STREAMING="true"
   call "$BASE_URL/conversations/streaming/" --data '{"message_id": '"$ASSI_MESSAGE_ID"' }' --no-buffer |
-    jq --unbuffered '.chunks' |
-    jq -rs '. | join("")' |
+    node -e "process.stdin.on('data', data => process.stdout.write(JSON.parse(data).chunks ?? ''))" |
     tee $(RESPONSE_FILE)
 
   STREAMING="false"

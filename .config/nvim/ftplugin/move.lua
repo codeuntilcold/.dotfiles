@@ -1,3 +1,5 @@
+vim.o.commentstring = '// %s'
+
 vim.keymap.set('n', '<leader>sa', function()
 	local function pkg_source_path(pkg)
 		return '~/.move/https___github_com_aptos-labs_aptos-core_git_mainnet/aptos-move/framework/' ..

@@ -7,9 +7,6 @@ return {
 
         -- Useful status updates for LSP
         { "j-hui/fidget.nvim", event = "LspAttach", opts = {} },
-
-        -- Additional lua configuration, makes nvim stuff amazing!
-        { 'folke/neodev.nvim', opts = {} },
     },
     config = function(_, opts)
         local on_attach = function(_, bufnr)

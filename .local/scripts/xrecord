@@ -6,9 +6,9 @@ HEIGHT=$(echo $RESOLUTION | cut -d'x' -f2)
 
 start() {
     ### no audio
-    ffmpeg -f x11grab -i :1 -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
+    # ffmpeg -f x11grab -i :1 -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
     ### yes audio
-    # ffmpeg -f x11grab -i :1 -f pulse -i default -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
+    ffmpeg -f x11grab -i :1 -f pulse -i default -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
     echo $! > /tmp/recpid
 
     screenkey -p fixed -g 23%x8%+$(($WIDTH * 3/4))+$(($HEIGHT * 9/10)) --opacity 0.4 &

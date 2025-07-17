@@ -1,0 +1,777 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#     "openai-whisper",
+#     "ffmpeg-python",
+#     "ollama",
+# ]
+# ///
+
+"""
+Video Tutorial Processor CLI with Local Ollama LLM Support
+Automatically processes tutorial videos by transcribing, analyzing content with local LLM,
+and cutting videos to remove boring/silent parts.
+"""
+
+import argparse
+import json
+import os
+import sys
+import tempfile
+import logging
+from pathlib import Path
+from typing import List, Dict, Optional
+from dataclasses import dataclass
+
+import whisper
+import ffmpeg
+import ollama
+
+
+@dataclass
+class Segment:
+    start: float
+    end: float
+    text: str
+    speed: float  # 1.0 = normal speed, 5.0 = 5x faster, etc.
+    reason: str
+    importance: float = 0.5  # 0.0 to 1.0
+
+
+class VideoProcessor:
+    def __init__(self, config: Dict):
+        self.config = config
+        self.logger = self._setup_logging()
+
+        # Set up caching first
+        self.cache_dir = config.get("cache_dir", ".video_cache")
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+        # Initialize Whisper model - will be loaded lazily if needed
+        self.whisper_model = None
+        self.whisper_model_size = config.get("whisper_model", "base")
+
+        # Verify Ollama is running
+        try:
+            models = ollama.list()
+            available_models = [model["model"] for model in models["models"]]
+            self.logger.info(f"Available Ollama models: {available_models}")
+
+            self.ollama_model = available_models[0]
+
+            if not self.ollama_model:
+                raise ValueError("No suitable Ollama model found")
+
+            self.logger.info(f"Using Ollama model: {self.ollama_model}")
+
+        except Exception as e:
+            self.logger.error(f"Ollama setup failed: {e}")
+            self.ollama_model = None
+
+    def _setup_logging(self) -> logging.Logger:
+        """Setup logging configuration"""
+        log_level = getattr(logging, self.config.get("log_level", "INFO").upper())
+        logging.basicConfig(
+            level=log_level,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            handlers=[
+                logging.StreamHandler(),
+                logging.FileHandler("video_processor.log")
+                if self.config.get("log_file")
+                else logging.NullHandler(),
+            ],
+        )
+        return logging.getLogger(__name__)
+
+    def _load_whisper_model(self):
+        """Load Whisper model lazily only when needed"""
+        if self.whisper_model is None:
+            self.logger.info(f"Loading Whisper model: {self.whisper_model_size}")
+            self.whisper_model = whisper.load_model(self.whisper_model_size)
+
+    def _get_cache_path(self, video_path: str) -> str:
+        """Generate cache file path for transcript"""
+        video_basename = os.path.basename(video_path)
+        video_name, _ = os.path.splitext(video_basename)
+        # Include file size and modification time in hash for cache invalidation
+        stat = os.stat(video_path)
+        cache_key = f"{video_name}_{stat.st_size}_{int(stat.st_mtime)}"
+        return os.path.join(self.cache_dir, f"{cache_key}_transcript.json")
+
+    def extract_transcript(self, video_path: str) -> Dict:
+        """Extract transcript with timestamps using Whisper (with caching)"""
+        # Check for cached transcript first
+        cache_path = self._get_cache_path(video_path)
+
+        if os.path.exists(cache_path):
+            self.logger.info(f"Loading cached transcript: {cache_path}")
+            try:
+                with open(cache_path, "r") as f:
+                    return json.load(f)
+            except Exception as e:
+                self.logger.warning(f"Failed to load cached transcript: {e}")
+                # Continue to transcribe if cache loading fails
+
+        # Only load Whisper model if we need to transcribe
+        self._load_whisper_model()
+
+        self.logger.info(f"Transcribing video: {video_path}")
+
+        try:
+            result = self.whisper_model.transcribe(
+                video_path, verbose=False, word_timestamps=True
+            )
+
+            segments = []
+            for segment in result["segments"]:
+                segments.append(
+                    {
+                        "start": segment["start"],
+                        "end": segment["end"],
+                        "text": segment["text"].strip(),
+                        "duration": segment["end"] - segment["start"],
+                    }
+                )
+
+            transcript_data = {
+                "full_transcript": result["text"],
+                "segments": segments,
+                "language": result.get("language", "unknown"),
+            }
+
+            # Cache the transcript
+            try:
+                with open(cache_path, "w") as f:
+                    json.dump(transcript_data, f, indent=2)
+                self.logger.info(f"Cached transcript: {cache_path}")
+            except Exception as e:
+                self.logger.warning(f"Failed to cache transcript: {e}")
+
+            self.logger.info(f"Transcription complete. Found {len(segments)} segments.")
+            return transcript_data
+
+        except Exception as e:
+            self.logger.error(f"Transcription failed: {e}")
+            raise
+
+    def analyze_content_with_ollama(
+        self, transcript_segments: List[Dict]
+    ) -> List[Segment]:
+        """Use Local Ollama LLM to analyze and recommend speed adjustments"""
+        self.logger.info("Analyzing content with Ollama LLM for speed adjustments...")
+        fast_speed = self.config.get("fast_speed", 5.0)
+        segments = []
+
+        # Analyze each segment individually for better accuracy
+        for i, segment in enumerate(transcript_segments):
+            prompt = f"""
+You are a video editing assistant. Analyze this single segment and decide its playback speed.
+
+SEGMENT: "{segment["text"]}"
+DURATION: {segment["duration"]:.1f} seconds
+
+SPEED RULES:
+- Use 1.0x speed ONLY for: introduction, explanation, actual coding, key concepts, demonstrations
+- Use {fast_speed}x speed for: pauses, no content in segment, silence, "um/uh", gibberish, toilet, waiting, repetitive content
+
+Respond with ONLY the speed number:
+{fast_speed} (for fast speed)
+1.0 (for normal speed)
+"""
+
+            try:
+                response = ollama.chat(
+                    model=self.ollama_model,
+                    messages=[{"role": "user", "content": prompt}],
+                    options={"temperature": 0.1, "num_predict": 10},
+                )
+
+                content = response["message"]["content"].strip()
+
+                # Parse speed from response
+                speed = fast_speed  # Default to fast speed
+                reason = "LLM analysis"
+
+                if "1.0" in content:
+                    speed = 1.0
+                    reason = "Essential content"
+                elif str(fast_speed) in content:
+                    speed = fast_speed
+                    reason = "Non-essential content"
+                else:
+                    # Try to extract any number
+                    import re
+
+                    numbers = re.findall(r"\d+\.?\d*", content)
+                    if numbers:
+                        try:
+                            speed = float(numbers[0])
+                        except:
+                            speed = fast_speed
+
+                segments.append(
+                    Segment(
+                        start=segment["start"],
+                        end=segment["end"],
+                        text=segment["text"],
+                        speed=speed,
+                        reason=reason,
+                        importance=0.8 if speed == 1.0 else 0.3,
+                    )
+                )
+
+                # Log the LLM decision
+                self.logger.info(
+                    f"Segment {i + 1}: {speed}x speed - {reason} | LLM response: '{content}' | Text: '{segment['text'][:60]}...'"
+                )
+
+            except Exception as e:
+                self.logger.error(f"Failed to analyze segment {i + 1}: {e}")
+                # Default to fast speed if analysis fails
+                segments.append(
+                    Segment(
+                        start=segment["start"],
+                        end=segment["end"],
+                        text=segment["text"],
+                        speed=fast_speed,
+                        reason="Analysis failed - defaulting to fast",
+                        importance=0.3,
+                    )
+                )
+
+        normal_segments = [s for s in segments if s.speed == 1.0]
+        fast_segments = [s for s in segments if s.speed != 1.0]
+        normal_percentage = len(normal_segments) / len(segments) * 100
+        self.logger.info(
+            f"Ollama analysis complete. {len(normal_segments)} normal speed ({normal_percentage:.1f}%), {len(fast_segments)} fast speed segments"
+        )
+
+        return self._merge_and_smooth_segments(segments)
+
+    def _merge_and_smooth_segments(self, segments: List[Segment]) -> List[Segment]:
+        """Merge consecutive segments with same speed and smooth transitions"""
+        if not segments:
+            return segments
+
+        # Step 1: Merge consecutive segments with same speed
+        merged_segments = []
+        current_segment = segments[0]
+
+        for next_segment in segments[1:]:
+            if (
+                current_segment.speed == next_segment.speed
+                and abs(current_segment.end - next_segment.start) < 0.1
+            ):  # Allow small gaps
+                # Merge segments
+                current_segment = Segment(
+                    start=current_segment.start,
+                    end=next_segment.end,
+                    text=current_segment.text + " " + next_segment.text,
+                    speed=current_segment.speed,
+                    reason=f"Merged: {current_segment.reason}",
+                    importance=max(current_segment.importance, next_segment.importance),
+                )
+            else:
+                merged_segments.append(current_segment)
+                current_segment = next_segment
+
+        merged_segments.append(current_segment)
+
+        # Step 2: Smooth alternating patterns
+        # smoothed_segments = self._smooth_alternating_patterns(merged_segments)
+        smoothed_segments = merged_segments
+
+        # Step 3: Enforce minimum segment duration
+        final_segments = self._enforce_minimum_duration(smoothed_segments)
+
+        self.logger.info(
+            f"Segment optimization: {len(segments)} → {len(merged_segments)} merged → {len(final_segments)} final"
+        )
+
+        return final_segments
+
+    def _smooth_alternating_patterns(self, segments: List[Segment]) -> List[Segment]:
+        """Smooth alternating fast-normal-fast patterns"""
+        if len(segments) < 3:
+            return segments
+
+        fast_speed = self.config.get("fast_speed", 5.0)
+        smoothed = []
+        i = 0
+
+        while i < len(segments):
+            current = segments[i]
+
+            # Look for fast-normal-fast pattern
+            if (
+                i + 2 < len(segments)
+                and segments[i].speed == fast_speed
+                and segments[i + 1].speed == 1.0
+                and segments[i + 2].speed == fast_speed
+            ):
+                # Check if middle segment is short enough to merge
+                middle_duration = segments[i + 1].end - segments[i + 1].start
+                if middle_duration < 10.0:  # Less than 10 seconds
+                    # Merge all three as fast speed
+                    merged = Segment(
+                        start=segments[i].start,
+                        end=segments[i + 2].end,
+                        text=segments[i].text
+                        + " "
+                        + segments[i + 1].text
+                        + " "
+                        + segments[i + 2].text,
+                        speed=fast_speed,
+                        reason="Smoothed alternating pattern",
+                        importance=max(
+                            segments[i].importance,
+                            segments[i + 1].importance,
+                            segments[i + 2].importance,
+                        ),
+                    )
+                    smoothed.append(merged)
+                    i += 3
+                    continue
+
+            # Look for normal-fast-normal pattern (less common but handle it)
+            elif (
+                i + 2 < len(segments)
+                and segments[i].speed == 1.0
+                and segments[i + 1].speed == fast_speed
+                and segments[i + 2].speed == 1.0
+            ):
+                # Check if middle segment is short enough to merge
+                middle_duration = segments[i + 1].end - segments[i + 1].start
+                if middle_duration < 5.0:  # Less than 5 seconds
+                    # Merge all three as normal speed
+                    merged = Segment(
+                        start=segments[i].start,
+                        end=segments[i + 2].end,
+                        text=segments[i].text
+                        + " "
+                        + segments[i + 1].text
+                        + " "
+                        + segments[i + 2].text,
+                        speed=1.0,
+                        reason="Smoothed alternating pattern",
+                        importance=max(
+                            segments[i].importance,
+                            segments[i + 1].importance,
+                            segments[i + 2].importance,
+                        ),
+                    )
+                    smoothed.append(merged)
+                    i += 3
+                    continue
+
+            smoothed.append(current)
+            i += 1
+
+        return smoothed
+
+    def _enforce_minimum_duration(self, segments: List[Segment]) -> List[Segment]:
+        """Enforce minimum duration for segments to avoid very short chunks"""
+        if not segments:
+            return segments
+
+        min_duration = 3.0  # Minimum 3 seconds per segment
+        fast_speed = self.config.get("fast_speed", 5.0)
+        final_segments = []
+
+        i = 0
+        while i < len(segments):
+            current = segments[i]
+            duration = current.end - current.start
+
+            if duration < min_duration and i + 1 < len(segments):
+                # Merge with next segment
+                next_segment = segments[i + 1]
+
+                # Use the speed of the longer segment
+                current_duration = current.end - current.start
+                next_duration = next_segment.end - next_segment.start
+
+                if current_duration > next_duration:
+                    merge_speed = current.speed
+                    merge_reason = f"Extended short segment: {current.reason}"
+                else:
+                    merge_speed = next_segment.speed
+                    merge_reason = f"Extended short segment: {next_segment.reason}"
+
+                merged = Segment(
+                    start=current.start,
+                    end=next_segment.end,
+                    text=current.text + " " + next_segment.text,
+                    speed=merge_speed,
+                    reason=merge_reason,
+                    importance=max(current.importance, next_segment.importance),
+                )
+                final_segments.append(merged)
+                i += 2
+            else:
+                final_segments.append(current)
+                i += 1
+
+        return final_segments
+
+    def _fill_gaps_with_fast_segments(
+        self, video_path: str, segments: List[Segment]
+    ) -> List[Segment]:
+        """Fill gaps between transcribed segments with fast-speed segments"""
+        if not segments:
+            return segments
+
+        # Get video duration
+        try:
+            probe = ffmpeg.probe(video_path)
+            video_duration = float(probe["format"]["duration"])
+        except Exception as e:
+            self.logger.error(f"Failed to get video duration: {e}")
+            return segments
+
+        fast_speed = self.config.get("fast_speed", 5.0)
+        filled_segments = []
+
+        # Sort segments by start time
+        sorted_segments = sorted(segments, key=lambda s: s.start)
+
+        # Add gap at the beginning if needed
+        if sorted_segments[0].start > 0:
+            gap_segment = Segment(
+                start=0,
+                end=sorted_segments[0].start,
+                text="[No transcript - silence/noise]",
+                speed=fast_speed,
+                reason="Gap before first transcript",
+                importance=0.1,
+            )
+            filled_segments.append(gap_segment)
+            self.logger.info(
+                f"Added gap segment at start: 0s-{sorted_segments[0].start:.1f}s"
+            )
+
+        # Add the first segment
+        filled_segments.append(sorted_segments[0])
+
+        # Fill gaps between segments
+        for i in range(1, len(sorted_segments)):
+            prev_segment = sorted_segments[i - 1]
+            curr_segment = sorted_segments[i]
+
+            # Check if there's a gap between segments
+            gap_start = prev_segment.end
+            gap_end = curr_segment.start
+
+            if gap_end > gap_start + 0.5:  # Only fill gaps larger than 0.5 seconds
+                gap_segment = Segment(
+                    start=gap_start,
+                    end=gap_end,
+                    text="[No transcript - silence/noise]",
+                    speed=fast_speed,
+                    reason="Gap between transcripts",
+                    importance=0.1,
+                )
+                filled_segments.append(gap_segment)
+                self.logger.info(f"Added gap segment: {gap_start:.1f}s-{gap_end:.1f}s")
+
+            filled_segments.append(curr_segment)
+
+        # Add gap at the end if needed
+        last_segment = sorted_segments[-1]
+        if (
+            last_segment.end < video_duration - 0.5
+        ):  # Only if gap is larger than 0.5 seconds
+            gap_segment = Segment(
+                start=last_segment.end,
+                end=video_duration,
+                text="[No transcript - silence/noise]",
+                speed=fast_speed,
+                reason="Gap after last transcript",
+                importance=0.1,
+            )
+            filled_segments.append(gap_segment)
+            self.logger.info(
+                f"Added gap segment at end: {last_segment.end:.1f}s-{video_duration:.1f}s"
+            )
+
+        # Sort final segments by start time
+        filled_segments.sort(key=lambda s: s.start)
+
+        gap_count = len(filled_segments) - len(segments)
+        if gap_count > 0:
+            self.logger.info(f"Filled {gap_count} gaps with fast-speed segments")
+
+        return filled_segments
+
+    def apply_speed_adjustments(
+        self, video_path: str, segments: List[Segment], output_path: str
+    ):
+        """Apply speed adjustments to video segments using FFmpeg"""
+        self.logger.info(f"Processing video with speed adjustments...")
+
+        # Create temporary directory for segments
+        with tempfile.TemporaryDirectory() as temp_dir:
+            segment_files = []
+
+            # Process each segment with its speed
+            for i, segment in enumerate(segments):
+                segment_file = os.path.join(temp_dir, f"segment_{i:03d}.mp4")
+                duration = segment.end - segment.start
+
+                try:
+                    # Create input stream
+                    input_stream = ffmpeg.input(
+                        video_path, ss=segment.start, t=duration
+                    )
+
+                    # Apply speed adjustment if not normal speed
+                    if segment.speed > 1.0:
+                        self.logger.debug(
+                            f"Segment {i + 1}: Applying {segment.speed}x speed to {segment.start:.1f}s-{segment.end:.1f}s"
+                        )
+                        # Apply speed filter to both audio and video
+                        video_stream = input_stream.video.filter(
+                            "setpts", f"PTS/{segment.speed}"
+                        )
+                        audio_stream = input_stream.audio.filter(
+                            "atempo", segment.speed
+                        )
+
+                        # Output with speed adjustments
+                        output_stream = ffmpeg.output(
+                            video_stream,
+                            audio_stream,
+                            segment_file,
+                            avoid_negative_ts="make_zero",
+                        )
+                    else:
+                        # Normal speed - just copy
+                        output_stream = ffmpeg.output(
+                            input_stream,
+                            segment_file,
+                            c="copy",
+                            avoid_negative_ts="make_zero",
+                        )
+
+                    # Run the ffmpeg command
+                    output_stream.overwrite_output().run(quiet=True)
+                    segment_files.append(segment_file)
+
+                    self.logger.debug(
+                        f"Processed segment {i + 1}: {segment.start:.1f}s-{segment.end:.1f}s at {segment.speed}x speed"
+                    )
+
+                except ffmpeg.Error as e:
+                    self.logger.error(f"Failed to process segment {i + 1}: {e}")
+                    continue
+
+            if not segment_files:
+                raise ValueError("No segments were successfully processed!")
+
+            # Create concat file
+            concat_file = os.path.join(temp_dir, "concat_list.txt")
+            with open(concat_file, "w") as f:
+                for segment_file in segment_files:
+                    f.write(f"file '{segment_file}'\n")
+
+            # Concatenate segments
+            self.logger.info(
+                f"Concatenating {len(segment_files)} processed segments..."
+            )
+            try:
+                (
+                    ffmpeg.input(concat_file, format="concat", safe=0)
+                    .output(output_path, c="copy")
+                    .overwrite_output()
+                    .run(quiet=True)
+                )
+                self.logger.info(f"Video processing complete: {output_path}")
+
+            except ffmpeg.Error as e:
+                self.logger.error(f"Failed to concatenate segments: {e}")
+                raise
+
+    def save_analysis_report(self, segments: List[Segment], output_path: str):
+        """Save detailed analysis report"""
+        normal_segments = [s for s in segments if s.speed == 1.0]
+        fast_segments = [s for s in segments if s.speed != 1.0]
+
+        # Calculate effective duration (fast segments contribute less)
+        effective_duration = sum((s.end - s.start) / s.speed for s in segments)
+
+        report = {
+            "summary": {
+                "total_segments": len(segments),
+                "normal_speed_segments": len(normal_segments),
+                "fast_speed_segments": len(fast_segments),
+                "total_duration": sum(s.end - s.start for s in segments),
+                "effective_duration": effective_duration,
+                "time_reduction": sum(s.end - s.start for s in segments)
+                - effective_duration,
+            },
+            "segments": [
+                {
+                    "start": s.start,
+                    "end": s.end,
+                    "duration": s.end - s.start,
+                    "text": s.text,
+                    "speed": s.speed,
+                    "reason": s.reason,
+                    "importance": s.importance,
+                }
+                for s in segments
+            ],
+        }
+
+        with open(output_path, "w") as f:
+            json.dump(report, f, indent=2)
+
+        self.logger.info(f"Analysis report saved: {output_path}")
+
+    def process_video(self, video_path: str, output_path: str) -> Dict:
+        """Main processing pipeline"""
+        self.logger.info(f"Starting video processing: {video_path}")
+
+        # Step 1: Extract transcript
+        transcript_data = self.extract_transcript(video_path)
+
+        # Step 2: Analyze content
+        segments = self.analyze_content_with_ollama(transcript_data["segments"])
+
+        # Step 3: Fill gaps between segments with fast-speed segments
+        segments = self._fill_gaps_with_fast_segments(video_path, segments)
+
+        # Step 4: Save analysis report
+        report_path = output_path.replace(".mp4", "_analysis.json")
+        self.save_analysis_report(segments, report_path)
+
+        # Step 5: Apply speed adjustments
+        self.apply_speed_adjustments(video_path, segments, output_path)
+
+        # Return summary
+        normal_segments = [s for s in segments if s.speed == 1.0]
+        fast_segments = [s for s in segments if s.speed != 1.0]
+        effective_duration = sum((s.end - s.start) / s.speed for s in segments)
+
+        return {
+            "input_file": video_path,
+            "output_file": output_path,
+            "report_file": report_path,
+            "original_duration": sum(s.end - s.start for s in segments),
+            "effective_duration": effective_duration,
+            "time_saved": sum(s.end - s.start for s in segments) - effective_duration,
+            "normal_speed_segments": len(normal_segments),
+            "fast_speed_segments": len(fast_segments),
+        }
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Process tutorial videos by transcribing, analyzing, and cutting content using local Ollama LLM",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s input.mp4 -o output.mp4
+  %(prog)s input.mp4 -o output.mp4 --ollama-model mistral --target-duration 600
+  %(prog)s input.mp4 -o output.mp4 --whisper-model large --log-level DEBUG
+  %(prog)s input.mp4 -o output.mp4 --cache-dir /tmp/transcripts
+        """,
+    )
+
+    parser.add_argument("input", help="Input video file path")
+    parser.add_argument("-o", "--output", required=True, help="Output video file path")
+    parser.add_argument(
+        "--ollama-model", default=None, help="Specific Ollama model to use"
+    )
+    parser.add_argument(
+        "--whisper-model",
+        default="base",
+        choices=["tiny", "base", "small", "medium", "large"],
+        help="Whisper model size (default: base)",
+    )
+    parser.add_argument(
+        "--target-duration",
+        type=int,
+        default=900,
+        help="Target duration in seconds (default: 900)",
+    )
+    parser.add_argument(
+        "--fast-speed",
+        type=float,
+        default=5.0,
+        help="Speed multiplier for boring segments (default: 5.0)",
+    )
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Logging level (default: INFO)",
+    )
+    parser.add_argument(
+        "--log-file", action="store_true", help="Enable logging to file"
+    )
+    parser.add_argument(
+        "--cache-dir",
+        default=".video_cache",
+        help="Directory to store cached transcripts (default: .video_cache)",
+    )
+
+    args = parser.parse_args()
+
+    # Validate input file
+    if not os.path.exists(args.input):
+        print(f"Error: Input file '{args.input}' not found")
+        sys.exit(1)
+
+    # Create output directory if needed
+    output_dir = os.path.dirname(args.output)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Configuration
+    config = {
+        "ollama_model": args.ollama_model,
+        "whisper_model": args.whisper_model,
+        "target_duration": args.target_duration,
+        "log_level": args.log_level,
+        "log_file": args.log_file,
+        "cache_dir": args.cache_dir,
+        "fast_speed": args.fast_speed,
+    }
+
+    try:
+        # Process video
+        processor = VideoProcessor(config)
+        result = processor.process_video(args.input, args.output)
+
+        # Print summary
+        print("\n" + "=" * 50)
+        print("VIDEO PROCESSING COMPLETE")
+        print("=" * 50)
+        print(f"Input:  {result['input_file']}")
+        print(f"Output: {result['output_file']}")
+        print(f"Report: {result['report_file']}")
+        print(
+            f"Duration: {result['original_duration']:.1f}s → {result['effective_duration']:.1f}s"
+        )
+        print(
+            f"Segments: {result['normal_speed_segments']} normal speed, {result['fast_speed_segments']} fast speed"
+        )
+        print(f"Time saved: {result['time_saved']:.1f}s")
+        print(
+            f"Reduction: {(result['time_saved'] / result['original_duration']) * 100:.1f}%"
+        )
+
+    except KeyboardInterrupt:
+        print("\nProcessing interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+
+# vim:ft=python

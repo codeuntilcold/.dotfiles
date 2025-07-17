@@ -66,6 +66,9 @@ return {
             }
         }
 
+        -- nvim v0.11
+        vim.lsp.enable('dartls')
+
         return opts
     end
 }

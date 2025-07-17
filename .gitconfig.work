@@ -7,5 +7,5 @@ name = Dung Ngo
 [github]
 user = ea-dungn
  
-[core]
-sshCommand = ssh -i ~/.ssh/id_ea-dungn_ed25519
+# [core]
+# sshCommand = ssh -i ~/.ssh/id_ea-dungn_ed25519

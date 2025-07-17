@@ -7,6 +7,9 @@ path = ~/Dev/personal/.gitconfig.personal
 [includeIf "gitdir:~/Dev/work/"]
 path = ~/Dev/work/.gitconfig.work
 
+[includeIf "gitdir:~/dev/"]
+path = ~/.gitconfig.work
+
 [core]
 excludesfile = ~/.gitignore
 

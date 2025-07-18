@@ -9,22 +9,22 @@
 
 """
 Video Tutorial Processor CLI
-Automatically processes tutorial videos by transcribing and speeding up silent gaps.
+Processes videos by transcribing and speeding up silent gaps.
 """
 
 import argparse
+import hashlib
 import json
+import logging
 import os
+import shutil
 import sys
 import tempfile
-import logging
-from pathlib import Path
-from typing import List, Dict, Optional
 from dataclasses import dataclass
+from typing import Dict, List
 
-import whisper
 import ffmpeg
-# import ollama  # No longer needed for simple audio detection
+import whisper
 
 
 @dataclass
@@ -32,149 +32,91 @@ class Segment:
     start: float
     end: float
     text: str
-    speed: float  # 1.0 = normal speed, 5.0 = 5x faster, etc.
+    speed: float
     reason: str
-    importance: float = 0.5  # 0.0 to 1.0
 
 
 class VideoProcessor:
     def __init__(self, config: Dict):
         self.config = config
-        self.logger = self._setup_logging()
-
-        # Set up caching first
         self.cache_dir = config.get("cache_dir", ".video_cache")
         os.makedirs(self.cache_dir, exist_ok=True)
 
-        # Initialize Whisper model - will be loaded lazily if needed
-        self.whisper_model = None
-        self.whisper_model_size = config.get("whisper_model", "base")
-
-        # Ollama is no longer needed for simple audio detection
-        self.ollama_model = None
-
-    def _setup_logging(self) -> logging.Logger:
-        """Setup logging configuration"""
-        log_level = getattr(logging, self.config.get("log_level", "INFO").upper())
+        # Setup logging
+        log_level = getattr(logging, config.get("log_level", "INFO").upper())
         logging.basicConfig(
             level=log_level,
             format="%(asctime)s - %(levelname)s - %(message)s",
             handlers=[
                 logging.StreamHandler(),
                 logging.FileHandler("video_processor.log")
-                if self.config.get("log_file")
+                if config.get("log_file")
                 else logging.NullHandler(),
             ],
         )
-        return logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
 
-    def _load_whisper_model(self):
-        """Load Whisper model lazily only when needed"""
-        if self.whisper_model is None:
-            self.logger.info(f"Loading Whisper model: {self.whisper_model_size}")
-            self.whisper_model = whisper.load_model(self.whisper_model_size)
+        # Lazy load Whisper
+        self.whisper_model = None
+        self.whisper_model_size = config.get("whisper_model", "base")
 
-    def _get_cache_path(self, video_path: str, suffix: str = "transcript") -> str:
-        """Generate cache file path for any cached data"""
-        video_basename = os.path.basename(video_path)
-        video_name, _ = os.path.splitext(video_basename)
-        # Include file size and modification time in hash for cache invalidation
+    def _get_cache_path(self, video_path: str, suffix: str) -> str:
+        """Generate cache file path"""
+        basename = os.path.basename(video_path)
+        name, _ = os.path.splitext(basename)
         stat = os.stat(video_path)
-        cache_key = f"{video_name}_{stat.st_size}_{int(stat.st_mtime)}"
-        return os.path.join(self.cache_dir, f"{cache_key}_{suffix}.json")
-    
-    def _get_segment_cache_path(self, video_path: str, segment_hash: str) -> str:
-        """Generate cache path for processed segment"""
-        return os.path.join(self.cache_dir, f"segment_{segment_hash}.mp4")
+        cache_key = f"{name}_{stat.st_size}_{int(stat.st_mtime)}"
+        return os.path.join(self.cache_dir, f"{cache_key}_{suffix}")
 
     def extract_transcript(self, video_path: str) -> Dict:
-        """Extract transcript with timestamps using Whisper (with caching)"""
-        # Check for cached transcript first
-        cache_path = self._get_cache_path(video_path, "transcript")
+        """Extract transcript using Whisper with caching"""
+        cache_path = self._get_cache_path(video_path, "transcript.json")
 
+        # Try loading from cache
         if os.path.exists(cache_path):
-            self.logger.info(f"Loading cached transcript: {cache_path}")
             try:
                 with open(cache_path, "r") as f:
                     return json.load(f)
             except Exception as e:
                 self.logger.warning(f"Failed to load cached transcript: {e}")
-                # Continue to transcribe if cache loading fails
 
-        # Only load Whisper model if we need to transcribe
-        self._load_whisper_model()
+        # Load Whisper model if needed
+        if not self.whisper_model:
+            self.logger.info(f"Loading Whisper model: {self.whisper_model_size}")
+            self.whisper_model = whisper.load_model(self.whisper_model_size)
 
+        # Transcribe
         self.logger.info(f"Transcribing video: {video_path}")
+        result = self.whisper_model.transcribe(video_path, verbose=False)
 
-        try:
-            result = self.whisper_model.transcribe(
-                video_path, verbose=False, word_timestamps=True
-            )
-
-            segments = []
-            for segment in result["segments"]:
-                segments.append(
-                    {
-                        "start": segment["start"],
-                        "end": segment["end"],
-                        "text": segment["text"].strip(),
-                        "duration": segment["end"] - segment["start"],
-                    }
-                )
-
-            transcript_data = {
-                "full_transcript": result["text"],
-                "segments": segments,
-                "language": result.get("language", "unknown"),
+        segments = [
+            {
+                "start": seg["start"],
+                "end": seg["end"],
+                "text": seg["text"].strip(),
             }
+            for seg in result["segments"]
+        ]
 
-            # Cache the transcript
-            try:
-                with open(cache_path, "w") as f:
-                    json.dump(transcript_data, f, indent=2)
-                self.logger.info(f"Cached transcript: {cache_path}")
-            except Exception as e:
-                self.logger.warning(f"Failed to cache transcript: {e}")
+        transcript_data = {
+            "segments": segments,
+            "language": result.get("language", "unknown"),
+        }
 
-            self.logger.info(f"Transcription complete. Found {len(segments)} segments.")
-            return transcript_data
-
+        # Cache the result
+        try:
+            with open(cache_path, "w") as f:
+                json.dump(transcript_data, f, indent=2)
         except Exception as e:
-            self.logger.error(f"Transcription failed: {e}")
-            raise
+            self.logger.warning(f"Failed to cache transcript: {e}")
 
-    def analyze_content_with_ollama(
-        self, transcript_segments: List[Dict]
-    ) -> List[Segment]:
-        """Simple rule: whisper detected audio = 1x speed, gaps = 5x speed"""
-        self.logger.info("Analyzing content: all transcribed segments at 1x speed")
+        self.logger.info(f"Transcription complete. Found {len(segments)} segments.")
+        return transcript_data
+
+    def create_segments(self, video_path: str, transcript_data: Dict) -> List[Segment]:
+        """Create segments with speed assignments"""
         segments = []
-
-        for i, segment in enumerate(transcript_segments):
-            segments.append(
-                Segment(
-                    start=segment["start"],
-                    end=segment["end"],
-                    text=segment["text"],
-                    speed=1.0,
-                    reason="Whisper detected audio",
-                    importance=0.8,
-                )
-            )
-
-            self.logger.info(
-                f"Segment {i + 1}: 1x speed - Whisper detected audio | Text: '{segment['text'][:60]}...'"
-            )
-
-        self.logger.info(f"Analysis complete. {len(segments)} segments at 1x speed")
-        return segments
-
-    def _fill_gaps_with_fast_segments(
-        self, video_path: str, segments: List[Segment]
-    ) -> List[Segment]:
-        """Fill gaps between transcribed segments with fast-speed segments"""
-        if not segments:
-            return segments
+        fast_speed = self.config.get("fast_speed", 5.0)
 
         # Get video duration
         try:
@@ -184,169 +126,129 @@ class VideoProcessor:
             self.logger.error(f"Failed to get video duration: {e}")
             return segments
 
-        fast_speed = self.config.get("fast_speed", 5.0)
-        filled_segments = []
-
-        # Sort segments by start time
-        sorted_segments = sorted(segments, key=lambda s: s.start)
-
-        # Add gap at the beginning if needed
-        if sorted_segments[0].start > 0:
-            gap_segment = Segment(
-                start=0,
-                end=sorted_segments[0].start,
-                text="[No transcript - silence/noise]",
-                speed=fast_speed,
-                reason="Gap before first transcript",
-                importance=0.1,
-            )
-            filled_segments.append(gap_segment)
-            self.logger.info(
-                f"Added gap segment at start: 0s-{sorted_segments[0].start:.1f}s"
-            )
-
-        # Add the first segment
-        filled_segments.append(sorted_segments[0])
-
-        # Fill gaps between segments
-        for i in range(1, len(sorted_segments)):
-            prev_segment = sorted_segments[i - 1]
-            curr_segment = sorted_segments[i]
-
-            # Check if there's a gap between segments
-            gap_start = prev_segment.end
-            gap_end = curr_segment.start
-
-            if gap_end > gap_start + 0.5:  # Only fill gaps larger than 0.5 seconds
-                gap_segment = Segment(
-                    start=gap_start,
-                    end=gap_end,
-                    text="[No transcript - silence/noise]",
-                    speed=fast_speed,
-                    reason="Gap between transcripts",
-                    importance=0.1,
+        # Convert transcript segments to 1x speed
+        for seg in transcript_data["segments"]:
+            segments.append(
+                Segment(
+                    start=seg["start"],
+                    end=seg["end"],
+                    text=seg["text"],
+                    speed=1.0,
+                    reason="Audio content",
                 )
-                filled_segments.append(gap_segment)
-                self.logger.info(f"Added gap segment: {gap_start:.1f}s-{gap_end:.1f}s")
-
-            filled_segments.append(curr_segment)
-
-        # Add gap at the end if needed
-        last_segment = sorted_segments[-1]
-        if (
-            last_segment.end < video_duration - 0.5
-        ):  # Only if gap is larger than 0.5 seconds
-            gap_segment = Segment(
-                start=last_segment.end,
-                end=video_duration,
-                text="[No transcript - silence/noise]",
-                speed=fast_speed,
-                reason="Gap after last transcript",
-                importance=0.1,
-            )
-            filled_segments.append(gap_segment)
-            self.logger.info(
-                f"Added gap segment at end: {last_segment.end:.1f}s-{video_duration:.1f}s"
             )
 
-        # Sort final segments by start time
-        filled_segments.sort(key=lambda s: s.start)
+        # Sort by start time
+        segments.sort(key=lambda s: s.start)
 
-        gap_count = len(filled_segments) - len(segments)
-        if gap_count > 0:
-            self.logger.info(f"Filled {gap_count} gaps with fast-speed segments")
+        # Fill gaps with fast segments
+        filled_segments = []
+        prev_end = 0
 
-        return filled_segments
+        for segment in segments:
+            # Add gap before segment if exists
+            if segment.start > prev_end + 0.5:
+                filled_segments.append(
+                    Segment(
+                        start=prev_end,
+                        end=segment.start,
+                        text="[Silent gap]",
+                        speed=fast_speed,
+                        reason="No audio",
+                    )
+                )
 
-    def _merge_consecutive_segments(self, segments: List[Segment]) -> List[Segment]:
-        """Merge consecutive segments with the same speed to reduce temp files"""
-        if not segments:
-            return segments
+            filled_segments.append(segment)
+            prev_end = segment.end
 
-        merged_segments = []
-        current_segment = segments[0]
+        # Add final gap if needed
+        if prev_end < video_duration - 0.5:
+            filled_segments.append(
+                Segment(
+                    start=prev_end,
+                    end=video_duration,
+                    text="[Silent gap]",
+                    speed=fast_speed,
+                    reason="No audio",
+                )
+            )
 
-        for next_segment in segments[1:]:
-            # Check if segments can be merged (same speed and no gap)
+        # Merge consecutive segments with same speed
+        merged = []
+        current = filled_segments[0]
+
+        for next_seg in filled_segments[1:]:
             if (
-                current_segment.speed == next_segment.speed
-                and abs(current_segment.end - next_segment.start) < 0.1
+                current.speed == next_seg.speed
+                and abs(current.end - next_seg.start) < 0.1
             ):
                 # Merge segments
-                current_segment = Segment(
-                    start=current_segment.start,
-                    end=next_segment.end,
-                    text=f"{current_segment.text} + {next_segment.text}",
-                    speed=current_segment.speed,
-                    reason=f"Merged: {current_segment.reason}",
-                    importance=max(current_segment.importance, next_segment.importance),
+                current = Segment(
+                    start=current.start,
+                    end=next_seg.end,
+                    text=f"{current.text} + {next_seg.text}",
+                    speed=current.speed,
+                    reason=f"Merged: {current.reason}",
                 )
             else:
-                # Can't merge, add current and move to next
-                merged_segments.append(current_segment)
-                current_segment = next_segment
+                merged.append(current)
+                current = next_seg
 
-        # Add the last segment
-        merged_segments.append(current_segment)
+        merged.append(current)
 
-        reduction = len(segments) - len(merged_segments)
-        if reduction > 0:
-            self.logger.info(f"Merged {reduction} segments: {len(segments)} → {len(merged_segments)}")
+        gap_count = len(filled_segments) - len(transcript_data["segments"])
+        merge_count = len(filled_segments) - len(merged)
 
-        return merged_segments
+        self.logger.info(
+            f"Created {len(merged)} segments ({gap_count} gaps added, {merge_count} merged)"
+        )
+        return merged
 
-    def apply_speed_adjustments(
+    def process_segments(
         self, video_path: str, segments: List[Segment], output_path: str
     ):
-        """Apply speed adjustments to video segments using multi-step processing"""
-        self.logger.info(f"Processing video with multi-step approach...")
+        """Process video segments with caching"""
+        self.logger.info("Processing video segments...")
 
-        # Create temporary directory for segments
         with tempfile.TemporaryDirectory() as temp_dir:
             segment_files = []
 
-            # Process each segment individually with caching
             for i, segment in enumerate(segments):
                 duration = segment.end - segment.start
-                
-                # Generate cache key for this segment
-                import hashlib
-                segment_data = f"{segment.start}_{segment.end}_{segment.speed}_{duration}"
+
+                # Generate cache key
+                segment_data = (
+                    f"{segment.start}_{segment.end}_{segment.speed}_{duration}"
+                )
                 segment_hash = hashlib.md5(segment_data.encode()).hexdigest()[:12]
-                cached_segment_path = self._get_segment_cache_path(video_path, segment_hash)
-                
-                # Check if segment is already cached
-                if os.path.exists(cached_segment_path):
-                    self.logger.debug(f"Using cached segment {i + 1}: {cached_segment_path}")
-                    # Copy cached segment to temp directory for concat
-                    segment_file = os.path.join(temp_dir, f"segment_{i:03d}.mp4")
-                    import shutil
-                    shutil.copy2(cached_segment_path, segment_file)
-                    segment_files.append(segment_file)
-                    continue
-                
-                # Process segment if not cached
+                cached_path = self._get_cache_path(
+                    video_path, f"segment_{segment_hash}.mp4"
+                )
+
                 segment_file = os.path.join(temp_dir, f"segment_{i:03d}.mp4")
 
+                # Use cached segment if available
+                if os.path.exists(cached_path):
+                    self.logger.debug(f"Using cached segment {i + 1}")
+                    shutil.copy2(cached_path, segment_file)
+                    segment_files.append(segment_file)
+                    continue
+
+                # Process segment
                 try:
-                    # Create input stream for this segment
                     input_stream = ffmpeg.input(
                         video_path, ss=segment.start, t=duration
                     )
 
                     if segment.speed > 1.0:
-                        # Fast segment - video only, add silent audio
-                        self.logger.debug(
-                            f"Segment {i + 1}: Fast {segment.speed}x speed with silent audio"
-                        )
+                        # Fast segment with silent audio
                         video_stream = input_stream.video.filter(
                             "setpts", f"PTS/{segment.speed}"
                         )
-                        # Create silent audio for the sped-up duration
                         sped_duration = duration / segment.speed
                         silent_audio = ffmpeg.input(
                             f"anullsrc=duration={sped_duration}:sample_rate=44100:channel_layout=stereo",
-                            f="lavfi"
+                            f="lavfi",
                         )
                         output_stream = ffmpeg.output(
                             video_stream,
@@ -354,142 +256,77 @@ class VideoProcessor:
                             segment_file,
                             vcodec="libx264",
                             acodec="aac",
-                            avoid_negative_ts="make_zero"
+                            avoid_negative_ts="make_zero",
                         )
                     else:
-                        # Normal speed - keep both video and audio
-                        self.logger.debug(
-                            f"Segment {i + 1}: Normal speed with audio"
-                        )
+                        # Normal speed with original audio
                         output_stream = ffmpeg.output(
                             input_stream,
                             segment_file,
                             vcodec="libx264",
                             acodec="aac",
-                            avoid_negative_ts="make_zero"
+                            avoid_negative_ts="make_zero",
                         )
 
-                    # Process this segment
                     output_stream.overwrite_output().run(quiet=True)
-                    
-                    # Cache the processed segment
-                    import shutil
-                    shutil.copy2(segment_file, cached_segment_path)
-                    self.logger.debug(f"Cached segment {i + 1}: {cached_segment_path}")
-                    
-                    segment_files.append(segment_file)
 
-                    self.logger.debug(
-                        f"Processed segment {i + 1}: {segment.start:.1f}s-{segment.end:.1f}s"
-                    )
+                    # Cache the processed segment
+                    shutil.copy2(segment_file, cached_path)
+                    segment_files.append(segment_file)
 
                 except ffmpeg.Error as e:
                     self.logger.error(f"Failed to process segment {i + 1}: {e}")
                     continue
 
+            # Concatenate segments
             if not segment_files:
-                raise ValueError("No segments were successfully processed!")
+                raise ValueError("No segments were processed!")
 
-            # Create concat file
             concat_file = os.path.join(temp_dir, "concat_list.txt")
             with open(concat_file, "w") as f:
                 for segment_file in segment_files:
                     f.write(f"file '{segment_file}'\n")
 
-            # Concatenate all segments
-            self.logger.info(
-                f"Concatenating {len(segment_files)} processed segments..."
-            )
-            try:
-                (
-                    ffmpeg.input(concat_file, format="concat", safe=0)
-                    .output(
-                        output_path,
-                        vcodec="libx264",
-                        acodec="aac",
-                        avoid_negative_ts="make_zero"
-                    )
-                    .overwrite_output()
-                    .run(quiet=True)
+            self.logger.info(f"Concatenating {len(segment_files)} segments...")
+            (
+                ffmpeg.input(concat_file, format="concat", safe=0)
+                .output(
+                    output_path,
+                    vcodec="libx264",
+                    acodec="aac",
+                    avoid_negative_ts="make_zero",
                 )
-                self.logger.info(f"Video processing complete: {output_path}")
+                .overwrite_output()
+                .run(quiet=True)
+            )
 
-            except ffmpeg.Error as e:
-                self.logger.error(f"Failed to concatenate segments: {e}")
-                raise
-
-    def save_analysis_report(self, segments: List[Segment], output_path: str):
-        """Save detailed analysis report"""
-        normal_segments = [s for s in segments if s.speed == 1.0]
-        fast_segments = [s for s in segments if s.speed != 1.0]
-
-        # Calculate effective duration (fast segments contribute less)
-        effective_duration = sum((s.end - s.start) / s.speed for s in segments)
-
-        report = {
-            "summary": {
-                "total_segments": len(segments),
-                "normal_speed_segments": len(normal_segments),
-                "fast_speed_segments": len(fast_segments),
-                "total_duration": sum(s.end - s.start for s in segments),
-                "effective_duration": effective_duration,
-                "time_reduction": sum(s.end - s.start for s in segments)
-                - effective_duration,
-            },
-            "segments": [
-                {
-                    "start": s.start,
-                    "end": s.end,
-                    "duration": s.end - s.start,
-                    "text": s.text,
-                    "speed": s.speed,
-                    "reason": s.reason,
-                    "importance": s.importance,
-                }
-                for s in segments
-            ],
-        }
-
-        with open(output_path, "w") as f:
-            json.dump(report, f, indent=2)
-
-        self.logger.info(f"Analysis report saved: {output_path}")
+            self.logger.info(f"Video processing complete: {output_path}")
 
     def process_video(self, video_path: str, output_path: str) -> Dict:
         """Main processing pipeline"""
-        self.logger.info(f"Starting video processing: {video_path}")
+        self.logger.info(f"Processing video: {video_path}")
 
-        # Step 1: Extract transcript
+        # Extract transcript
         transcript_data = self.extract_transcript(video_path)
 
-        # Step 2: Analyze content
-        segments = self.analyze_content_with_ollama(transcript_data["segments"])
+        # Create segments
+        segments = self.create_segments(video_path, transcript_data)
 
-        # Step 3: Fill gaps between segments with fast-speed segments
-        segments = self._fill_gaps_with_fast_segments(video_path, segments)
+        # Process video
+        self.process_segments(video_path, segments, output_path)
 
-        # Step 4: Merge consecutive segments with same speed
-        segments = self._merge_consecutive_segments(segments)
-
-        # Step 5: Save analysis report
-        report_path = output_path.replace(".mp4", "_analysis.json")
-        self.save_analysis_report(segments, report_path)
-
-        # Step 6: Apply speed adjustments
-        self.apply_speed_adjustments(video_path, segments, output_path)
-
-        # Return summary
+        # Calculate stats
         normal_segments = [s for s in segments if s.speed == 1.0]
         fast_segments = [s for s in segments if s.speed != 1.0]
+        total_duration = sum(s.end - s.start for s in segments)
         effective_duration = sum((s.end - s.start) / s.speed for s in segments)
 
         return {
             "input_file": video_path,
             "output_file": output_path,
-            "report_file": report_path,
-            "original_duration": sum(s.end - s.start for s in segments),
+            "original_duration": total_duration,
             "effective_duration": effective_duration,
-            "time_saved": sum(s.end - s.start for s in segments) - effective_duration,
+            "time_saved": total_duration - effective_duration,
             "normal_speed_segments": len(normal_segments),
             "fast_speed_segments": len(fast_segments),
         }
@@ -497,16 +334,8 @@ class VideoProcessor:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Process tutorial videos by transcribing and speeding up silent gaps",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  %(prog)s input.mp4 -o output.mp4
-  %(prog)s input.mp4 -o output.mp4 --whisper-model large --log-level DEBUG
-  %(prog)s input.mp4 -o output.mp4 --cache-dir /tmp/transcripts
-        """,
+        description="Process videos by speeding up silent gaps"
     )
-
     parser.add_argument("input", help="Input video file path")
     parser.add_argument("-o", "--output", required=True, help="Output video file path")
     parser.add_argument(
@@ -519,7 +348,7 @@ Examples:
         "--fast-speed",
         type=float,
         default=5.0,
-        help="Speed multiplier for boring segments (default: 5.0)",
+        help="Speed multiplier for silent segments (default: 5.0)",
     )
     parser.add_argument(
         "--log-level",
@@ -533,17 +362,17 @@ Examples:
     parser.add_argument(
         "--cache-dir",
         default=".video_cache",
-        help="Directory to store cached transcripts (default: .video_cache)",
+        help="Directory for cached files (default: .video_cache)",
     )
 
     args = parser.parse_args()
 
-    # Validate input file
+    # Validate input
     if not os.path.exists(args.input):
         print(f"Error: Input file '{args.input}' not found")
         sys.exit(1)
 
-    # Create output directory if needed
+    # Create output directory
     output_dir = os.path.dirname(args.output)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -551,33 +380,30 @@ Examples:
     # Configuration
     config = {
         "whisper_model": args.whisper_model,
+        "fast_speed": args.fast_speed,
         "log_level": args.log_level,
         "log_file": args.log_file,
         "cache_dir": args.cache_dir,
-        "fast_speed": args.fast_speed,
     }
 
     try:
-        # Process video
         processor = VideoProcessor(config)
         result = processor.process_video(args.input, args.output)
 
-        # Print summary
+        # Print results
         print("\n" + "=" * 50)
         print("VIDEO PROCESSING COMPLETE")
         print("=" * 50)
-        print(f"Input:  {result['input_file']}")
-        print(f"Output: {result['output_file']}")
-        print(f"Report: {result['report_file']}")
+        print(f"Input:     {result['input_file']}")
+        print(f"Output:    {result['output_file']}")
         print(
-            f"Duration: {result['original_duration']:.1f}s → {result['effective_duration']:.1f}s"
+            f"Duration:  {result['original_duration']:.1f}s → {result['effective_duration']:.1f}s"
         )
         print(
-            f"Segments: {result['normal_speed_segments']} normal speed, {result['fast_speed_segments']} fast speed"
+            f"Segments:  {result['normal_speed_segments']} normal, {result['fast_speed_segments']} fast"
         )
-        print(f"Time saved: {result['time_saved']:.1f}s")
         print(
-            f"Reduction: {(result['time_saved'] / result['original_duration']) * 100:.1f}%"
+            f"Time saved: {result['time_saved']:.1f}s ({(result['time_saved'] / result['original_duration']) * 100:.1f}%)"
         )
 
     except KeyboardInterrupt:
@@ -590,5 +416,3 @@ Examples:
 
 if __name__ == "__main__":
     main()
-
-# vim:ft=python

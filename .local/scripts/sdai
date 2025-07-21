@@ -130,10 +130,11 @@ post_user_message() {
     -F 'user_model_parameters={"prompt_caching":true,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
 }
 
+# chunk can be part of json, one json, or mutliple json
 parse_response_stream() {
   node -e "process.stdin.on('data', data => process.stdout.write(
     JSON.parse('[' + data.toString().replaceAll('}{', '},{') + ']')
-        .map(d => d.chunks ?? '').join(''))
+        .map(d => d.chunks || '').join(''))
   )"
 }
 

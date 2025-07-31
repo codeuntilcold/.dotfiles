@@ -127,7 +127,9 @@ post_user_message() {
   echo "$MESSAGE" > $(OUTPUT_FILE)
   call_form "$BASE_URL/conversations/chat_v2/" -F "message=<$(OUTPUT_FILE)" \
     -F "model_id=$MODEL_ID" -F "conversation_id=$CONVERSATION_ID" -F "regenerate_message_id=-1" \
-    -F 'user_model_parameters={"prompt_caching":true,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}'
+    -F 'user_model_parameters={"prompt_caching":true,"thinking":{"type":"disabled","budget_tokens":16000},"max_tokens":64000,"temperature":0.17}' \
+    -F 'behavior_settings={"markdown_view":true,"latex_view":false,"explicit_url_detection":false,"function_call_aggressiveness":0,"commentary_enabled":false}' \
+    -F 'local_mcp_server_id=4331da01-91fb-414e-9a94-8671425989d0'
 }
 
 # chunk can be part of json, one json, or mutliple json
@@ -210,8 +212,18 @@ count_dollars_spent() {
 }
 
 get_conversation_history() {
-  call "$BASE_URL/conversations/$CONVERSATION_ID" |
-    jq -r "[.data.messages[].content] | join(\"\\n$(dash)\\n\")"
+  local res
+  res=$(call "$BASE_URL/conversations/$CONVERSATION_ID")
+
+  MODEL_ID=$(jq '.data.messages[-1].model' <<<"$res")
+  for name in "${!MODELS[@]}"; do
+    if [[ ${MODELS["$name"]} = $MODEL_ID ]]; then
+      MODEL_NAME="$name"
+      break
+    fi
+  done
+
+  jq -r "[.data.messages[].content] | join(\"\\n$(dash)\\n\")" <<<"$res"
 }
 
 ###
@@ -392,6 +404,26 @@ main() {
     ;;
   count-dollars)
     count_dollars_spent
+    ;;
+  context)
+    wscat -c "wss://admin.skydeck.ai/ws/connect/" \
+      -H "Origin: https://eastagile.skydeck.ai" \
+      -H "Cookie: eastagile_access=$(get_access_token)" \
+      -w -1
+
+    ### conversation-agnostic
+    # {
+    #   "type": "invoke_local_mcp_server",
+    #   "message": "Invoking local MCP server with tool Skydeckai-Code__get_system_info and args {}",
+    #   "data": {
+    #     "tool_call_id": 8291,
+    #     "tool": "Skydeckai-Code__get_system_info",
+    #     "args": {},
+    #     "server_name": "Skydeckai Code"
+    #   }
+    # }
+
+    # call -X PATCH "$BASE_URL/mcp/local_mcp_tool_call/8283" --data '{"result": {"result":"cool"}}'
     ;;
   *)
     MESSAGE=$(aidd "$@") || abort "No such aidd template: $1"

@@ -37,11 +37,7 @@ case "$command" in
 "agent")
   echo "It's agentic coding time. Aim: $(cut -c1-100 <<<"$rest")
 
-Given the below project brief, file structure, requirement and general rule:
-
-<brief>
-Gilder Project Brief: $(cat ~/dev/GILDER.md)
-</brief>
+Given the file structure, requirement and general rule:
 
 <file_structure>
 Current working directory: $(pwd)
@@ -54,14 +50,12 @@ Help me $rest.
 </requirement>
 
 <general_rule>
-You will start with high level ideas on how you would implement this, considering all security and
-performance issues with it. Lay out the plan for me to review. No code is needed at this moment
-as we just want a broad overview of the situation. Maybe lay out the user story in the feature in
-gherkin format to better present the feature.
+If I'm requesting a feature, you will start with high level ideas on how you would implement this,
+considering all security and performance issues with it. Lay out the plan for me to review. No code
+is needed at this moment as we just want a broad overview of the situation. After you get my
+approval of the plan, you can move on to the following steps. Consider if you should write tests first.
 
-After you get my approval of the plan, you can move on to the following steps.
-
-First, consider if you should write tests first.
+If I'm just asking something, then answer however you like.
 
 Then, for now and the rest of this session:
 $agentexecute_guide

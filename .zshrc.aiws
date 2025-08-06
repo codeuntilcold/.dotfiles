@@ -22,6 +22,7 @@ PATH="/usr/local/go/bin:$PATH"
 PATH="$HOME/go/bin:$PATH"
 PATH="$HOME/.foundry/bin:$PATH"
 PATH="$HOME/flutter/bin:$PATH"
+PATH="$HOME/.pub-cache/bin:$PATH"
 # PATH="$HOME/Downloads/zips/platform-tools:$PATH"
 
 export PATH
@@ -29,10 +30,12 @@ export PATH
 export DEV_HOME="$HOME/dev"
 
 alias hr='heroku'
+alias flatpak-flutter='docker run --rm -v "$PWD":/usr/src/flatpak -u `id -u`:`id -g` theappgineer/flatpak-flutter:latest'
 
 alias upgrade='sudo apt update && sudo apt upgrade'
 
 alias v="nvim"
+alias vv="nvim"
 alias ez='nvim ~/.zshrc'
 alias sz='source ~/.zshrc'
 alias dot='nvim ~/Dev/personal/dotfiles'
@@ -70,6 +73,8 @@ function y() {
 # For fzf
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
+
+source <(jj util completion zsh)
 
 # Automatically create a new session
 tmux has-session -t main 2> /dev/null || tmux new-session -d -s main

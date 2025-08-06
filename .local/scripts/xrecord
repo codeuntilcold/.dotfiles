@@ -22,4 +22,4 @@ end() {
     notify-send -t 1000 "Recording stopped"
 }
 
-[[ -f /tmp/recpid ]] && end || start
+[[ -f /tmp/recpid && -f /tmp/screenkeypid ]] && end || start

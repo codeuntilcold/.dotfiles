@@ -22,17 +22,23 @@ declare -A MODELS
 MODELS["cld-35-haiku"]=5171
 MODELS["cld-4-sonnet"]=6834
 MODELS["cld-4-opus"]=6850
-MODELS["gem-25-flash"]=6829
-MODELS["gem-25-pro"]=6907
+MODELS["cld-41-opus"]=7046
+MODELS["gem-25-flash"]=7015
+MODELS["gem-25-flashlite"]=7025
+MODELS["gem-25-pro"]=7035
 MODELS["gpt-41"]=6360
 MODELS["gpt-41-mini"]=6464
 MODELS["gpt-41-nano"]=6412
 MODELS["gpt-o3"]=6568
+MODELS["gpt-o3-pro"]=6925
 MODELS["gpt-o4-mini"]=6516
 MODELS["grok-3"]=6891
 MODELS["grok-3-fast"]=6897
 MODELS["grok-3-mini"]=6894
 MODELS["grok-4"]=6986
+MODELS["deep-r1"]=6913
+MODELS["deep-v3"]=6699
+MODELS["qwen-3-coder"]=7008
 
 # global context
 STREAMING="false"

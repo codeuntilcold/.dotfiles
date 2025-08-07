@@ -7,7 +7,7 @@ rest="$@"
 agentexecute_guide="- You have some tools available at your disposal, mainly the way to execute shell commands. Some of
   your helpful shell commands would be: curl (http request), grep (search), tree (for listing files),
   git, cat, ls, and so on so forth.
-- The command MUST be encapsulated in one line, wrapped in the 'agentexecute' block like in
+- The command MUST be encapsulated in one line, wrapped in the 'agentexecute' tripple backticks block like in
   markdown. You can ONLY EXECUTE ONE 'agentexecute' BLOCK AT A TIME. The command must be put at the
   end of the response.
 - Get context by executing 'agentexecute' command. ONE command only. ONE command only. Stop as soon
@@ -42,7 +42,7 @@ Given the file structure, requirement and general rule:
 <file_structure>
 Current working directory: $(pwd)
 
-$(fd --type f --hidden --exclude .git | tree --fromfile)
+(if you want to find files, use fd --type f --hidden --exclude .git | tree --fromfile)
 </file_structure>
 
 <requirement>
@@ -91,10 +91,6 @@ Start by saying yes i agree to the rule.
 
 "code")
   echo "It's coding time. Given the below code, file structure, requirement and general rule:
-
-<file_structure>
-$(fd --type f --hidden --exclude .git | tree --fromfile)
-</file_structure>
 
 <code>
 $(catai)

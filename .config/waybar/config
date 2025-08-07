@@ -34,9 +34,9 @@
             "critical": 15
         },
         // Connected to AC
-        "format": "  {icon}  {capacity}%~{time}", // Icon: bolt
+        "format": "  {icon}  {capacity}%~{time}~{power:4.2f}", // Icon: bolt
         // Not connected to AC
-        "format-discharging": "{icon}  {capacity}%~{time}",
+        "format-discharging": "{icon}  {capacity}%~{time}~{power:4.2f}W",
         "format-time": "{H}h{M}",
         "format-icons": [
             "", // Icon: battery-full
@@ -170,4 +170,4 @@
 
 }
 
-// vim:et:
+// vim:et:ft=json

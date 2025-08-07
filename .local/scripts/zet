@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd '/home/qd/Documents/Obsidian Vault'
+cd '/home/qd/Documents/Obsidian-Vault/'
 nvim "$(echo $@ | sed 's/ /-/g').md"

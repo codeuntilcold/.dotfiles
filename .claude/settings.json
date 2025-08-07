@@ -1,0 +1,10 @@
+{
+  "env": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "BASH_DEFAULT_TIMEOUT_MS": "30000",
+    "BASH_MAX_TIMEOUT_MS": "300000"
+  },
+  "feedbackSurveyState": {
+    "lastShownTime": 1754036669161
+  }
+}

@@ -1,4 +1,7 @@
-@import url("/home/qd/.cache/wal/colors-waybar.css");
+@define-color foreground #14161b;
+@define-color background #e0e2ea;
+@define-color color2 #006029;
+@define-color color5 #640009;
 
 /* =============================================================================
  *
@@ -188,7 +191,6 @@
 }
 
 #workspaces button.focused {
-    border-color: @color1;
     background-color: @color2;
     color: @background;
 }

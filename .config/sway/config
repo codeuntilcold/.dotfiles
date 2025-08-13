@@ -1,3 +1,6 @@
+set $wallpaper /home/qd/Pictures/Wallpapers/sunset-03.jpg
+output * background $wallpaper fill
+
 # Notification daemon
 # https://github.com/emersion/mako
 exec mako
@@ -18,10 +21,6 @@ set $menu wofi --show run
 set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle
 set $screenshot $dot_local/scripts/wl-screenshot
-
-# Pywal colors
-# include "$HOME/.cache/wal/colors-sway"
-# output * background $wallpaper fill
 
 # Window borders
 default_border pixel 2

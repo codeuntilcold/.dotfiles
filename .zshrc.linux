@@ -13,7 +13,7 @@ PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 export PATH
 export EDITOR=nvim
 export MANPAGER='nvim +Man!'
-export FZF_DEFAULT_OPTS="--layout=reverse --color=fg+:#e0e2ea,info:#ffc0b9,spinner:#a6dbff,bg+:#4F5258,pointer:#fce094,hl:#fce094,bg:#14161b,fg:#e0e2ea,prompt:#b4f6c0,marker:#fce094,header:#a6dbff,hl+:#fce094"
+export FZF_DEFAULT_OPTS="--layout=reverse"
 export FZF_TMUX_OPTS='-p80%,60%'
 export ZSH="$HOME/.oh-my-zsh"
 

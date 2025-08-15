@@ -141,11 +141,11 @@ $agentexecute_guide
 pull request description for this code change, following this format:
 
 <diff>
-$(git diff $(git merge-base @ main))
+$(git diff $(git merge-base @ ${rest:-main}))
 </diff>
 
 <git_log>
-$(git log ^main HEAD)
+$(git log ^${rest:-main} HEAD)
 </git_log>
 
 <format>

@@ -6,7 +6,6 @@ font pango:JetBrainsMono NF 9
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id ~/.fehbg
 exec --no-startup-id ibus-daemon --daemonize --replace
-exec --no-startup-id picom -b
 exec --no-startup-id systemctl --user start clipmenud.service
 
 # alt is on right hand...
@@ -16,7 +15,7 @@ for_window [class="^zoom$"] floating enable
 gaps inner 10px
 gaps horizontal 300px
 smart_gaps inverse_outer
-default_border pixel 0
+# default_border pixel 0
 # default_floating_border pixel 2
 # class                 border  backgr. text    indicator child_border
 # client.focused          #e07000 #e07000 #ffffff #2e9ef4   #e07000

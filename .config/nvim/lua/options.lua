@@ -1,3 +1,6 @@
+-- Color :D
+vim.o.background = 'light'
+
 -- For better coding guide
 vim.o.colorcolumn = "100"
 

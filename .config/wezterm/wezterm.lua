@@ -7,7 +7,7 @@ if os.getenv('USER') == 'dungngo' then
   config.font_size = 24.0
   config.line_height = 1.3
 else
-  config.font = wezterm.font('JetBrainsMono NF', { weight = 'Regular' })
+  config.font = wezterm.font('Iosevka NF', { weight = 'Regular' })
   config.font_size = 13.0
   config.line_height = 1.2
 end

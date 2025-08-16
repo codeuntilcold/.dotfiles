@@ -1,11 +1,11 @@
-set $wallpaper /home/qd/Pictures/Wallpapers/sunset-03.jpg
+set $wallpaper /home/qd/Pictures/Wallpapers/mountain-03.jpg
 output * background $wallpaper fill
 
 # Notification daemon
 # https://github.com/emersion/mako
-exec mako
-exec ibus-daemon --daemonize --replace
-exec nm-applet
+exec --no-startup-id mako
+exec --no-startup-id ibus-daemon --daemonize --replace
+exec --no-startup-id nm-applet
 
 # Variables
 set $mod Mod4
@@ -22,10 +22,13 @@ set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle
 set $screenshot $dot_local/scripts/wl-screenshot
 
-# Window borders
-default_border pixel 2
-default_floating_border normal
-hide_edge_borders smart
+# Window borders (all in on nvim colors)
+# https://github.com/nshern/neovim-default-colorscheme-extras/tree/main
+# class                 border  backgr. text    indicator child_border
+client.focused          #004c63 #004c63 #ffffff #004c63   #004c63
+client.focused_inactive #4f5258 #4f5258 #ffffff #4f5258   #4f5258
+client.unfocused        #14161b #14161b #888888 #14161b   #14161b
+client.urgent           #590008 #590008 #ffffff #590008   #590008
 
 smart_gaps on
 gaps inner 10

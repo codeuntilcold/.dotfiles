@@ -36,6 +36,7 @@ alias upgrade='sudo apt update && sudo apt upgrade'
 
 alias v="nvim"
 alias vv="nvim"
+alias vg="nvim +G"
 alias ez='nvim ~/.zshrc'
 alias sz='source ~/.zshrc'
 alias dot='nvim ~/Dev/personal/dotfiles'

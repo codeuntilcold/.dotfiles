@@ -66,6 +66,10 @@ $code_change_guide
 After you're satisfied with the code:
 - use a special shell command called 'parker' to patch the code. No arguments needed since it
   automatically knows what is the diff. So you just need to do this:
+\`\`\`diff
+...changes
+\`\`\`
+
 \`\`\`agentexecute
 parker
 \`\`\`
@@ -127,7 +131,7 @@ potential future changes in requirement. No need for any real implementation, I 
 judgement on it. Here is the diff:
 
 <diff>
-$(git diff $(git merge-base @ main))
+$(git diff $(git merge-base @ ${rest:-main}))
 </diff>
 
 In case you need a CRITICAL logic that is missing from the diff, VERY HESITANTLY use the agentic
@@ -200,7 +204,7 @@ $(git diff --staged)
 </diff>
 
 <previous-changes>
-$(git log ^main HEAD)
+$(git log ^${rest:-main} HEAD)
 </previous-changes>
 "
   ;;

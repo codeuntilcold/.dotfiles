@@ -51,7 +51,12 @@ return {
         local capabilities = require('blink.cmp').get_lsp_capabilities({}, true)
 
         -- Setup mason so it can manage external tooling
-        require('mason').setup()
+        require('mason').setup({
+            registries = {
+                "github:mason-org/mason-registry",
+                "github:Crashdummyy/mason-registry",
+            }
+        })
         require('mason-lspconfig').setup {
             automatic_installation = false,
             ensure_installed = vim.tbl_keys(servers),

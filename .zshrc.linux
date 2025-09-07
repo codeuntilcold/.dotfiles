@@ -4,12 +4,15 @@ export KEYTIMEOUT=1
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 
+export DOTNET_ROOT="$HOME/.dotnet"
+
 PATH="/opt/nvim-linux64/bin:$PATH"
 PATH="/usr/local/go/bin:$PATH"
 PATH="$HOME/go/bin:$PATH"
 PATH="$HOME/.local/bin:$PATH"
 PATH="$HOME/.local/scripts:$PATH"
 PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
 export PATH
 export EDITOR=nvim
 export MANPAGER='nvim +Man!'
@@ -59,3 +62,5 @@ eval "$(zoxide init zsh)"
 eval "$(starship init zsh)"
 
 # cat ~/.cache/wal/sequences
+
+. "$HOME/.local/share/../bin/env"

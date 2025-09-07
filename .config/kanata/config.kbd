@@ -1,6 +1,46 @@
 (defsrc
-  caps)
+  grv    1      2      3      4      5      6      7      8      9      0      -      =     bspc
+  tab    q      w      e      r      t      y      u      i      o      p      [      ]     \
+  caps   a      s      d      f      g      h      j      k      l      ;      '      ret
+  lsft   z      x      c      v      b      n      m      ,      .      /      rsft
+  lctl   lmet   lalt                 spc                  ralt   rctl
+)
 
 (deflayer default
-  lctl)
+  _      _      _      _      _      _      _      _       _      _      _      _     _     _
+  @tbl  _      _      _      _      _      _      _       _      _      _      _     _     _
+  lctl   _      _      _      _      _      _      _       _      _      _      _     _
+  _      _      _      _      _      _      _      _       _      _      _      _
+  _      _      _                    _             _       _
+)
+
+(deflayer arrows
+  _      _      _      _      _      _      _      _      _      _      _    _    _    _
+  _      _      _      _      _      _      _      _      _      _      _    _    _    _
+  _      _      _      _      _      _      left   down   up    right   _    _    _
+  _      _      _      _      _      _      _      _      _      _      _    _
+  _      _      _                    _                    _      _
+)
+
+
+
+(defvar
+  tap-time 200
+  hold-time 150
+)
+
+(defalias
+  grl (tap-hold $tap-time $hold-time grv (layer-toggle arrows))
+  tbl (tap-hold $tap-time $hold-time tab (layer-toggle arrows))
+
+  alctl (tap-hold $tap-time $hold-time a lctl)
+  slsft (tap-hold $tap-time $hold-time s lsft)
+  dlalt (tap-hold $tap-time $hold-time d lalt)
+  flmet (tap-hold $tap-time $hold-time f lmet)
+
+  jrmet (tap-hold $tap-time $hold-time j rmet)
+  kralt (tap-hold $tap-time $hold-time k ralt)
+  lrsft (tap-hold $tap-time $hold-time l rsft)
+  ;rctl (tap-hold $tap-time $hold-time ; rctl)
+)
 

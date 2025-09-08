@@ -3,6 +3,4 @@ https://bower.sh/rss
 
 https://chameth.com/index.xml
 
-# http://export.arxiv.org/rss/cs.CV
-
-https://rss.arxiv.org/rss/cs.CV
+http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Learning and Inspection"

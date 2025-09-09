@@ -4,7 +4,6 @@
 # require(custom): aidd parker diffix jwt
 
 set -o pipefail
-# set -x # for debugging
 shopt -s nullglob
 
 BASE_URL="https://admin.skydeck.ai/api/v1"
@@ -21,17 +20,13 @@ CLR='\e[0m'
 declare -A MODELS
 MODELS["cld-35-haiku"]=5171
 MODELS["cld-4-sonnet"]=6834
-MODELS["cld-4-opus"]=6850
 MODELS["cld-41-opus"]=7046
 MODELS["gem-25-flash"]=7015
 MODELS["gem-25-flashlite"]=7025
 MODELS["gem-25-pro"]=7035
-MODELS["gpt-41"]=6360
-MODELS["gpt-41-mini"]=6464
-MODELS["gpt-41-nano"]=6412
-MODELS["gpt-o3"]=6568
-MODELS["gpt-o3-pro"]=6925
-MODELS["gpt-o4-mini"]=6516
+MODELS["gpt-5"]=7183
+MODELS["gpt-5-mini"]=7239
+MODELS["gpt-5-nano"]=7295
 MODELS["grok-3"]=6891
 MODELS["grok-3-fast"]=6897
 MODELS["grok-3-mini"]=6894
@@ -415,6 +410,9 @@ main() {
     ;;
   count-dollars)
     count_dollars_spent
+    ;;
+  checkhealth)
+    echo TODO
     ;;
   context)
     wscat -c "wss://admin.skydeck.ai/ws/connect/" \

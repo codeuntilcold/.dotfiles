@@ -48,7 +48,7 @@ alias lg='lazygit'
 alias ldk='lazydocker'
 alias dbui='nvim -c "DBUI"'
 alias oil='nvim -c "Oil"'
-alias ccal='ncal -3Mbw'
+alias ccal='ncal -y'
 alias pbcopy='xclip -sel c'
 alias pbpaste='xclip -sel c -o'
 

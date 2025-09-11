@@ -1,5 +1,10 @@
 #show-read-feeds no
-auto-reload yes
+#auto-reload yes
+
+browser "open %u >/dev/null 2>&1" # open articles in default browser
+
+# error-log ~/.newsboat/error.log # save errors
+# save-path ~/.newsboat/articles # save all articles in a file
 
 #external-url-viewer "urlscan -dc -r 'linkhandler {}'"
 

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "Usage: $0 <arxiv link or anything containing the arxiv id>"
+  exit 1
+}
+
+is_downloaded() {
+  find "$HOME/Downloads/" "$HOME/Documents/Obsidian-Vault/200-Academic/Papers-pdfs/" -type f -name "$1"
+}
+
+arg="$1"
+[[ -z "$arg" ]] && arg="$(cat)"
+[[ -z "$arg" ]] && usage
+
+arxivid="$(echo "$arg" | rg -e '\d\d\d\d\.\d\d\d\d\d(v\d)?' --only-matching)"
+filename="$arxivid.pdf"
+downloadpath="$HOME/Downloads/$arxivid.pdf"
+
+isdownloadedpath="$(is_downloaded "$filename")"
+if [[ -z "$isdownloadedpath" ]]; then
+  curl -sL "https://arxiv.org/pdf/$arxivid" -o "$downloadpath"
+  open "$downloadpath" &
+else
+  open "$isdownloadedpath" &
+fi
+
+echo "$arg"

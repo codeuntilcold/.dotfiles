@@ -8,7 +8,7 @@ if os.getenv('USER') == 'dungngo' then
   config.line_height = 1.3
 else
   config.font = wezterm.font('Iosevka NF', { weight = 'Regular' })
-  config.font_size = 13.0
+  config.font_size = 12.0
   config.line_height = 1.2
 end
 config.window_decorations = 'RESIZE'
@@ -34,14 +34,17 @@ config.window_padding = {
 }
 
 function scheme_for_appearance(appearance)
+  local lighttheme = 'nvim_default_light'
+  local darktheme = 'nvim_default_dark'
+
   if os.getenv('USER') == 'dungngo' then
-    return 'zenwritten_light'
+    return lighttheme
   end
 
   if appearance:find 'Dark' then
-    return 'zenwritten_dark'
+    return darktheme
   else
-    return 'zenwritten_light'
+    return lighttheme
   end
 end
 

@@ -8,6 +8,9 @@ browser "open %u >/dev/null 2>&1" # open articles in default browser
 
 #external-url-viewer "urlscan -dc -r 'linkhandler {}'"
 
+bookmark-cmd "~/.local/scripts/newsboat-bookmark-academic"
+bookmark-autopilot yes
+
 bind-key j down
 bind-key k up
 bind-key j next articlelist

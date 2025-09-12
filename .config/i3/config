@@ -36,6 +36,7 @@ bindsym XF86AudioPrev         exec --no-startup-id playerctl   previous
 bindsym $mod+d     exec --no-startup-id dmenu_run -fn "JetBrainsMono NF"
 bindsym $mod+v     exec --no-startup-id clipmenu -fn "JetBrainsMono NF"
 bindsym $mod+t     exec --no-startup-id alacritty
+# bindsym $mod+t     exec --no-startup-id ghostty
 bindsym $mod+b     exec --no-startup-id google-chrome
 bindsym $mod+s     exec --no-startup-id slack
 bindsym $mod+space exec --no-startup-id ibus-toggle && $refresh_i3status

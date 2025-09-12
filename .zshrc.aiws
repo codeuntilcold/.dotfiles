@@ -43,7 +43,7 @@ alias dot='nvim ~/Dev/personal/dotfiles'
 alias ck='nvim ~/.sdai/cookies'
 alias tma='tmux -2 a'
 alias mkdir='mkdir -v'
-
+alias pn='pnpm'
 alias lg='lazygit'
 alias ldk='lazydocker'
 alias dbui='nvim -c "DBUI"'

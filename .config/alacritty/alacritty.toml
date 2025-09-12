@@ -42,6 +42,12 @@ mods = "Control|Shift"
 enabled = true
 mods = "None"
 
+# similar to what claude code does for wezterm
+[[keyboard.bindings]]
+chars = "\u001B\r"
+key = "Return"
+mods = "Control"
+
 [[keyboard.bindings]]
 action = "Paste"
 key = "V"

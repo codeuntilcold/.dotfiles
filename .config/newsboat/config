@@ -1,7 +1,9 @@
-#show-read-feeds no
-#auto-reload yes
+# show-read-feeds no
+# auto-reload yes
 
 browser "open %u >/dev/null 2>&1" # open articles in default browser
+
+datetime-format "%Y %m %d"
 
 # error-log ~/.newsboat/error.log # save errors
 # save-path ~/.newsboat/articles # save all articles in a file
@@ -26,16 +28,9 @@ bind-key h quit
 bind-key a toggle-article-read
 bind-key n next-unread
 bind-key N prev-unread
-bind-key D pb-download
 bind-key U show-urls
+bind-key D pb-download
 bind-key x pb-delete
-
-color listnormal cyan default
-color listfocus black yellow standout bold
-color listnormal_unread blue default
-color listfocus_unread yellow default bold
-color info red black bold
-color article white default bold
 
 browser linkhandler
 macro , open-in-browser
@@ -48,6 +43,13 @@ macro c set browser "echo %u | xclip -r -sel c" ; open-in-browser ; set browser 
 macro C set browser "youtube-viewer --comments=%u" ; open-in-browser ; set browser linkhandler
 macro p set browser "peertubetorrent %u 480" ; open-in-browser ; set browser linkhandler
 macro P set browser "peertubetorrent %u 1080" ; open-in-browser ; set browser linkhandler
+
+color  listnormal         cyan    default
+color  listnormal_unread  blue    default
+color  listfocus          black   yellow   standout  bold
+color  listfocus_unread   yellow  default  bold
+color  info               red     black    bold
+color  article            white   default  bold
 
 highlight all "---.*---" yellow
 highlight feedlist ".*(0/0))" black

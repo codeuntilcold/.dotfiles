@@ -2,6 +2,21 @@ https://arxiviq.substack.com/feed
 https://bower.sh/rss
 
 https://chameth.com/index.xml
+https://ohadravid.github.io/index.xml
+https://www.dannyguo.com/blog/feed.xml
+https://bitfehler.srht.site/index.xml
+https://dev.jimgrey.net/feed
+https://lilianweng.github.io/index.xml
+https://livesys.se/index.xml
+https://theahura.substack.com/feed
+https://blog.jsbarretto.com/index.xml
+https://thenumb.at/index.xml
+https://blog.brujordet.no/index.xml
+https://tony-zorman.com/atom.xml
+https://blog.th0m.as/atom.xml
+https://eugene-andrienko.com/feed.xml
+https://michael.stapelberg.ch/feed.xml
+https://xuanwo.io/index.xml
 
 # possibly wrong...
 http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Learning"
@@ -9,3 +24,5 @@ http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+O
 http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Contrastive"
 
 http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(inspection+OR+defect)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Inspection"
+
+http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(pretraining)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Pretraining"

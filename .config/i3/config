@@ -38,6 +38,7 @@ bindsym $mod+v     exec --no-startup-id clipmenu -fn "JetBrainsMono NF"
 bindsym $mod+t     exec --no-startup-id alacritty
 # bindsym $mod+t     exec --no-startup-id ghostty
 bindsym $mod+b     exec --no-startup-id google-chrome
+bindsym $mod+Shift+b exec --no-startup-id firefox
 bindsym $mod+s     exec --no-startup-id slack
 bindsym $mod+space exec --no-startup-id ibus-toggle && $refresh_i3status
 
@@ -99,6 +100,7 @@ bindsym $mod+Shift+8 move container to workspace number $ws8
 bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 
+bindsym $mod+c exec "alacritty --command nvim $HOME/.config/i3/config"
 bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Do you really want to exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"

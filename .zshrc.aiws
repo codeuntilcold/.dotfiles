@@ -32,7 +32,7 @@ export DEV_HOME="$HOME/dev"
 alias hr='heroku'
 alias flatpak-flutter='docker run --rm -v "$PWD":/usr/src/flatpak -u `id -u`:`id -g` theappgineer/flatpak-flutter:latest'
 
-alias upgrade='sudo apt update && sudo apt upgrade'
+alias upgrade='sudo apt update && sudo apt upgrade && sudo snap refresh && flatpak update'
 
 alias v="nvim"
 alias vv="nvim"

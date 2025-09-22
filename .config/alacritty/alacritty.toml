@@ -46,6 +46,11 @@ mods = "None"
 [[keyboard.bindings]]
 chars = "\u001B\r"
 key = "Return"
+mods = "Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B\r"
+key = "Return"
 mods = "Control"
 
 [[keyboard.bindings]]

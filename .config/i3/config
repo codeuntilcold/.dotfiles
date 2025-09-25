@@ -16,36 +16,46 @@ for_window [class="^zoom$"] floating enable
 gaps inner 10px
 gaps horizontal 300px
 smart_gaps inverse_outer
-# default_border pixel 0
-# default_floating_border pixel 2
-# class                 border  backgr. text    indicator child_border
-# client.focused          #e07000 #e07000 #ffffff #2e9ef4   #e07000
 
 set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86MonBrightnessUp   exec --no-startup-id xbrightness +0.05                                   && $refresh_i3status
-bindsym XF86MonBrightnessDown exec --no-startup-id xbrightness -0.05                                   && $refresh_i3status
-bindsym XF86AudioRaiseVolume  exec --no-startup-id pactl       set-sink-volume @DEFAULT_SINK@   +5%    && $refresh_i3status
-bindsym XF86AudioLowerVolume  exec --no-startup-id pactl       set-sink-volume @DEFAULT_SINK@   -5%    && $refresh_i3status
-bindsym XF86AudioMute         exec --no-startup-id pactl       set-sink-mute   @DEFAULT_SINK@   toggle && $refresh_i3status
-bindsym XF86AudioMicMute      exec --no-startup-id pactl       set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+bindsym XF86MonBrightnessUp   exec --no-startup-id xbrightness +0.05             && $refresh_i3status
+bindsym XF86MonBrightnessDown exec --no-startup-id xbrightness -0.05             && $refresh_i3status
+bindsym XF86AudioRaiseVolume  exec --no-startup-id wpctl       set-volume -l 1.0 @DEFAULT_AUDIO_SINK@   5%+
+bindsym XF86AudioLowerVolume  exec --no-startup-id wpctl       set-volume        @DEFAULT_AUDIO_SINK@   5%-
+bindsym XF86AudioMute         exec --no-startup-id wpctl       set-mute          @DEFAULT_AUDIO_SINK@   toggle
+bindsym XF86AudioMicMute      exec --no-startup-id wpctl       set-mute          @DEFAULT_AUDIO_SOURCE@ toggle
 bindsym XF86AudioPlay         exec --no-startup-id playerctl   play-pause
 bindsym XF86AudioPause        exec --no-startup-id playerctl   play-pause
 bindsym XF86AudioNext         exec --no-startup-id playerctl   next
 bindsym XF86AudioPrev         exec --no-startup-id playerctl   previous
 
-bindsym $mod+d     exec --no-startup-id dmenu_run -fn "JetBrainsMono NF"
-bindsym $mod+v     exec --no-startup-id clipmenu -fn "JetBrainsMono NF"
-bindsym $mod+t     exec --no-startup-id alacritty
-# bindsym $mod+t     exec --no-startup-id ghostty
-bindsym $mod+b     exec --no-startup-id google-chrome
-bindsym $mod+Shift+b exec --no-startup-id firefox
-bindsym $mod+s     exec --no-startup-id slack
-bindsym $mod+space exec --no-startup-id ibus-toggle && $refresh_i3status
-
-bindsym Print      exec --no-startup-id xscreenshot
-bindsym Shift+Print exec --no-startup-id xrecord
+bindsym  $mod+d        exec  --no-startup-id  dmenu_run -fn "JetBrainsMono NF"
+bindsym  $mod+v        exec  --no-startup-id  clipmenu -fn "JetBrainsMono NF"
+bindsym  $mod+t        exec  --no-startup-id  alacritty
+# bindsym  $mod+t        exec  --no-startup-id  ghostty
+bindsym  $mod+b        exec  --no-startup-id  google-chrome
+bindsym  $mod+Shift+b  exec  --no-startup-id  firefox
+bindsym  $mod+s        exec  --no-startup-id  slack
+bindsym  $mod+space    exec  --no-startup-id  ibus-toggle && $refresh_i3status
+bindsym  Print         exec  --no-startup-id  xscreenshot
+bindsym  Shift+Print   exec  --no-startup-id  xrecord
 
 bindsym $mod+Shift+q kill
+
+bindsym $mod+c exec "alacritty --command nvim $HOME/.config/i3/config"
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+r restart
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Do you really want to exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"
+
+bindsym $mod+Shift+y resize shrink width 30 px or 10 ppt
+bindsym $mod+Shift+u resize grow height 30 px or 10 ppt
+bindsym $mod+Shift+i resize shrink height 30 px or 10 ppt
+bindsym $mod+Shift+o resize grow width 30 px or 10 ppt
+
+bindsym $mod+f fullscreen toggle
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+bindsym $mod+Shift+t floating toggle
 
 bindsym $mod+h focus left
 bindsym $mod+j focus down
@@ -56,13 +66,6 @@ bindsym $mod+Shift+h move left
 bindsym $mod+Shift+j move down
 bindsym $mod+Shift+k move up
 bindsym $mod+Shift+l move right
-
-bindsym $mod+f fullscreen toggle
-
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
-
-bindsym $mod+Shift+t floating toggle
 
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
@@ -99,16 +102,6 @@ bindsym $mod+Shift+7 move container to workspace number $ws7
 bindsym $mod+Shift+8 move container to workspace number $ws8
 bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
-
-bindsym $mod+c exec "alacritty --command nvim $HOME/.config/i3/config"
-bindsym $mod+Shift+c reload
-bindsym $mod+Shift+r restart
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Do you really want to exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"
-
-bindsym $mod+Shift+y resize shrink width 30 px or 10 ppt
-bindsym $mod+Shift+u resize grow height 30 px or 10 ppt
-bindsym $mod+Shift+i resize shrink height 30 px or 10 ppt
-bindsym $mod+Shift+o resize grow width 30 px or 10 ppt
 
 bar {
         status_command start-i3status

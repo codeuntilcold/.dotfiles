@@ -1,85 +1,68 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.8"
-# dependencies = [
-#     "rich>=13.9.4",
-# ]
-# ///
-
-"""
-Real-time Markdown renderer using Rich.
-
-This script renders Markdown content in real-time as it's being piped in,
-providing immediate visual feedback of the formatted text.
-
-Original inspiration:
-https://github.com/simonw/llm/issues/12#issuecomment-2558147310
-"""
+#!/usr/bin/env python3
 
 import sys
-import signal
-from typing import Optional
+import re
 
-from rich.console import Console
-from rich.live import Live
-from rich.markdown import Markdown
+ESC = "\033["  # real ESC
+RESET = f"{ESC}0m"
+HEADR = f"{ESC}96m"  # headings
+FENCE = f"{ESC}33m"  # ``` / ~~~ lines
+CODE = f"{ESC}92m"  # fenced code content
+ICOD = f"{ESC}95m"  # inline `code`
+THINK = f"{ESC}90m"  # <think>…</think>
 
+fence_re = re.compile(r"^([`]{3,}|[~]{3,})")
+head_re = re.compile(r"^(#{1,6})\s+(.+)$")
+inline_re = re.compile(r"`([^`\n]+)`")
 
-class MarkdownRenderer:
-    def __init__(self):
-        self.console = Console(highlight=True)
-        self.md_content = "\n"
-        self.live: Optional[Live] = None
+in_block = False
+fence_ch = None
+in_think = False
 
-    def create_markdown(self, content: str) -> Markdown:
-        return Markdown(content, code_theme="bw")
+for raw in sys.stdin:
+    line = raw.rstrip("\n")
 
-    def handle_signal(self, signum: int, frame) -> None:
-        if self.live:
-            self.live.stop()
+    # fences
+    m = fence_re.match(line)
+    if m:
+        ch = m.group(1)[0]
+        if not in_block:
+            in_block, fence_ch = True, ch
+        elif ch == fence_ch:
+            in_block, fence_ch = False, None
+        print(f"{FENCE}{line}{RESET}")
+        continue
 
-        signal.signal(signal.SIGINT, signal.default_int_handler)
-        signal.signal(signal.SIGTERM, signal.default_int_handler)
+    if in_block:
+        print(f"{CODE}{line}{RESET}")
+        continue
 
-        sys.exit(0)
-
-    def read_chunk(self):
-        chunk = sys.stdin.read(10)
-        self.md_content += chunk
-        return chunk
-
-    def render_stream(self) -> None:
-        with Live(
-            self.create_markdown(""),
-            console=self.console,
-            refresh_per_second=10,
-            # vertical_overflow="visible",
-        ) as live:
-            self.live = live
-            while True:
-                if not self.read_chunk():
-                    break
-                live.update(self.create_markdown(self.md_content))
-
-    def run(self) -> None:
-        signal.signal(signal.SIGINT, self.handle_signal)
-        signal.signal(signal.SIGTERM, self.handle_signal)
-
-        if sys.stdin.isatty():
-            while True:
-                if not self.read_chunk():
-                    break
-            print(self.md_content)
+    # think blocks
+    if in_think:
+        if "</think>" in line:
+            i = line.find("</think>")
+            print(f"{THINK}{line[: i + 8]}{RESET}{line[i + 8 :]}")
+            in_think = False
         else:
-            self.render_stream()
+            print(f"{THINK}{line}{RESET}")
+        continue
 
+    # single-line <think>…</think> (multiple per line ok)
+    line = re.sub(
+        r"(<think>.*?</think>)", lambda m: f"{THINK}{m.group(1)}{RESET}", line
+    )
 
-def main() -> None:
-    renderer = MarkdownRenderer()
-    renderer.run()
+    # open <think> (no close on this line)
+    if "<think>" in line:
+        in_think = True
+        print(f"{THINK}{line}{RESET}")
+        continue
 
+    # headings
+    if head_re.match(line):
+        print(f"{HEADR}{line}{RESET}")
+        continue
 
-if __name__ == "__main__":
-    main()
-
-# vim:ft=python:
+    # inline `code`
+    line = inline_re.sub(lambda m: f"{ICOD}`{m.group(1)}`{RESET}", line)
+    print(line)

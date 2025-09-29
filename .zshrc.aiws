@@ -1,7 +1,7 @@
 autoload -U compinit
 compinit -i
 
-plugins=(git)
+plugins=(git systemd)
 
 ### envs
 export ZSH="$HOME/.oh-my-zsh"
@@ -43,7 +43,6 @@ alias dot='nvim ~/Dev/personal/dotfiles'
 alias ck='nvim ~/.sdai/cookies'
 alias tma='tmux -2 a'
 alias mkdir='mkdir -v'
-alias pn='pnpm'
 alias lg='lazygit'
 alias ldk='lazydocker'
 alias dbui='nvim -c "DBUI"'
@@ -51,6 +50,34 @@ alias oil='nvim -c "Oil"'
 alias ccal='ncal -y'
 alias pbcopy='xclip -sel c'
 alias pbpaste='xclip -sel c -o'
+
+# usage: pn [client | api | domain] command
+function pn() {
+  if [[ $# -eq 0 ]]; then
+    pnpm
+    return
+  fi
+
+  case "$1" in
+    cl | client)
+      shift
+      pnpm --filter=@Datum/client "$@"
+      return
+      ;;
+    a | api)
+      shift
+      pnpm --filter=@Datum/api "$@"
+      return
+      ;;
+    d | domain)
+      shift
+      pnpm --filter=@Datum/domain "$@"
+      return
+      ;;
+  esac
+
+  pnpm "$@"
+}
 
 . "$HOME/.cargo/env"
 

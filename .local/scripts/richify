@@ -15,54 +15,189 @@ fence_re = re.compile(r"^([`]{3,}|[~]{3,})")
 head_re = re.compile(r"^(#{1,6})\s+(.+)$")
 inline_re = re.compile(r"`([^`\n]+)`")
 
-in_block = False
-fence_ch = None
-in_think = False
+CHUNK_SIZE = 20
 
-for raw in sys.stdin:
-    line = raw.rstrip("\n")
 
-    # fences
-    m = fence_re.match(line)
-    if m:
-        ch = m.group(1)[0]
-        if not in_block:
-            in_block, fence_ch = True, ch
-        elif ch == fence_ch:
-            in_block, fence_ch = False, None
-        print(f"{FENCE}{line}{RESET}")
-        continue
+class StreamProcessor:
+    def __init__(self):
+        self.buffer = ""
+        self.in_block = False
+        self.fence_ch = None
+        self.in_think = False
+        self.line_start = True
 
-    if in_block:
-        print(f"{CODE}{line}{RESET}")
-        continue
+    def process_line(self, line):
+        m = fence_re.match(line)
+        if m:
+            ch = m.group(1)[0]
+            if not self.in_block:
+                self.in_block, self.fence_ch = True, ch
+            elif ch == self.fence_ch:
+                self.in_block, self.fence_ch = False, None
+            return f"{FENCE}{line}{RESET}\n"
 
-    # think blocks
-    if in_think:
-        if "</think>" in line:
-            i = line.find("</think>")
-            print(f"{THINK}{line[: i + 8]}{RESET}{line[i + 8 :]}")
-            in_think = False
-        else:
-            print(f"{THINK}{line}{RESET}")
-        continue
+        if self.in_block:
+            return f"{CODE}{line}{RESET}\n"
 
-    # single-line <think>…</think> (multiple per line ok)
-    line = re.sub(
-        r"(<think>.*?</think>)", lambda m: f"{THINK}{m.group(1)}{RESET}", line
-    )
+        if self.in_think:
+            if "</think>" in line:
+                i = line.find("</think>")
+                self.in_think = False
+                return f"{THINK}{line[: i + 8]}{RESET}{line[i + 8 :]}"
+            else:
+                return f"{THINK}{line}{RESET}\n"
 
-    # open <think> (no close on this line)
-    if "<think>" in line:
-        in_think = True
-        print(f"{THINK}{line}{RESET}")
-        continue
+        line = re.sub(
+            r"(<think>.*?</think>)", lambda m: f"{THINK}{m.group(1)}{RESET}", line
+        )
 
-    # headings
-    if head_re.match(line):
-        print(f"{HEADR}{line}{RESET}")
-        continue
+        if "<think>" in line and not self.in_think:
+            self.in_think = True
+            return f"{THINK}{line}{RESET}\n"
 
-    # inline `code`
-    line = inline_re.sub(lambda m: f"{ICOD}`{m.group(1)}`{RESET}", line)
-    print(line)
+        if head_re.match(line):
+            return f"{HEADR}{line}{RESET}\n"
+
+        line = inline_re.sub(lambda m: f"{ICOD}`{m.group(1)}`{RESET}", line)
+        return line + "\n"
+
+    def process_chunk(self, chunk):
+        if not chunk:
+            return
+
+        self.buffer += chunk
+        output = []
+
+        while "\n" in self.buffer:
+            line, self.buffer = self.buffer.split("\n", 1)
+            self.line_start = True
+            processed = self.process_line(line)
+            output.append(processed)
+            sys.stdout.write(processed)
+            sys.stdout.flush()
+
+        if self.buffer and not self.in_block and not self.in_think:
+            if self.can_process_partial():
+                processed = self.process_partial()
+                if processed:
+                    sys.stdout.write(processed)
+                    sys.stdout.flush()
+
+    def can_process_partial(self):
+        if len(self.buffer) < 2:
+            return False
+
+        if self.buffer.startswith("<think"):
+            return False
+        if (
+            self.buffer.endswith("<")
+            or self.buffer.endswith("<t")
+            or self.buffer.endswith("<th")
+        ):
+            return False
+        if (
+            self.buffer.endswith("<thi")
+            or self.buffer.endswith("<thin")
+            or self.buffer.endswith("<think")
+        ):
+            return False
+
+        if "`" in self.buffer:
+            backtick_count = self.buffer.count("`")
+            if backtick_count % 2 == 1:
+                last_backtick = self.buffer.rfind("`")
+                if last_backtick == len(self.buffer) - 1:
+                    return False
+
+        if self.buffer.startswith("```") or self.buffer.startswith("~~~"):
+            return False
+        if self.buffer.startswith("#"):
+            return False
+
+        return True
+
+    def process_partial(self):
+        safe_len = len(self.buffer)
+
+        if self.buffer.endswith("`"):
+            safe_len -= 1
+        elif self.buffer.endswith("<"):
+            safe_len -= 1
+
+        if safe_len <= 0:
+            return ""
+
+        safe_content = self.buffer[:safe_len]
+        self.buffer = self.buffer[safe_len:]
+
+        if "`" in safe_content:
+            safe_content = inline_re.sub(
+                lambda m: f"{ICOD}`{m.group(1)}`{RESET}", safe_content
+            )
+
+        if "<think>" in safe_content and "</think>" in safe_content:
+            safe_content = re.sub(
+                r"(<think>.*?</think>)",
+                lambda m: f"{THINK}{m.group(1)}{RESET}",
+                safe_content,
+            )
+
+        return safe_content
+
+    def flush(self):
+        if self.buffer:
+            if "\n" in self.buffer:
+                lines = self.buffer.split("\n")
+                for i, line in enumerate(lines[:-1]):
+                    processed = self.process_line(line)
+                    sys.stdout.write(processed)
+                self.buffer = lines[-1]
+
+            if self.buffer:
+                if self.in_block:
+                    sys.stdout.write(f"{CODE}{self.buffer}{RESET}")
+                elif self.in_think:
+                    sys.stdout.write(f"{THINK}{self.buffer}{RESET}")
+                else:
+                    line = self.buffer
+                    if head_re.match(line):
+                        sys.stdout.write(f"{HEADR}{line}{RESET}")
+                    else:
+                        line = inline_re.sub(
+                            lambda m: f"{ICOD}`{m.group(1)}`{RESET}", line
+                        )
+                        sys.stdout.write(line)
+                self.buffer = ""
+
+            sys.stdout.flush()
+
+
+def main():
+    processor = StreamProcessor()
+
+    try:
+        while True:
+            chunk = sys.stdin.read(CHUNK_SIZE)
+            if not chunk:
+                break
+            processor.process_chunk(chunk)
+
+        processor.flush()
+
+    except KeyboardInterrupt:
+        processor.flush()
+        sys.exit(0)
+    except BrokenPipeError:
+        try:
+            sys.stdout.close()
+        except:
+            pass
+        try:
+            sys.stderr.close()
+        except:
+            pass
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

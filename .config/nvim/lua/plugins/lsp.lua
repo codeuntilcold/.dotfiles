@@ -24,18 +24,18 @@ return {
 
         local servers = {
             gopls = {},
-            pyright = {
-                pyright = {
-                    disableOrganizeImports = true,
-                },
-                python = {
-                    analysis = {
-                        autoSearchPaths = true,
-                        typeCheckingMode = 'off',
-                        ignore = { '*' }
-                    },
-                },
-            },
+            -- pyright = {
+            --     pyright = {
+            --         disableOrganizeImports = true,
+            --     },
+            --     python = {
+            --         analysis = {
+            --             autoSearchPaths = true,
+            --             typeCheckingMode = 'off',
+            --             ignore = { '*' }
+            --         },
+            --     },
+            -- },
             rust_analyzer = {},
             ts_ls = {},
             lua_ls = {
@@ -44,7 +44,6 @@ return {
                     telemetry = { enable = false },
                 },
             },
-            ruff = {},
         }
 
         -- nvim-cmp supports additional completion capabilities, so broadcast that to servers

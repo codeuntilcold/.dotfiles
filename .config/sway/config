@@ -111,6 +111,7 @@ bindsym $mod+w layout tabbed
 bindsym $mod+e layout toggle split
 bindsym $mod+f fullscreen
 bindsym $mod+Shift+t floating toggle
+bindsym $mod+Shift+b border toggle
 
 # Scratchpad
 bindsym $mod+Shift+minus move scratchpad

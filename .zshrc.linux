@@ -41,6 +41,14 @@ y() {
   rm -f -- "$tmp"
 }
 
+# latex() {
+#   tlmgr search --global --file "/(ulem).sty"
+#   tlmgr install ulem
+#   tlmgr update --self
+#
+#   building the latex can be done by vimtex
+# }
+
 plugins=(
   git
   docker

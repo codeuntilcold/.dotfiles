@@ -2,3 +2,7 @@
 .config/alacritty/themes
 .config/alacritty/host_configs.toml
 .claude/todos
+.claude/.credentials.json
+.claude/history.jsonl
+.claude/projects/
+.claude/shell-snapshots/

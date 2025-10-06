@@ -2,6 +2,8 @@
 
 Cite: dzombak.com
 
+When you understand the rules, please start with "I understand the rule".
+
 ## Philosophy
 
 ### Core Beliefs
@@ -17,6 +19,7 @@ Cite: dzombak.com
 - Avoid premature abstractions
 - No clever tricks - choose the boring solution
 - If you need to explain it, it's too complex
+- Hence, it does not warrant a comment on each line. Semantic and simple code needs not comment.
 
 ## Process
 
@@ -152,4 +155,6 @@ When multiple valid approaches exist, choose based on:
 - Update plan documentation as you go
 - Learn from existing implementations
 - Stop after 3 failed attempts and reassess
+- Leave code obvious. Need no comment if code simple for grug.
 - Craftsmanship
+- Also, if you want, you can use `fzf` if standard grep fails you. Also I have `rg` on my system.

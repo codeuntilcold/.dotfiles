@@ -17,24 +17,9 @@ opacity = 1
 size = 10.0
 
 [font.normal]
-family = "IosevkaTerm NFM"
+family = "BerkeleyMono Nerd Font Mono"
+# family = "IosevkaTerm NFM"
 # family = "JetBrainsMono NF"
-style = "Medium"
-
-[font.bold]
-family = "IosevkaTerm NFM"
-# family = "JetBrainsMono NF"
-style = "ExtraBold"
-
-[font.bold_italic]
-family = "IosevkaTerm NFM"
-# family = "JetBrainsMono NF"
-style = "Bold Italic"
-
-[font.italic]
-family = "IosevkaTerm NFM"
-# family = "JetBrainsMono NF"
-style = "Italic"
 
 [font.offset]
 x = 0

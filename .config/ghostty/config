@@ -1,10 +1,10 @@
 # https://ghostty.org/docs/config/reference
 
-font-family = IosevkaTerm NFM
+font-family = BerkeleyMono Nerd Font Mono
 font-size = 16
 adjust-cell-height = 25%
 adjust-cursor-height = 25%
 
 window-decoration = server
 
-theme = dark:NvimDark, light:NvimLight
+theme = dark:Nvim Dark, light:Nvim Light

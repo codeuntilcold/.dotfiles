@@ -39,18 +39,17 @@ bindsym  $mod+s        exec  --no-startup-id  slack
 bindsym  $mod+space    exec  --no-startup-id  ibus-toggle && $refresh_i3status
 bindsym  Print         exec  --no-startup-id  xscreenshot
 bindsym  Shift+Print   exec  --no-startup-id  xrecord
+bindsym  $mod+c        exec  "alacritty --command nvim $HOME/.config/i3/config"
+bindsym  $mod+Shift+e  exec  "i3-nagbar -t warning -m 'Do you really want to exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"
 
 bindsym $mod+Shift+q kill
-
-bindsym $mod+c exec "alacritty --command nvim $HOME/.config/i3/config"
 bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Do you really want to exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"
 
-bindsym $mod+Shift+y resize shrink width 30 px or 10 ppt
-bindsym $mod+Shift+u resize grow height 30 px or 10 ppt
+bindsym $mod+Shift+y resize shrink width  30 px or 10 ppt
+bindsym $mod+Shift+u resize grow   height 30 px or 10 ppt
 bindsym $mod+Shift+i resize shrink height 30 px or 10 ppt
-bindsym $mod+Shift+o resize grow width 30 px or 10 ppt
+bindsym $mod+Shift+o resize grow   width  30 px or 10 ppt
 
 bindsym $mod+f fullscreen toggle
 bindsym $mod+w layout tabbed

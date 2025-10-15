@@ -13,7 +13,7 @@ arg="$1"
 [[ -z "$arg" ]] && arg="$(cat)"
 [[ -z "$arg" ]] && usage
 
-arxivid="$(echo "$arg" | rg -e '\d\d\d\d\.\d\d\d\d\d(v\d)?' --only-matching)"
+arxivid="$(echo "$arg" | rg -e '\d\d\d\d\.\d\d\d\d\d(v\d)?' --only-matching | head -1)"
 filename="$arxivid.pdf"
 downloadpath="$HOME/Downloads/$arxivid.pdf"
 

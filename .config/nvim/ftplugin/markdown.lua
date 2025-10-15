@@ -7,7 +7,7 @@ local function magic()
         pattern = { '*.md' },
         group = 'IBusHandler',
         callback = function ()
-    	    vim.fn.execute([[ !ibus engine Bamboo ]], 'silent!')
+            vim.fn.execute([[ !ibus engine Bamboo ]], 'silent!')
         end,
     })
 
@@ -15,7 +15,7 @@ local function magic()
         pattern = { '*.md' },
         group = 'IBusHandler',
         callback = function ()
-        	vim.fn.execute([[ !ibus engine BambooUs ]], 'silent!')
+            vim.fn.execute([[ !ibus engine BambooUs ]], 'silent!')
         end,
     })
 end

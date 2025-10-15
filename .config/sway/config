@@ -39,7 +39,7 @@ input type:keyboard {
     xkb_numlock enabled
 }
 
-input "type:touchpad" {
+input type:touchpad {
     dwt enabled
     tap enabled
     middle_emulation enabled

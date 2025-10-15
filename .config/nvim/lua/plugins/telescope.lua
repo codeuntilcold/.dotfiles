@@ -13,7 +13,7 @@ return {
 
             telescope.setup {
                 defaults = {
-                    path_display = 'shorten',
+                    -- path_display = 'shorten',
                     mappings = {
                         i = {
                             ['<C-u>'] = false,

@@ -2,7 +2,7 @@
 
 Cite: dzombak.com
 
-When you understand the rules, please start with "I understand the rule".
+When you understand the rules, please start with "I UNDERSTAND THE GLOBAL ORDER".
 
 ## Philosophy
 
@@ -20,6 +20,7 @@ When you understand the rules, please start with "I understand the rule".
 - No clever tricks - choose the boring solution
 - If you need to explain it, it's too complex
 - Hence, it does not warrant a comment on each line. Semantic and simple code needs not comment.
+- I repeat. Simple code needs not comment. CHANGES and MAJOR DECISIONS should be commented.
 
 ## Process
 
@@ -43,7 +44,7 @@ Break complex work into 3-5 stages. Document in `IMPLEMENTATION_PLAN.md`:
 2. **Test** - Write test first (red)
 3. **Implement** - Minimal code to pass (green)
 4. **Refactor** - Clean up with tests passing
-5. **Commit** - With clear message linking to plan
+5. **Commit** - With clear message linking to plan, only AFTER the human in the loop is satisfied, or if he explicitly allows you to run wild.
 
 ### 3. When Stuck (After 3 Attempts)
 
@@ -157,4 +158,27 @@ When multiple valid approaches exist, choose based on:
 - Stop after 3 failed attempts and reassess
 - Leave code obvious. Need no comment if code simple for grug.
 - Craftsmanship
-- Also, if you want, you can use `fzf` if standard grep fails you. Also I have `rg` on my system.
+- Also, if you want, you can use `fzf` if standard grep fails to find the name
+   that you want. `fzf` has a --filter mode where it can fuzzily filter the
+   filename for example. Also I have `rg` on my system which is a faster grep.
+- only commit what you changed
+
+## Misc
+
+### Commit message format
+
+Use conventional commit with at most 3 lines of description.
+
+### Pull Request Description Format
+
+```
+### Task
+
+[task name](task link)
+
+### What we have done
+
+- max 5 lines of description
+```
+
+

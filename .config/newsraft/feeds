@@ -24,6 +24,8 @@ http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+O
 
 http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Contrastive"
 
+$(curl -sL 'http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200' | newsboat-arxiv-comments) "~Continual Contrastive 2"
+
 http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(inspection+OR+defect)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Inspection"
 
 http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(pretraining)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Pretraining"

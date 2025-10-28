@@ -1,6 +1,5 @@
-https://news.ycombinator.com/rss
 https://arxiviq.substack.com/feed
-https://bower.sh/rss
+https://bearblog.dev/discover/feed/
 
 https://aaadaaam.com/feed.xml
 https://berthub.eu/articles/index.xml
@@ -41,6 +40,13 @@ https://www.dannyguo.com/blog/feed.xml
 https://xuanwo.io/index.xml
 https://yobibyte.github.io/feed.xml
 
+https://www.seangoedecke.com/index.xml
+https://seymourhersh.substack.com/feed
+https://peterturchin.substack.com/feed
+https://predictivehistory.substack.com/feed
+https://herman.bearblog.dev/feed/
+https://tech.marksblogg.com/feeds/all.atom.xml
+
 # possibly wrong...
 http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Learning"
 
@@ -49,3 +55,13 @@ http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrasti
 http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(inspection+OR+defect)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Inspection"
 
 http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(pretraining)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Pretraining"
+
+# not sure working
+https://intellectualmathematics.com/
+https://www.elizas.website/
+https://vkoskiv.com/first-linux-patch/
+https://ryan.freumh.org/
+https://adamj.eu/tech
+https://jmduke.com/
+https://martinfowler.com/
+

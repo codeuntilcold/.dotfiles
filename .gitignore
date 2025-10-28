@@ -6,3 +6,5 @@
 .claude/history.jsonl
 .claude/projects/
 .claude/shell-snapshots/
+.claude/debug/
+.claude/file-history/

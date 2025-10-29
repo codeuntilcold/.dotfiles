@@ -1,6 +1,8 @@
 # show-read-feeds no
 # auto-reload yes
 
+reload-threads 10
+
 browser "open %u >/dev/null 2>&1" # open articles in default browser
 
 datetime-format "%Y %m %d"

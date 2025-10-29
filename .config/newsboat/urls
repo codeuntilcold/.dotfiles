@@ -2,22 +2,44 @@ https://news.ycombinator.com/rss
 https://arxiviq.substack.com/feed
 https://bower.sh/rss
 
-https://chameth.com/index.xml
-https://ohadravid.github.io/index.xml
-https://www.dannyguo.com/blog/feed.xml
+https://aaadaaam.com/feed.xml
+https://berthub.eu/articles/index.xml
 https://bitfehler.srht.site/index.xml
+https://blog.1-800-rad-dude.com/rss.xml
+https://blog.brujordet.no/index.xml
+https://blog.jsbarretto.com/index.xml
+https://blog.th0m.as/atom.xml
+https://castel.dev/rss.xml
+https://chameth.com/index.xml
+https://codemadness.org/rss.xml
 https://dev.jimgrey.net/feed
+https://eugene-andrienko.com/feed.xml
+https://ezhik.jp/feed.xml
+https://gluer.org/atom/
+https://gluer.org/rss/
+https://joshs.bearblog.dev/feed/
+https://lcamtuf.substack.com/feed
+https://lervag.github.io/index.xml
 https://lilianweng.github.io/index.xml
 https://livesys.se/index.xml
-https://theahura.substack.com/feed
-https://blog.jsbarretto.com/index.xml
-https://thenumb.at/index.xml
-https://blog.brujordet.no/index.xml
-https://tony-zorman.com/atom.xml
-https://blog.th0m.as/atom.xml
-https://eugene-andrienko.com/feed.xml
+https://ln.ht/_/feed/
+https://maurycyz.com/index.xml
 https://michael.stapelberg.ch/feed.xml
+https://mitxela.com/feed.xml
+https://mtrsk.capivaras.dev/atom/
+https://mtrsk.capivaras.dev/rss/
+https://ohadravid.github.io/index.xml
+https://sebastiano.tronto.net/blog/feed.xml
+https://sourcehut.org/blog/index.xml
+https://standardebooks.org/feeds/rss/new-releases
+https://tangled.org/@oppi.li/journal/feed.atom
+https://theahura.substack.com/feed
+https://thenumb.at/index.xml
+https://tony-zorman.com/atom.xml
+https://world.hey.com/dhh/feed.atom
+https://www.dannyguo.com/blog/feed.xml
 https://xuanwo.io/index.xml
+https://yobibyte.github.io/feed.xml
 
 # possibly wrong...
 http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Learning"

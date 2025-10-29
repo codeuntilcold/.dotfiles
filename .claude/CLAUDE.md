@@ -167,7 +167,9 @@ When multiple valid approaches exist, choose based on:
 
 ### Commit message format
 
-Use conventional commit with at most 3 lines of description.
+Use conventional commit with at most 3 lines of description. Start each line with a dash.
+
+If this commit handles other comments, paste the comment's url into the commit
 
 ### Pull Request Description Format
 
@@ -175,10 +177,13 @@ Use conventional commit with at most 3 lines of description.
 ### Task
 
 [task name](task link)
+... other tasks if this PR handles multiple tasks...
 
 ### What we have done
 
 - max 5 lines of description
 ```
 
+### Projects
 
+Also look at @.claude/CLAUDE.md

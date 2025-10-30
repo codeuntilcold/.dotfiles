@@ -3,7 +3,8 @@
 
 reload-threads 50
 
-browser "open %u >/dev/null 2>&1" # open articles in default browser
+# browser "open %u >/dev/null 2>&1" # open articles in default browser
+scrolloff 5
 
 datetime-format "%Y %m %d"
 

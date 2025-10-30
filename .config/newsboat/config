@@ -1,7 +1,7 @@
 # show-read-feeds no
 # auto-reload yes
 
-reload-threads 10
+reload-threads 50
 
 browser "open %u >/dev/null 2>&1" # open articles in default browser
 

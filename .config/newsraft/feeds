@@ -1,6 +1,5 @@
-https://news.ycombinator.com/rss
 https://arxiviq.substack.com/feed
-https://bower.sh/rss
+https://bearblog.dev/discover/feed/
 
 https://aaadaaam.com/feed.xml
 https://berthub.eu/articles/index.xml
@@ -41,13 +40,16 @@ https://www.dannyguo.com/blog/feed.xml
 https://xuanwo.io/index.xml
 https://yobibyte.github.io/feed.xml
 
-# possibly wrong...
-http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Learning"
+https://seymourhersh.substack.com/feed
+https://peterturchin.substack.com/feed
+https://predictivehistory.substack.com/feed
+https://herman.bearblog.dev/feed/
+https://tech.marksblogg.com/feeds/all.atom.xml
 
-http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Contrastive"
+$(curl -sL 'http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200' | newsboat-arxiv-comments) "Continual Learning"
 
-$(curl -sL 'http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200' | newsboat-arxiv-comments) "~Continual Contrastive 2"
+$(curl -sL 'http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200' | newsboat-arxiv-comments) "Continual Contrastive"
 
-http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(inspection+OR+defect)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Inspection"
+$(curl -sL 'http://export.arxiv.org/api/query?search_query=ti%3A%28continual+OR+incremental+OR+lifelong%29+AND+ti%3A%28inspection+OR+defect%29&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200' | newsboat-arxiv-comments) "Continual Inspection"
 
-http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(pretraining)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Pretraining"
+$(curl -sL 'http://export.arxiv.org/api/query?search_query=ti%3A%28continual+OR+incremental+OR+lifelong%29+AND+ti%3A%28pretraining%29&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200' | newsboat-arxiv-comments) "Continual Pretraining"

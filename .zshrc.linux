@@ -28,7 +28,8 @@ export PATH="$FLYCTL_INSTALL/bin:$PATH"
 
 alias v='nvim'
 alias lmk='latexmk'
-alias nb='newsboat'
+alias nb='newsboat -r'
+alias nr='newsraft'
 alias upgrade='sudo apt update && sudo apt upgrade'
 alias ez='nvim ~/.zshrc'
 alias sz='. ~/.zshrc'

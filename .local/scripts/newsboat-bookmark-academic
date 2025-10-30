@@ -7,4 +7,4 @@ category="$4"
 
 file="$HOME/Documents/Obsidian-Vault/200-Academic/0000-TODO-PLEASE-READ.md"
 
-echo -e "Title: $2\nLink: $1\n\n---\n" >> "$file"
+echo -e "Title: $title\nLink: $url\n\n---\n" >> "$file"

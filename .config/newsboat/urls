@@ -48,13 +48,13 @@ https://herman.bearblog.dev/feed/
 https://tech.marksblogg.com/feeds/all.atom.xml
 
 # possibly wrong...
-http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Learning"
+filter:newsboat-arxiv-comments:http://export.arxiv.org/api/query?search_query=ti%3A%22continual+inspection%22+OR+ti%3A%22incremental+inspection%22+OR+ti%3A%22lifelong+learning%22+OR+ti%3A%22incremental+learning%22+OR+ti%3A%22continual+learning%22&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Learning"
 
-http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Contrastive"
+filter:newsboat-arxiv-comments:http://export.arxiv.org/api/query?search_query=ti%3Acontinual+AND+ti%3Acontrastive&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Contrastive"
 
-http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(inspection+OR+defect)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Inspection"
+filter:newsboat-arxiv-comments:http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(inspection+OR+defect)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Inspection"
 
-http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(pretraining)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Pretraining"
+filter:newsboat-arxiv-comments:http://export.arxiv.org/api/query?search_query=ti%3A(continual+OR+incremental+OR+lifelong)+AND+ti%3A(pretraining)&sortBy=lastUpdatedDate&sortOrder=descending&start=0&max_results=200 "~Continual Pretraining"
 
 # not sure working
 https://intellectualmathematics.com/

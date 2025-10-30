@@ -27,7 +27,7 @@ for entry in root.findall("a:entry", NS):
         continue
 
     orig = (summary.text or "").strip()
-    summary.text = f"{orig}\n\narXiv comment: {ctext}"
+    summary.text = f"(arXiv comment: {ctext})\n\n{orig}"
 
 ET.register_namespace("", ATOM)
 ET.register_namespace("arxiv", ARXIV)

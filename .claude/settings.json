@@ -6,6 +6,30 @@
     "BASH_MAX_TIMEOUT_MS": "300000"
   },
   "includeCoAuthoredBy": false,
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify-send '✻ Claude Code' \"$(cat)\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify-send 'Claude Code' \"$(cat | jq '.transcript_path')\""
+          }
+        ]
+      }
+    ]
+  },
   "alwaysThinkingEnabled": true,
   "autoUpdates": true,
   "preferredNotifChannel": "terminal_bell",

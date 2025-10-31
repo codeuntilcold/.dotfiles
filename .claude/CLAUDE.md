@@ -161,13 +161,15 @@ When multiple valid approaches exist, choose based on:
 - Also, if you want, you can use `fzf` if standard grep fails to find the name
    that you want. `fzf` has a --filter mode where it can fuzzily filter the
    filename for example. Also I have `rg` on my system which is a faster grep.
-- only commit what you changed
+- Only commit what you changed
+- Also look at @.claude/CLAUDE.md
 
-## Misc
+## Git and GitHub works
 
 ### Commit message format
 
-Use conventional commit with at most 3 lines of description. Start each line with a dash.
+Use conventional commit with at most 3 lines of description. Separate first
+line from the rest (so feat:... \n\ncontent....) Start each line with a dash.
 
 If this commit handles other comments, paste the comment's url into the commit
 
@@ -183,7 +185,3 @@ If this commit handles other comments, paste the comment's url into the commit
 
 - max 5 lines of description
 ```
-
-### Projects
-
-Also look at @.claude/CLAUDE.md

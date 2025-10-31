@@ -50,6 +50,7 @@ alias oil='nvim -c "Oil"'
 alias ccal='ncal -y'
 alias pbcopy='xclip -sel c'
 alias pbpaste='xclip -sel c -o'
+alias nr='newsraft'
 
 # usage: pn [client | api | domain] command
 function pn() {

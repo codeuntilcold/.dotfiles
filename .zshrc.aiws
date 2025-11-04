@@ -75,6 +75,16 @@ function pn() {
       pnpm --filter=@Datum/domain "$@"
       return
       ;;
+
+    start-cc-dev)
+      ln -s ~/dev/datum-monorepo/.nvim.lua .nvim.lua
+      ln -s ~/dev/datum-monorepo/.claude/CLAUDE.md .claude/
+      ln -s ~/dev/datum-monorepo/.claude/settings.local.json .claude/
+      pn i
+      pn d build
+      pn codegen
+      return
+      ;;
   esac
 
   pnpm "$@"

@@ -2,15 +2,9 @@
 
 When asked to reply to PR comments on your behalf:
 
-### 1. Fetch PR Information and Comments
+### (Optional) 1. Fetch PR Information and Comments
 
-```bash
-# Get PR details
-gh pr view
-
-# Get all review comments with structured output
-gh api /repos/:org/:repo/pulls/:id/comments | jq '.[] | { url, diff_hunk, user: .user.login, comment: .body, created_at, updated_at }'
-```
+Run the `gh-pr-comments` command ONLY IF you do not have this info.
 
 ### 2. Reply Using Correct API Endpoint
 
@@ -52,8 +46,6 @@ For questions about missing features:
 
 5. Before Sending
 
-- List out the replies for the human to verify.
-- Ensure technical accuracy
-- Keep responses concise (2-3 sentences max)
-- Offer alternatives when appropriate
+- Keep responses concise (2-3 sentences max). Offer alternatives when appropriate.
 - Match the reviewer's level of formality
+- List out the replies for the human to verify. Offer to write it to a temp file so that he can edit. Add some context so he knows what he is replying to.

@@ -155,7 +155,7 @@ When multiple valid approaches exist, choose based on:
 - Commit working code incrementally
 - Update plan documentation as you go
 - Learn from existing implementations
-- Stop after 3 failed attempts and reassess
+- Stop after 3 failed attempts and reassess. Do 1-2 web search if you feel like you desperately need it.
 - Leave code obvious. Need no comment if code simple for grug.
 - Craftsmanship
 - Also, if you want, you can use `fzf` if standard grep fails to find the name
@@ -183,5 +183,6 @@ If this commit handles other comments, paste the comment's url into the commit
 
 ### What we have done
 
-- max 5 lines of description
+- max 5 lines of description, ONLY if the git change has complex change
+- if the change is trivial, please don't add description
 ```

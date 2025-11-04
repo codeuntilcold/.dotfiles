@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+read owner repo number < <(gh pr view --json headRepositoryOwner,headRepository,number -q '[.headRepositoryOwner.login, .headRepository.name, .number] | @tsv')
+
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $number) {
+        state
+        merged
+        reviewThreads(first: 100) {
+          nodes {
+            id
+            isResolved
+            resolvedBy { login }
+            comments(first: 100) {
+              nodes {
+                id
+                databaseId
+                body
+                author { login }
+                createdAt
+                path
+                line
+                diffHunk
+                replyTo { id }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+' -f owner="$owner" -f repo="$repo" -F number="$number" |
+jq -r '
+"PR Status: \(if .data.repository.pullRequest.merged then "MERGED" elif .data.repository.pullRequest.state == "OPEN" then "OPEN" else "CLOSED" end)",
+"================================",
+"",
+(.data.repository.pullRequest.reviewThreads.nodes[] |
+"--------------------------------",
+"Thread ID: \(.id)",
+"Status: \(if .isResolved then "RESOLVED" + (if .resolvedBy then " by @\(.resolvedBy.login)" else "" end) else "OPEN" end)",
+(if .comments.nodes[0].path then "File: \(.comments.nodes[0].path)" + (if .comments.nodes[0].line then ":\(.comments.nodes[0].line)" else "" end) else "" end),
+"",
+(.comments.nodes[] |
+  (if .replyTo then "> " else "" end) +
+  "@\(.author.login) - \(.createdAt) [Reply ID: \(.databaseId)]",
+  "  " + (.body | gsub("\n"; "\n  ")),
+  (if .diffHunk and .diffHunk != "" and (.replyTo | not) then "\n  Code context:\n" + ("  " + (.diffHunk | gsub("\n"; "\n  "))) else "" end),
+  ""
+),
+""
+)
+'

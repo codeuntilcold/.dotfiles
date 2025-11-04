@@ -90,6 +90,12 @@ function pn() {
   pnpm "$@"
 }
 
+function xm6() {
+  # bluetoothctl connect 58:18:62:01:E5:78
+  # bluetoothctl disconnect 58:18:62:01:E5:78
+  # bluetoothctl info 58:18:62:01:E5:78
+}
+
 . "$HOME/.cargo/env"
 
 export FZF_DEFAULT_OPTS="--layout=reverse"

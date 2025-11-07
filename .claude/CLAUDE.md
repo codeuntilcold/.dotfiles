@@ -168,8 +168,11 @@ When multiple valid approaches exist, choose based on:
 
 ### Commit message format
 
-Use conventional commit with at most 3 lines of description. Separate first
-line from the rest (so feat:... \n\ncontent....) Start each line with a dash.
+Use conventional commit with at most 3 lines of description, only if the commit has complex change.
+If it is straightforward that an undergrad can understand, then please don't write desriptions.
+
+Separate first line of commit from the rest (so feat:... \n\ncontent....).
+Start each line of desc with a dash.
 
 If this commit handles other comments, paste the comment's url into the commit
 
@@ -186,3 +189,7 @@ If this commit handles other comments, paste the comment's url into the commit
 - max 5 lines of description, ONLY if the git change has complex change
 - if the change is trivial, please don't add description
 ```
+
+### Some provided wrappers
+
+- Bash(gh-pr-comments) gives all comments on the current PR. No need to run with any param as it works ootb.

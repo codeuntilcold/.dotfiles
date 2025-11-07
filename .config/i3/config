@@ -102,6 +102,6 @@ bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 
 bar {
-        status_command start-i3status
+        status_command xi3status
         position top
 }

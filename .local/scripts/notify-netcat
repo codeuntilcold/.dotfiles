@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+title="$1"
+message="$2"
+
+notify-send "$title" "$message"
+
+echo "$title :: $message" | nc -w1 localhost 9999 2>/dev/null &

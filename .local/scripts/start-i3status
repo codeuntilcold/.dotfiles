@@ -14,7 +14,7 @@ get_bt_battery() {
 get_gpu_load() {
     local gpu_load=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null)
     if [[ -n "$gpu_load" ]]; then
-        echo "GPU ${gpu_load}%"
+        printf "🤖 %3d%%" "$gpu_load"
     else
         echo ""
     fi
@@ -37,17 +37,27 @@ get_weather() {
     fi
 }
 
+get_xrecord() {
+    if [[ -f "/tmp/recpid" ]]; then
+        echo "REC: ● "
+    else
+        echo ""
+    fi
+}
+
 i3status "$@" | while :
 do
     read -r line
-    xm6_bat=$(get_bt_battery "58:18:62:01:E5:78" "XM6")
-    corne_bat=$(get_bt_battery "D3:AC:8D:04:52:D5" "CRN")
+    xm6_bat=$(get_bt_battery "58:18:62:01:E5:78" "🎧")
+    corne_bat=$(get_bt_battery "D3:AC:8D:04:52:D5" "⌨")
     gpu_load=$(get_gpu_load)
     weather=$(get_weather)
+    rec=$(get_xrecord)
 
     status_items=""
     [[ -n "$xm6_bat" ]] && status_items+=" ${xm6_bat} |"
     [[ -n "$corne_bat" ]] && status_items+=" ${corne_bat} |"
+    [[ -n "$rec" ]] && status_items+=" ${rec} |"
 
     echo "${line} | 🔆 $(xbrightness) | ${gpu_load} | ${weather} |${status_items}" || exit 1
 done

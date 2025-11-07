@@ -32,13 +32,12 @@ bindsym XF86AudioPrev         exec --no-startup-id playerctl   previous
 bindsym  $mod+d        exec  --no-startup-id  dmenu_run -fn "JetBrainsMono NF"
 bindsym  $mod+v        exec  --no-startup-id  clipmenu -fn "JetBrainsMono NF"
 bindsym  $mod+t        exec  --no-startup-id  alacritty
-# bindsym  $mod+t        exec  --no-startup-id  ghostty
 bindsym  $mod+b        exec  --no-startup-id  google-chrome
 bindsym  $mod+Shift+b  exec  --no-startup-id  firefox
 bindsym  $mod+s        exec  --no-startup-id  slack
 bindsym  $mod+space    exec  --no-startup-id  ibus-toggle && $refresh_i3status
 bindsym  Print         exec  --no-startup-id  xscreenshot
-bindsym  Shift+Print   exec  --no-startup-id  xrecord
+bindsym  Shift+Print   exec  --no-startup-id  xrecord     && $refresh_i3status
 bindsym  $mod+c        exec  "alacritty --command nvim $HOME/.config/i3/config"
 bindsym  $mod+Shift+e  exec  "i3-nagbar -t warning -m 'Do you really want to exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"
 

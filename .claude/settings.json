@@ -3,7 +3,7 @@
   "env": {
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "BASH_DEFAULT_TIMEOUT_MS": "30000",
-    "BASH_MAX_TIMEOUT_MS": "300000"
+    "BASH_MAX_TIMEOUT_MS": "600000"
   },
   "includeCoAuthoredBy": false,
   "hooks": {
@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "notify-send 'Claude Code' \"$(cat | jq '.transcript_path')\""
+            "command": "notify-send '✻ Claude Code' \"$(cat | jq '.transcript_path')\""
           }
         ]
       }

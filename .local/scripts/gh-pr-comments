@@ -8,6 +8,19 @@ gh api graphql -f query='
       pullRequest(number: $number) {
         state
         merged
+        mergeable
+        mergeStateStatus
+        baseRefName
+        headRefName
+        comments(first: 100) {
+          nodes {
+            id
+            databaseId
+            body
+            author { login }
+            createdAt
+          }
+        }
         reviewThreads(first: 100) {
           nodes {
             id
@@ -34,8 +47,32 @@ gh api graphql -f query='
 ' -f owner="$owner" -f repo="$repo" -F number="$number" |
 jq -r '
 "PR Status: \(if .data.repository.pullRequest.merged then "MERGED" elif .data.repository.pullRequest.state == "OPEN" then "OPEN" else "CLOSED" end)",
+"Branch: \(.data.repository.pullRequest.headRefName) → \(.data.repository.pullRequest.baseRefName)",
+"Merge State: \(.data.repository.pullRequest.mergeStateStatus // "UNKNOWN")",
+"Mergeable: \(
+  if .data.repository.pullRequest.mergeable == "MERGEABLE" then "✓ No conflicts"
+  elif .data.repository.pullRequest.mergeable == "CONFLICTING" then "✗ HAS CONFLICTS"
+  elif .data.repository.pullRequest.mergeable == "UNKNOWN" then "? Checking..."
+  else .data.repository.pullRequest.mergeable // "UNKNOWN"
+  end
+)",
 "================================",
 "",
+(if (.data.repository.pullRequest.comments.nodes | length) > 0 then
+"CONVERSATION COMMENTS:",
+"",
+(.data.repository.pullRequest.comments.nodes[] |
+"@\(.author.login) - \(.createdAt) [Comment ID: \(.databaseId)]",
+"  " + (.body | gsub("\n"; "\n  ")),
+""
+),
+"================================",
+""
+else "" end),
+(if (.data.repository.pullRequest.reviewThreads.nodes | length) > 0 then
+"REVIEW THREADS:",
+""
+else "" end),
 (.data.repository.pullRequest.reviewThreads.nodes[] |
 "--------------------------------",
 "Thread ID: \(.id)",

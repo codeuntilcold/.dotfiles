@@ -48,4 +48,4 @@ For questions about missing features:
 
 - Keep responses concise (2-3 sentences max). Offer alternatives when appropriate.
 - Match the reviewer's level of formality
-- List out the replies for the human to verify. Offer to write it to a temp file so that he can edit. Add some context so he knows what he is replying to.
+- List out the replies for the human to verify in a temp file so that he can edit. Add some context so he knows what he is replying to.

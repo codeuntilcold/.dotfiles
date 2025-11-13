@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: $(basename $0) <paper title, DOI, or other identifier>"
+    exit 1
+fi
+
+query="$1"
+encoded_query=$(jq -sRr @uri <<< "$query")
+
+api_url="https://api.semanticscholar.org/graph/v1/paper/search?query=$encoded_query&fields=externalIds,venue,title"
+
+# {
+#   "total": 5,
+#   "offset": 0,
+#   "data": [
+#     {
+#       "paperId": "c9cecedd168c814bdf916c8ccf15457c2cc69257",
+#       "externalIds": {
+#         "DBLP": "journals/corr/abs-2406-06811",
+#         "ArXiv": "2406.06811",
+#         "DOI": "10.48550/arXiv.2406.06811",
+#         "CorpusId": 270380086
+#       },
+#       "title": "Learning Continually by Spectral Regularization",
+#       "venue": "International Conference on Learning Representations"
+#     },
+#     {
+#       "paperId": "0b26f3d3ef6447d7df077a4923ba91bc22f1ac95",
+#       "externalIds": {
+#         "DBLP": "journals/corr/abs-2301-03345",
+#         "ArXiv": "2301.03345",
+#         "DOI": "10.1016/j.patrec.2024.06.020",
+#         "CorpusId": 255546080
+#       },
+#       "title": "CaSpeR: Latent Spectral Regularization for Continual Learning",
+#       "venue": "Pattern Recognition Letters"
+#     },
+#     {
+#       "paperId": "c7c60095c4e2f90582ae0b500c9e057e53fab9a0",
+#       "externalIds": {
+#         "DBLP": "journals/corr/abs-2509-22335",
+#         "ArXiv": "2509.22335",
+#         "DOI": "10.48550/arXiv.2509.22335",
+#         "CorpusId": 281658691
+#       },
+#       "title": "Spectral Collapse Drives Loss of Plasticity in Deep Continual Learning",
+#       "venue": "arXiv.org"
+#     }
+#   ]
+# }
+response=$(curl -sL "$api_url")
+
+if [[ -z "$response" ]] || [[ "$(echo "$response" | jq '.total')" -eq 0 ]]; then
+    echo "Error: No paper found for query: '$query'" >&2
+    exit 1
+fi
+
+paper_data=$(echo "$response" | jq '.data[0]')
+doi=$(echo "$paper_data" | jq -r '.externalIds.DOI // empty')
+arxiv_id=$(echo "$paper_data" | jq -r '.externalIds.ArXiv // empty')
+venue=$(echo "$paper_data" | jq -r '.venue // empty' | tr '[:upper:]' '[:lower:]')
+
+bibtex=$(curl -sLH "Accept: application/x-bibtex" "https://doi.org/${doi}")
+
+# also this from https://gitlab.com/maister/doitbib/-/blob/master/dtb?ref_type=heads:
+# DOI=$(pdfinfo "$1" | grep -io "doi:.*" | grep -o "10.[^)^ ]*") ||
+# DOI=$(pdftotext "$1" 2>/dev/null - | grep -io "doi:.*" -m 1 | grep -o "10.[^)^ ]*") ||
+# DOI=$(pdftotext "$2" 2>/dev/null - | grep -io "doi\\.org/.*" -m 1 | grep -o "10.[^)^ ]*") ||
+# curl -sL "http://api.crossref.org/works/$DOI/transform/application/x-bibtex" -w '\n\n'
+
+if [[ -n "$bibtex" ]]; then
+    echo "Retrieved BibTeX entry for query: '$query'" >&2
+    echo "  Found identifiers: DOI='${doi:-none}', ArXiv='${arxiv_id:-none}', venue='${venue:-none}'" >&2
+    echo "$bibtex"
+else
+    echo "Error: Could not retrieve a BibTeX entry for query: '$query'" >&2
+    echo "  Found identifiers: DOI='${doi:-none}', ArXiv='${arxiv_id:-none}', venue='${venue:-none}'" >&2
+    exit 1
+fi

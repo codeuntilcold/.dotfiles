@@ -56,6 +56,26 @@ y() {
 #   building the latex can be done by vimtex
 # }
 
+xm6() {
+  bluetoothctl power on
+  id=$(bluetoothctl paired-devices | rg XM6 | awk '{ print $2 }')
+  bluetoothctl connect $id
+}
+
+sshaiws() {
+  while true; do
+    message="$(nc -l 9999 2> /dev/null)"
+    [ -z "$message" ] && continue
+    notify-send "SSH Notification" "$message"
+  done &
+  pid=$!
+
+  ssh aiws -L 6006:localhost:6006 -R 9999:localhost:9999
+
+  kill $pid
+  wait $pid 2> /dev/null
+}
+
 plugins=(
   git
   docker

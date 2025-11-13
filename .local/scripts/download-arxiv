@@ -19,8 +19,9 @@ downloadpath="$HOME/Downloads/$arxivid.pdf"
 
 isdownloadedpath="$(is_downloaded "$filename")"
 if [[ -z "$isdownloadedpath" ]]; then
-  curl -sL "https://arxiv.org/pdf/$arxivid" -o "$downloadpath"
-  open "$downloadpath" &
+  (
+    curl -sL "https://arxiv.org/pdf/$arxivid" -o "$downloadpath" && open "$downloadpath"
+  ) &
 else
   open "$isdownloadedpath" &
 fi

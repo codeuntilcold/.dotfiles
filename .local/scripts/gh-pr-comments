@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
+OUTPUT_JSON=false
+if [[ "$1" == "--json" ]]; then
+  OUTPUT_JSON=true
+fi
+
 read owner repo number < <(gh pr view --json headRepositoryOwner,headRepository,number -q '[.headRepositoryOwner.login, .headRepository.name, .number] | @tsv')
 
-gh api graphql -f query='
+response=$(gh api graphql -f query='
   query($owner: String!, $repo: String!, $number: Int!) {
     repository(owner: $owner, name: $repo) {
       pullRequest(number: $number) {
@@ -19,6 +24,13 @@ gh api graphql -f query='
             body
             author { login }
             createdAt
+          }
+        }
+        latestReviews(first: 100) {
+          nodes {
+            author { login }
+            state
+            submittedAt
           }
         }
         reviewThreads(first: 100) {
@@ -44,8 +56,24 @@ gh api graphql -f query='
       }
     }
   }
-' -f owner="$owner" -f repo="$repo" -F number="$number" |
-jq -r '
+' -f owner="$owner" -f repo="$repo" -F number="$number")
+
+if $OUTPUT_JSON; then
+  echo "$response" | jq '.data.repository.pullRequest | {
+    state,
+    merged,
+    mergeable,
+    mergeStateStatus,
+    baseRefName,
+    headRefName,
+    reviews: .latestReviews.nodes,
+    comments: [.comments.nodes[] | select(.author.login != "claude")],
+    reviewThreads: .reviewThreads.nodes
+  }'
+  exit 0
+fi
+
+echo "$response" | jq -r '
 "PR Status: \(if .data.repository.pullRequest.merged then "MERGED" elif .data.repository.pullRequest.state == "OPEN" then "OPEN" else "CLOSED" end)",
 "Branch: \(.data.repository.pullRequest.headRefName) → \(.data.repository.pullRequest.baseRefName)",
 "Merge State: \(.data.repository.pullRequest.mergeStateStatus // "UNKNOWN")",
@@ -56,12 +84,18 @@ jq -r '
   else .data.repository.pullRequest.mergeable // "UNKNOWN"
   end
 )",
+"",
+"REVIEWS:",
+(.data.repository.pullRequest.latestReviews.nodes | if length > 0 then
+  map("  @\(.author.login): \(if .state == "APPROVED" then "✓ APPROVED" elif .state == "CHANGES_REQUESTED" then "✗ CHANGES REQUESTED" elif .state == "COMMENTED" then "💬 COMMENTED" elif .state == "DISMISSED" then "⊘ DISMISSED" else .state end) (\(.submittedAt))") | join("\n")
+else "  No reviews yet" end),
+"",
 "================================",
 "",
-(if (.data.repository.pullRequest.comments.nodes | length) > 0 then
+(if (.data.repository.pullRequest.comments.nodes | map(select(.author.login != "claude")) | length) > 0 then
 "CONVERSATION COMMENTS:",
 "",
-(.data.repository.pullRequest.comments.nodes[] |
+(.data.repository.pullRequest.comments.nodes[] | select(.author.login != "claude") |
 "@\(.author.login) - \(.createdAt) [Comment ID: \(.databaseId)]",
 "  " + (.body | gsub("\n"; "\n  ")),
 ""
@@ -69,14 +103,16 @@ jq -r '
 "================================",
 ""
 else "" end),
-(if (.data.repository.pullRequest.reviewThreads.nodes | length) > 0 then
-"REVIEW THREADS:",
-""
-else "" end),
-(.data.repository.pullRequest.reviewThreads.nodes[] |
+(.data.repository.pullRequest.reviewThreads.nodes | map(select(.isResolved)) | length) as $resolved |
+(.data.repository.pullRequest.reviewThreads.nodes | map(select(.isResolved | not))) as $open |
+(if $resolved > 0 then "\($resolved) resolved comment\(if $resolved > 1 then "s" else "" end)" else "" end),
+"",
+(if ($open | length) > 0 then
+"OPEN REVIEW THREADS:",
+"",
+($open[] |
 "--------------------------------",
 "Thread ID: \(.id)",
-"Status: \(if .isResolved then "RESOLVED" + (if .resolvedBy then " by @\(.resolvedBy.login)" else "" end) else "OPEN" end)",
 (if .comments.nodes[0].path then "File: \(.comments.nodes[0].path)" + (if .comments.nodes[0].line then ":\(.comments.nodes[0].line)" else "" end) else "" end),
 "",
 (.comments.nodes[] |
@@ -88,4 +124,5 @@ else "" end),
 ),
 ""
 )
+else "" end)
 '

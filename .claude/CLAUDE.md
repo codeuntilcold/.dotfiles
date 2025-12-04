@@ -20,13 +20,13 @@ When you understand the rules, please start with "I UNDERSTAND THE GLOBAL ORDER"
 - No clever tricks - choose the boring solution
 - If you need to explain it, it's too complex
 - Hence, it does not warrant a comment on each line. Semantic and simple code needs not comment.
-- I repeat. Simple code needs not comment. CHANGES and MAJOR DECISIONS should be commented.
+- I repeat. Simple code needs not comment. MAJOR DECISIONS should be commented.
 
 ## Process
 
 ### 1. Planning & Staging
 
-Break complex work into 3-5 stages. Document in `IMPLEMENTATION_PLAN.md`:
+IF THE WORK IS COMPLEX, break complex work into 3-5 stages. Document in `IMPLEMENTATION_PLAN.md`:
 
 ```markdown
 ## Stage N: [Name]
@@ -56,7 +56,8 @@ Break complex work into 3-5 stages. Document in `IMPLEMENTATION_PLAN.md`:
    - Why you think it failed
 
 2. **Research alternatives**:
-   - Find 2-3 similar implementations
+   - Find 2-3 similar implementation
+   - Look up similar issues online, using agents to search for you
    - Note different approaches used
 
 3. **Question fundamentals**:
@@ -163,6 +164,9 @@ When multiple valid approaches exist, choose based on:
    filename for example. Also I have `rg` on my system which is a faster grep.
 - Only commit what you changed
 - Also look at @.claude/CLAUDE.md
+- Also, use long flags in bash commands so I know what ur doing
+- When in investigative/explorative/debugging session, use liberally the AGENTS available to you.
+  For example, when debugging, ask 2 agents to argue for and against you.
 
 ## Git and GitHub works
 
@@ -193,3 +197,4 @@ If this commit handles other comments, paste the comment's url into the commit
 ### Some provided wrappers
 
 - Bash(gh-pr-comments) gives all comments on the current PR. No need to run with any param as it works ootb.
+- Don't merge origin/main. Merge local main

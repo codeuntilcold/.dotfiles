@@ -10,10 +10,14 @@ FENCE = f"{ESC}33m"  # ``` / ~~~ lines
 CODE = f"{ESC}92m"  # fenced code content
 ICOD = f"{ESC}95m"  # inline `code`
 THINK = f"{ESC}90m"  # <think>…</think>
+BOLD = f"{ESC}1m"  # **bold**
+ITAL = f"{ESC}3m"  # *italic*
 
 fence_re = re.compile(r"^([`]{3,}|[~]{3,})")
 head_re = re.compile(r"^(#{1,6})\s+(.+)$")
 inline_re = re.compile(r"`([^`\n]+)`")
+bold_re = re.compile(r"\*\*([^*\n]+)\*\*")
+ital_re = re.compile(r"(?<!\*)\*([^*\n]+)\*(?!\*)")
 
 CHUNK_SIZE = 20
 
@@ -59,6 +63,8 @@ class StreamProcessor:
             return f"{HEADR}{line}{RESET}\n"
 
         line = inline_re.sub(lambda m: f"{ICOD}`{m.group(1)}`{RESET}", line)
+        line = bold_re.sub(lambda m: f"{BOLD}**{m.group(1)}**{RESET}", line)
+        line = ital_re.sub(lambda m: f"{ITAL}*{m.group(1)}*{RESET}", line)
         return line + "\n"
 
     def process_chunk(self, chunk):
@@ -109,6 +115,9 @@ class StreamProcessor:
                 if last_backtick == len(self.buffer) - 1:
                     return False
 
+        if self.buffer.endswith("*"):
+            return False
+
         if self.buffer.startswith("```") or self.buffer.startswith("~~~"):
             return False
         if self.buffer.startswith("#"):
@@ -123,6 +132,8 @@ class StreamProcessor:
             safe_len -= 1
         elif self.buffer.endswith("<"):
             safe_len -= 1
+        elif self.buffer.endswith("*"):
+            safe_len -= 1
 
         if safe_len <= 0:
             return ""
@@ -133,6 +144,16 @@ class StreamProcessor:
         if "`" in safe_content:
             safe_content = inline_re.sub(
                 lambda m: f"{ICOD}`{m.group(1)}`{RESET}", safe_content
+            )
+
+        if "**" in safe_content:
+            safe_content = bold_re.sub(
+                lambda m: f"{BOLD}**{m.group(1)}**{RESET}", safe_content
+            )
+
+        if "*" in safe_content:
+            safe_content = ital_re.sub(
+                lambda m: f"{ITAL}*{m.group(1)}*{RESET}", safe_content
             )
 
         if "<think>" in safe_content and "</think>" in safe_content:
@@ -165,6 +186,12 @@ class StreamProcessor:
                     else:
                         line = inline_re.sub(
                             lambda m: f"{ICOD}`{m.group(1)}`{RESET}", line
+                        )
+                        line = bold_re.sub(
+                            lambda m: f"{BOLD}**{m.group(1)}**{RESET}", line
+                        )
+                        line = ital_re.sub(
+                            lambda m: f"{ITAL}*{m.group(1)}*{RESET}", line
                         )
                         sys.stdout.write(line)
                 self.buffer = ""

@@ -1,0 +1,446 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+CREDENTIALS_FILE="${HOME}/.config/asana/.credentials.json"
+CONFIG_FILE="${HOME}/.config/asana/config.json"
+API_BASE="https://app.asana.com/api/1.0"
+
+is_interactive() {
+  [[ -t 0 ]] && [[ -t 1 ]]
+}
+
+has_fzf() {
+  command -v fzf &>/dev/null
+}
+
+get_token() {
+  if [[ ! -f $CREDENTIALS_FILE ]]; then
+    echo "Error: Credentials file not found at $CREDENTIALS_FILE" >&2
+    echo 'Please create it with: {"token": "YOUR_PERSONAL_ACCESS_TOKEN"}' >&2
+    exit 1
+  fi
+
+  jq -r '.token' "$CREDENTIALS_FILE"
+}
+
+get_config() {
+  if [[ ! -f $CONFIG_FILE ]]; then
+    echo "Error: Config file not found at $CONFIG_FILE" >&2
+    exit 1
+  fi
+  cat "$CONFIG_FILE"
+}
+
+# Get project-specific config. Priority: flag > env > config default > "app-v1"
+# Supports both legacy single-project and new multi-project config formats
+get_project_config() {
+  local config=$(get_config)
+  local project_key="${ASANA_PROJECT_OVERRIDE:-${ASANA_PROJECT:-}}"
+
+  # Check if config uses new multi-project format
+  if echo "$config" | jq -e '.projects' &>/dev/null; then
+    if [[ -z $project_key ]]; then
+      project_key=$(echo "$config" | jq -r '.default_project // "app-v1"')
+    fi
+    local project=$(echo "$config" | jq -e ".projects[\"${project_key}\"]" 2>/dev/null)
+    if [[ $? -ne 0 || $project == "null" ]]; then
+      echo "Error: Project '$project_key' not found in config" >&2
+      echo "Available: $(echo "$config" | jq -r '.projects | keys | join(", ")')" >&2
+      exit 1
+    fi
+    echo "$config" | jq --arg pk "$project_key" '{
+      workspace_gid, workspace_name, user_gid, user_name,
+      project_key: $pk,
+      project_gid: .projects[$pk].gid,
+      project_name: .projects[$pk].name,
+      sections: .projects[$pk].sections
+    }'
+  else
+    # Legacy single-project format - just return as-is
+    echo "$config"
+  fi
+}
+
+list_projects() {
+  local config=$(get_config)
+  if echo "$config" | jq -e '.projects' &>/dev/null; then
+    local default=$(echo "$config" | jq -r '.default_project // "app-v1"')
+    local current="${ASANA_PROJECT_OVERRIDE:-${ASANA_PROJECT:-$default}}"
+    echo "Available projects:"
+    echo "$config" | jq -r --arg default "$default" --arg current "$current" '.projects | to_entries[] |
+      "  \(if .key == $current then ">" else " " end) \(.key) - \(.value.name)\(if .key == $default then " (default)" else "" end)"'
+  else
+    echo "Single project: $(echo "$config" | jq -r '.project_name')"
+    echo "(Add 'projects' object to config to enable multi-project support)"
+  fi
+}
+
+get_section_gid() {
+  local section_name="$1"
+  get_project_config | jq -r ".sections[\"${section_name}\"]"
+}
+
+api_call() {
+  local method="${1:-GET}" endpoint="$2" data="${3:-}"
+  local token=$(get_token)
+  local args=(-s -X "$method" "${API_BASE}${endpoint}" -H "Authorization: Bearer ${token}" -H "Accept: application/json")
+  [[ -n $data ]] && args+=(-H "Content-Type: application/json" -d "$data")
+  curl "${args[@]}"
+}
+
+api_get() { api_call GET "$1"; }
+api_post() { api_call POST "$1" "$2"; }
+api_put() { api_call PUT "$1" "$2"; }
+
+### READ-ONLY OPERATIONS (safe)
+get_tasks_in_section() {
+  local section_gid="$1" fields="name,completed,due_on,assignee.name,assignee.gid"
+  [[ ${2:-false} == "true" ]] && fields+=",notes"
+  api_get "/sections/${section_gid}/tasks?opt_fields=${fields}"
+}
+get_task_details() { api_get "/tasks/$1?opt_fields=name,notes,html_notes,completed,due_on,assignee.name,assignee.gid,created_at,modified_at,memberships.section.name,dependencies.name,dependencies.gid,dependents.name,dependents.gid"; }
+get_task_comments() { api_get "/tasks/$1/stories?opt_fields=text,created_by.name,created_at,type"; }
+get_task_attachments() { api_get "/attachments?parent=$1&opt_fields=name,download_url,permanent_url,view_url,size,created_at,resource_subtype"; }
+search_tasks() { api_get "/workspaces/$1/tasks/search?text=$2&opt_fields=name,completed,due_on,assignee.name"; }
+
+### MUTATING OPERATIONS (modify data in Asana)
+add_task_comment() { api_post "/tasks/$1/stories" "$(jq -n --arg html_text "$2" '{data: {html_text: $html_text}}')"; }
+move_task_to_section() { api_post "/sections/$3/addTask" "$(jq -n --arg task "$1" '{data: {task: $task}}')"; }
+update_task_assignee() { api_put "/tasks/$1" "$(jq -n --arg assignee "$2" '{data: {assignee: $assignee}}')"; }
+update_task_due_date() { api_put "/tasks/$1" "$(jq -n --arg due "$2" '{data: {due_on: $due}}')"; }
+
+### COMMANDS
+
+view_task() {
+  local details=$(get_task_details "$1") comments=$(get_task_comments "$1")
+  local dependencies=$(echo "$details" | jq -r '.data.dependencies // [] | if length > 0 then map("[\(.gid)] \(.name)") | join("\n           ") else "None" end')
+  local dependents=$(echo "$details" | jq -r '.data.dependents // [] | if length > 0 then map("[\(.gid)] \(.name)") | join("\n           ") else "None" end')
+  echo "==========================================
+Task Details
+==========================================
+
+Title:     $(echo "$details" | jq -r '.data.name')
+Section:   $(echo "$details" | jq -r '.data.memberships[0].section.name // "No section"')
+Assignee:  $(echo "$details" | jq -r '.data.assignee.name // "Unassigned"')
+Due:       $(echo "$details" | jq -r '.data.due_on // "No due date"')
+Completed: $(echo "$details" | jq -r '.data.completed')
+
+Blocked by: ${dependencies}
+Blocking:   ${dependents}
+
+Description:
+$(echo "$details" | jq -r '.data.notes // "No description"')
+
+Comments:
+$(echo "$comments" | jq -r '.data[] | select(.type == "comment") | "[\(.created_at)] \(.created_by.name): \(.text)\n"')
+"
+}
+
+search_tasks_interactive() {
+  echo "==========================================
+Search Results for: '$2'
+==========================================
+"
+  search_tasks "$1" "$2" | jq -r '.data[] | "[\(.gid)] \(.name) - Due: \(.due_on // "None") - Assignee: \(.assignee.name // "Unassigned")"'
+}
+
+move_task_interactive() {
+  local section_gid=$(get_section_gid "$3")
+  [[ -z $section_gid || $section_gid == "null" ]] && {
+    echo "Error: Section '$3' not found" >&2
+    echo "Sections: Not-Started | In-Progress | Needs Review | Dev-Complete | QA-Accepted" >&2
+    exit 1
+  }
+  echo "Moving task $1 to section '$3'..."
+  local result=$(move_task_to_section "$1" "$2" "$section_gid")
+  echo "$result" | jq -e '.data' &>/dev/null && echo "Task moved successfully!" || {
+    echo "Error: $result" >&2
+    exit 1
+  }
+}
+
+toggle_assign_me_to_task() {
+  local task_gid="$1" user_gid="$2"
+  local details=$(get_task_details "$task_gid")
+  local task_name=$(echo "$details" | jq -r '.data.name')
+  local current_assignee=$(echo "$details" | jq -r '.data.assignee.gid // empty')
+  if [[ $current_assignee == "$user_gid" ]]; then
+    update_task_assignee "$task_gid" "null" >/dev/null
+    echo "[$task_gid] $task_name: Unassigned"
+  else
+    update_task_assignee "$task_gid" "$user_gid" >/dev/null
+    echo "[$task_gid] $task_name: Assigned"
+  fi
+}
+
+set_task_due_date() {
+  local task_gid="$1" due_date="$2"
+  local details=$(get_task_details "$task_gid")
+  local task_name=$(echo "$details" | jq -r '.data.name')
+  update_task_due_date "$task_gid" "$due_date" >/dev/null
+  echo "[$task_gid] $task_name: Due set to $due_date"
+}
+
+list_task_attachments() {
+  echo "==========================================
+Attachments for task $1
+==========================================
+"
+  local attachments=$(get_task_attachments "$1")
+  [[ $(echo "$attachments" | jq '.data | length') -eq 0 ]] && {
+    echo "No attachments found."
+    return
+  }
+  echo "$attachments" | jq -r '.data[] | "[\(.gid)] \(.name)\n  Type: \(.resource_subtype) | Size: \(.size // "N/A") bytes\n  Created: \(.created_at)\n  Download: \(.download_url // "N/A")\n"'
+}
+
+download_task_attachments() {
+  echo "Downloading attachments for task $1 to ${2:-.}..."
+  local attachments=$(get_task_attachments "$1")
+  [[ $(echo "$attachments" | jq '.data | length') -eq 0 ]] && {
+    echo "No attachments to download."
+    return
+  }
+  mkdir -p "${2:-.}"
+  echo "$attachments" | jq -r '.data[] | "\(.gid)\t\(.name)"' | while IFS=$'\t' read -r att_gid name; do
+    echo "Downloading: $name"
+    local sanitized_name=$(echo "$name" | sed 's/[\/\0]/_/g')
+    local output_file="${2:-.}/${sanitized_name}"
+    local download_url=$(api_get "/attachments/${att_gid}" | jq -r '.data.download_url // empty')
+    if [[ -n $download_url && $download_url != "null" ]]; then
+      if curl -f -s -S -L "$download_url" -o "$output_file" 2>&1; then
+        local file_size=$(stat -c%s "$output_file" 2>/dev/null || stat -f%z "$output_file" 2>/dev/null || echo "0")
+        [[ $file_size -gt 0 ]] && echo "  ✓ Saved ($file_size bytes)" || {
+          echo "  ✗ Empty file" >&2
+          rm -f "$output_file"
+        }
+      else
+        echo "  ✗ Failed" >&2
+      fi
+    else
+      echo "  ⚠ No download URL" >&2
+    fi
+  done
+  echo "Download complete!"
+}
+
+display_tasks() {
+  local filter='.data[] | select(.completed == false'
+  [[ -n ${3:-} ]] && filter="$filter and .assignee.gid == \$user_gid"
+  filter="$filter)"
+  local fmt='"[\(.gid)] \(.name) - Due: \(.due_on // "None") - Assignee: \(.assignee.name // "Unassigned")"'
+  [[ ${2:-false} == "true" ]] && fmt='"[\(.gid)] \(.name)\n  Due: \(.due_on // "None") | Assignee: \(.assignee.name // "Unassigned")\n  Description: \(.notes // "No description")\n"'
+  [[ -n ${3:-} ]] && echo "$1" | jq -r --arg user_gid "${3}" "$filter | $fmt" || echo "$1" | jq -r "$filter | $fmt"
+}
+
+select_tasks_with_fzf() {
+  is_interactive && has_fzf || return 1
+  local tasks=$(get_tasks_in_section "$(get_section_gid "In-Progress")" "false")
+  local selected=$(echo "$tasks" | jq -r '.data[] | select(.completed == false) | "[\(.gid)] \(.name) - Due: \(.due_on // "None") - Assignee: \(.assignee.name // "Unassigned")"' | fzf -m --prompt="${1:-Select tasks (TAB for multiple)} > " --height=40% --reverse --border --ansi)
+  [[ -n $selected ]] && echo "$selected" | grep -oP '^\[\K[0-9]+' || return 1
+}
+
+get_section_tasks() {
+  local section_gid=$(get_section_gid "$1")
+  [[ -z $section_gid || $section_gid == "null" ]] && { echo "Error: Section '$1' not found" >&2; return 1; }
+  get_tasks_in_section "$section_gid" "false" | jq -r '.data[] | select(.completed == false) | .gid'
+}
+
+parse_task_gids() {
+  if [[ $1 == --section ]]; then
+    get_section_tasks "$2"
+  elif [[ $1 == *,* ]]; then
+    echo "$1" | tr ',' '\n'
+  elif [[ -n $1 ]]; then
+    echo "$1"
+  elif is_interactive && has_fzf; then
+    select_tasks_with_fzf "${2:-Select tasks}"
+  else
+    echo "Error: Task GID(s) required" >&2
+    return 1
+  fi
+}
+
+show_help() {
+  cat <<'EOF'
+Usage: asana-overview [-p PROJECT] [COMMAND] [ARGS]
+
+Options:
+  -p, --project PROJECT  Use specified project (overrides ASANA_PROJECT env)
+
+Commands:
+  (no args)                        Show my In-Progress tasks
+  -d                               Include descriptions
+  projects                         List available projects
+  all [SECTION] [-d]               Show all tasks in section
+  view [GID|GID,GID|--section SEC] View tasks (comma-sep or section, runs parallel)
+  comment [TASK_GID] TEXT          Add comment to task
+  search QUERY                     Search tasks
+  move [TASK_GID] SECTION          Move task to section
+  toggle-assign-me [GIDS]          Toggle assignment (comma-sep/section/fzf, parallel)
+  due [GIDS] DATE                  Set due date (comma-sep/section/fzf, parallel)
+  attachments [TASK_GID]           List task attachments
+  download [TASK_GID] [DIR]        Download attachments (default: current dir)
+
+Task selection:
+  - Single: TASK_GID
+  - Multiple: GID1,GID2,GID3 (comma-separated, no spaces)
+  - Section: --section SECTION_NAME
+  - Interactive: omit GID to use fzf multi-select (TAB for multiple)
+
+Project selection (priority: flag > env > config default > app-v1):
+  asana-overview -p backend all      # one-off with flag
+  export ASANA_PROJECT=backend       # set for session
+
+Sections: Not-Started | In-Progress | Needs Review | Dev-Complete | QA-Accepted
+EOF
+}
+
+show_my_tasks() {
+  echo "===========================================
+My In Progress tasks (In-Progress section)
+===========================================
+"
+  local section_gid=$(get_section_gid "In-Progress")
+  [[ -z $section_gid || $section_gid == "null" ]] && {
+    echo "Error: 'In-Progress' section not found" >&2
+    exit 1
+  }
+  local user_gid=$(echo "$2" | jq -r '.user_gid')
+  local tasks=$(get_tasks_in_section "$section_gid" "$1")
+  display_tasks "$tasks" "$1" "$user_gid"
+  echo "
+Run 'asana-overview help' for more commands"
+}
+
+show_all_tasks() {
+  echo "===========================================
+ALL tasks in $2 section
+===========================================
+"
+  local section_gid=$(get_section_gid "$2")
+  [[ -z $section_gid || $section_gid == "null" ]] && {
+    echo "Error: Section '$2' not found" >&2
+    exit 1
+  }
+  display_tasks "$(get_tasks_in_section "$section_gid" "$1")" "$1" ""
+}
+
+main() {
+  # Parse global flags first (-p/--project)
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -p|--project)
+      export ASANA_PROJECT_OVERRIDE="$2"
+      shift 2
+      ;;
+    *) break ;;
+    esac
+  done
+
+  local config=$(get_project_config)
+  local workspace_name=$(echo "$config" | jq -r '.workspace_name')
+  local project_name=$(echo "$config" | jq -r '.project_name')
+  local workspace_gid=$(echo "$config" | jq -r '.workspace_gid')
+  local project_gid=$(echo "$config" | jq -r '.project_gid')
+
+  echo "========================================
+Asana Overview: ${project_name} @ ${workspace_name}
+========================================
+"
+
+  [[ $# -eq 0 ]] && {
+    show_my_tasks "false" "$config"
+    return
+  }
+
+  local show_desc="false" command=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -d)
+      show_desc="true"
+      shift
+      ;;
+    projects | all | view | comment | search | move | toggle-assign-me | due | attachments | download | help)
+      command="$1"
+      shift
+      break
+      ;;
+    *)
+      echo "Error: Unknown option or command '$1'" >&2
+      show_help
+      exit 1
+      ;;
+    esac
+  done
+
+  [[ -z $command ]] && {
+    show_my_tasks "$show_desc" "$config"
+    return
+  }
+
+  case "$command" in
+  projects)
+    list_projects
+    ;;
+  all)
+    while [[ $# -gt 0 && $1 == "-d" ]]; do show_desc="true"; shift; done
+    show_all_tasks "$show_desc" "${1:-In-Progress}"
+    ;;
+  view)
+    parse_task_gids "$@" "Select tasks to view" | while read -r gid; do view_task "$gid" & done; wait
+    ;;
+  comment)
+    parse_task_gids "$1" "Select task to comment on" | while read -r gid; do
+      [[ -z $2 ]] && { echo "Error: Comment text required" >&2; exit 1; }
+      add_task_comment "$gid" "$2"
+    done
+    ;;
+  search)
+    [[ $# -lt 1 ]] && { echo "Error: Search query required" >&2; exit 1; }
+    search_tasks_interactive "$workspace_gid" "$1"
+    ;;
+  move)
+    [[ -z $2 ]] && { echo "Error: Section name required" >&2; exit 1; }
+    parse_task_gids "$1" "Select task to move" | while read -r gid; do
+      move_task_interactive "$gid" "$project_gid" "$2"
+    done
+    ;;
+  toggle-assign-me)
+    local user_gid=$(echo "$config" | jq -r '.user_gid')
+    parse_task_gids "$@" "Select tasks to toggle assignment" | while read -r gid; do
+      toggle_assign_me_to_task "$gid" "$user_gid" &
+    done; wait
+    ;;
+  due)
+    if [[ $1 == --section ]]; then
+      local due_date="$3"
+      [[ -z $due_date ]] && { echo "Error: Due date required (YYYY-MM-DD)" >&2; exit 1; }
+      parse_task_gids "$1" "$2" | while read -r gid; do set_task_due_date "$gid" "$due_date" & done; wait
+    else
+      local due_date="$2"
+      [[ -z $due_date ]] && { echo "Error: Due date required (YYYY-MM-DD)" >&2; exit 1; }
+      parse_task_gids "$1" "Select tasks to set due date" | while read -r gid; do set_task_due_date "$gid" "$due_date" & done; wait
+    fi
+    ;;
+  attachments)
+    parse_task_gids "$1" "Select task to view attachments" | while read -r gid; do
+      list_task_attachments "$gid"
+    done
+    ;;
+  download)
+    parse_task_gids "$1" "Select task to download attachments" | while read -r gid; do
+      download_task_attachments "$gid" "${2:-.}"
+    done
+    ;;
+  help) show_help ;;
+  *)
+    echo "Error: Unknown command '$command'" >&2
+    show_help
+    exit 1
+    ;;
+  esac
+}
+
+main "$@"

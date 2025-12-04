@@ -14,10 +14,11 @@ VERBOSE=
 
 function usage {
     cat <<EOF
-worktree [-v] <branch name>
+worktree [-v] <branch name> [base branch]
 
 create a git worktree with <branch name>. Will create a worktree if one isn't
-found that matches the given name.
+found that matches the given name. If the branch doesn't exist, it will be
+created from [base branch] (defaults to HEAD).
 
 Will copy over some untracked files to the new worktree. By default, this includes
 .env, .envrc, .env.local, .tool-versions, and mise.toml files.
@@ -97,6 +98,7 @@ function _worktree {
         set -x
     fi
     branchname="$1"
+    base_branch="${2:-HEAD}"
 
     # Replace slashes with underscores. If there's no slash, dirname will equal
     # branchname. So "alu/something-other" becomes "alu_something-other", but
@@ -140,9 +142,9 @@ function _worktree {
             die "failed to create git worktree $branchname"
         fi
     else
-        # otherwise, create a new branch
-        if ! git worktree add -b "$branchname" "../$dirname"; then
-            die "failed to create git worktree $branchname"
+        # otherwise, create a new branch from base_branch
+        if ! git worktree add -b "$branchname" "../$dirname" "$base_branch"; then
+            die "failed to create git worktree $branchname from $base_branch"
         fi
     fi
 

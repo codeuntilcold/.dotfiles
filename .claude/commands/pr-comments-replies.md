@@ -8,18 +8,24 @@ Run the `gh-pr-comments` command ONLY IF you do not have this info.
 
 ### 2. Reply Using Correct API Endpoint
 
-```
-gh api \
- --method POST \
- /repos/{owner}/{repo}/pulls/{pr_number}/comments \
- -f body="Your reply text here" \
- -F in_reply_to={comment_id}
-```
+Use this to submit the comments
 
-Key points:
-- Use /pulls/{pr_number}/comments endpoint (NOT /pulls/comments/{id}/replies)
-- Use -F in_reply_to={comment_id} to thread the reply
-- Use -f body="text" for the message content
+```
+gh api graphql \
+  --field threadId1=\
+  --field body1="Thanks, fixed!" \
+  --field body2="Good catch, updated." \
+  --field body3="Done, see latest commit." \
+  --raw-field query='
+    mutation($threadId1: "PRT_kwDOABC123", $body1: String!, $threadId2: "PRT_kwDOABC456" , $body2: String!, $threadId3: "PRT_kwDOABC789", $body3: String!) {
+      reply1: addPullRequestReviewThreadReply(input: {
+        pullRequestReviewThreadId: $threadId1, body: $body1 }) { comment { id } }
+      reply2: addPullRequestReviewThreadReply(input: {
+        pullRequestReviewThreadId: $threadId2, body: $body2 }) { comment { id } }
+      reply3: addPullRequestReviewThreadReply(input: {
+        pullRequestReviewThreadId: $threadId3, body: $body3 }) { comment { id } }
+    }'
+```
 
 ### 3. Tone and Style
 
@@ -27,6 +33,7 @@ Avoid:
 - Excessive exclamation marks
 - Overly enthusiastic language
 - Unnecessary pleasantries
+- Emoji. Emoji is evil
 
 Include:
 - Technical reasoning for decisions
@@ -48,4 +55,27 @@ For questions about missing features:
 
 - Keep responses concise (2-3 sentences max). Offer alternatives when appropriate.
 - Match the reviewer's level of formality
-- List out the replies for the human to verify in a temp file so that he can edit. Add some context so he knows what he is replying to.
+- List out the replies for the human to verify in a temp file (/tmp/pr-replies.md) so that he can edit. Add some context so he knows what he is replying to.
+- Why many words when few words do trick?
+
+### 4. Clean up
+
+If it is resolved, AFTER pushing the commits and REPLIED to the reviewers and we don't need anymore follow up, mark them as resolved. Example:
+
+```
+gh api graphql -f query='
+  mutation {
+    t1: resolveReviewThread(input: {threadId: "PRRT_kwDOPZASLs5jwamU"}) {
+      thread { isResolved }
+    }
+    t2: resolveReviewThread(input: {threadId: "PRRT_kwDOPZASLs5jwamd"}) {
+      thread { isResolved }
+    }
+    t3: resolveReviewThread(input: {threadId: "PRRT_kwDOPZASLs5jwamr"}) {
+      thread { isResolved }
+    }
+    t4: resolveReviewThread(input: {threadId: "PRRT_kwDOPZASLs5jwam5"}) {
+      thread { isResolved }
+    }
+  }')
+```

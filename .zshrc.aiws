@@ -51,6 +51,12 @@ alias ccal='ncal -y'
 alias pbcopy='xclip -sel c'
 alias pbpaste='xclip -sel c -o'
 alias nr='newsraft'
+alias cr='claude -r'
+
+function gdiff() {
+  branch=${1:-main}
+  git diff $(git merge-base @ $branch) --stat -p
+}
 
 # usage: pn [client | api | domain] command
 function pn() {
@@ -76,8 +82,15 @@ function pn() {
       return
       ;;
 
+    dev)
+      fuser -k 3000/tcp 8000/tcp 2>/dev/null
+      pnpm dev "$@"
+      return
+      ;;
+
     start-cc-dev)
       ln -s ~/dev/datum-monorepo/.nvim.lua .nvim.lua
+      ln -s ~/dev/datum-monorepo/.mcp.json .mcp.json
       ln -s ~/dev/datum-monorepo/.claude/CLAUDE.md .claude/
       ln -s ~/dev/datum-monorepo/.claude/settings.local.json .claude/
       ln -s ~/dev/datum-monorepo/.claude/commands/ .claude/
@@ -89,12 +102,6 @@ function pn() {
   esac
 
   pnpm "$@"
-}
-
-function xm6() {
-  bluetoothctl connect 58:18:62:01:E5:78
-  # bluetoothctl disconnect 58:18:62:01:E5:78
-  bluetoothctl info 58:18:62:01:E5:78
 }
 
 . "$HOME/.cargo/env"
@@ -119,8 +126,6 @@ function y() {
 # For fzf
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
-
-source <(jj util completion zsh)
 
 # Automatically create a new session
 tmux has-session -t main 2> /dev/null || tmux new-session -d -s main

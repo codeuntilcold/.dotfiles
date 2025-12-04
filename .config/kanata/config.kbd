@@ -27,6 +27,36 @@
 (defvar
   tap-time 200
   hold-time 150
+  chord-timeout 50
+)
+
+(defcfg
+  concurrent-tap-hold yes
+)
+
+(defchordsv2
+  ;; Lateral combos (symbols)
+  (j k) -   $chord-timeout first-release ()
+  (m ,) =   $chord-timeout first-release ()
+  (a s) S-4 $chord-timeout first-release ()
+  (s d) S-5 $chord-timeout first-release ()
+  (d f) S-6 $chord-timeout first-release ()
+  (x c) S-8 $chord-timeout first-release ()
+
+  ;; Vertical combos (brackets)
+  (i k) S-9 $chord-timeout first-release ()
+  (o l) S-0 $chord-timeout first-release ()
+  (k ,) [   $chord-timeout first-release ()
+  (l .) ]   $chord-timeout first-release ()
+  (u j) S-[ $chord-timeout first-release ()
+  (j m) S-] $chord-timeout first-release ()
+
+  ;; Diagonal/mixed combos
+  (w s) S-1 $chord-timeout first-release ()
+  (w e) S-2 $chord-timeout first-release ()
+  (x s) S-7 $chord-timeout first-release ()
+  (p ;) S-\ $chord-timeout first-release ()
+  (; /) \   $chord-timeout first-release ()
 )
 
 (defalias

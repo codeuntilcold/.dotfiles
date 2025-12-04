@@ -7,6 +7,15 @@ start() {
 
     format="mp4"
 
+    # ### https://kerkour.com/video-formats-codecs-containers
+    # ffmpeg -i [VIDEO_SOURCE] -map_metadata -1 -b:v 0 -movflags +faststart \
+    #     -c:v libsvtav1 -preset 6 -crf 30 -c:a libopus -b:a 128k \
+    #     [VIDEO_DESTINATION.mkv]
+
+    # ffmpeg -f x11grab $REGION \
+    #     -map_metadata -1 -b:v 0 -movflags +faststart -c:v libsvtav1 -preset 6 -crf 30 -c:a libopus -b:a 128k \
+    #     ~/Videos/rec-$(date +%Y%m%d-%H%M).mkv &
+
     ### no audio
     ffmpeg -f x11grab $REGION -c:v h264 ~/Videos/rec-$(date +%Y%m%d-%H%M).$format &
     ### yes audio
@@ -24,6 +33,10 @@ start() {
 end() {
     kill -15 $(cat /tmp/recpid /tmp/screenkeypid) && rm -f /tmp/recpid /tmp/screenkeypid
     notify-send -t 1000 "Recording stopped"
+
+    command -v dragon && {
+        ls ~/Videos/rec-* | tail -1 | dragon --and-exit --stdin
+    }
 }
 
 [[ -f /tmp/recpid && -f /tmp/screenkeypid ]] && end || start

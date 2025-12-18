@@ -6,7 +6,7 @@
     "BASH_MAX_TIMEOUT_MS": "6000000"
   },
   "includeCoAuthoredBy": false,
-  "model": "opus",
+  "model": "sonnet",
   "hooks": {
     "Notification": [
       {

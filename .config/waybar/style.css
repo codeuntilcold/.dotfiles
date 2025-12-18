@@ -164,6 +164,13 @@
     color: rgb(102, 220, 105);
 }
 
+#custom-server-mode {
+    color: white;
+    background-color: rgb(255, 0, 0);
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
 #temperature {
     /* No styles */
 }

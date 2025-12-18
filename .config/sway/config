@@ -23,6 +23,10 @@ set $menu wofi --show run
 set $flatpak_menu wofi --show drun
 set $ibus_toggle $dot_local/scripts/ibus-toggle
 set $screenshot $dot_local/scripts/wl-screenshot
+set $server_mode_toggle $dot_local/scripts/sway-server-mode-toggle
+
+# Laptop output
+set $laptop eDP-1
 
 # Window borders (all in on nvim colors)
 # https://github.com/nshern/neovim-default-colorscheme-extras/tree/main
@@ -46,6 +50,10 @@ input type:touchpad {
     scroll_factor 0.5
 }
 
+# Lid behavior: disable screen when lid closes
+bindswitch --locked lid:on output $laptop disable
+bindswitch --locked lid:off output $laptop enable
+
 # Key bindings
 bindsym XF86AudioMute         exec pactl     set-sink-mute   @DEFAULT_SINK@ toggle
 bindsym XF86AudioRaiseVolume  exec pactl     set-sink-volume @DEFAULT_SINK@ +5%
@@ -63,6 +71,8 @@ bindsym $mod+d exec $menu
 bindsym $mod+p exec $flatpak_menu
 bindsym $mod+Shift+space exec $ibus_toggle
 bindsym $mod+Shift+p exec $screenshot
+bindsym $mod+F12 exec $server_mode_toggle
+bindsym $mod+Shift+m exec swaymsg "output $laptop dpms toggle"
 bindsym $mod+Shift+e exec swaynag -t warning -m 'This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
 bindsym $mod+Shift+x exec swaynag -t warning -m 'Shut down the machine.' -B 'Yes, shutdown now' 'shutdown now' -B 'Yes, shutdown' 'shutdown'
 

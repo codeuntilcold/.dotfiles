@@ -8,6 +8,7 @@
         "sway/mode",
     ],
     "modules-center": [
+        "custom/server-mode",
         "clock#date",
         "clock#time",
         "battery",
@@ -83,6 +84,16 @@
         "format": "  {}",
         "tooltip": true,
         "tooltip-format": "playerctl metadata artist",
+    },
+
+    "custom/server-mode": {
+        "exec": "/home/qd/.local/scripts/sway-server-mode-status",
+        "on-click": "/home/qd/.local/scripts/sway-server-mode-toggle",
+        "return-type": "json",
+        "signal": 4,
+        "interval": 10,
+        "format": "{}",
+        "tooltip": true
     },
 
     "memory": {

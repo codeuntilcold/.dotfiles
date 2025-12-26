@@ -22,9 +22,8 @@ declare -A MODELS
 MODELS["cld-45-haiku"]=7634
 MODELS["cld-45-sonnet"]=7467
 MODELS["cld-45-opus"]=7968
-MODELS["gem-25-flash"]=7015
-MODELS["gem-25-flashlite"]=7025
-MODELS["gem-3-pro"]=7946
+MODELS["gem-3-flash"]=8392
+MODELS["gem-3-pro"]=7942
 MODELS["gpt-5-mini"]=7239
 MODELS["gpt-5-nano"]=7295
 MODELS["gpt-5-pro"]=7574

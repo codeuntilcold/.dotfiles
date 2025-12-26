@@ -3,7 +3,7 @@ local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 
 if os.getenv('USER') == 'dungngo' then
-  config.font = wezterm.font('IosevkaTerm NFM', { weight = 'Regular' })
+  config.font = wezterm.font('BerkeleyMono Nerd Font Mono', { weight = 'Regular' })
   config.font_size = 16.0
   config.line_height = 1.3
 else

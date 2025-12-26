@@ -22,12 +22,19 @@
   _      _      _                    _                    _      _
 )
 
+(deflayer numbers
+  _      _      _      _      _      _      _      _      _      _      _      _      _     _
+  _      _      7      8      9      _      _      _      _      _      _      _      _     _
+  _      _      4      5      6      _      _      _      _      _      _      _      _
+  _      0      1      2      3      _      _      _      _      _      _      _
+  _      _      _                    _                    _      _
+)
 
 
 (defvar
   tap-time 200
   hold-time 150
-  chord-timeout 50
+  chord-timeout 30
 )
 
 (defcfg
@@ -35,26 +42,33 @@
 )
 
 (defchordsv2
-  ;; Lateral combos (symbols)
+  ;; TODO: what are these
+  (o p) bspc $chord-timeout first-release ()
+  (l ;) ret  $chord-timeout first-release ()
+
+  ;; (N)umber (L)ayer, if I can really grok it
+  (n l) (layer-toggle numbers) $chord-timeout first-release ()
+  ;; (A)rrow (V)alue
+  ;; (a v) (layer-toggle arrows)  $chord-timeout first-release ()
+
+  ;; Lateral combos
   (j k) -   $chord-timeout first-release ()
   (m ,) =   $chord-timeout first-release ()
+  (w e) S-2 $chord-timeout first-release ()
   (a s) S-4 $chord-timeout first-release ()
   (s d) S-5 $chord-timeout first-release ()
   (d f) S-6 $chord-timeout first-release ()
+  (x s) S-7 $chord-timeout first-release ()
   (x c) S-8 $chord-timeout first-release ()
 
-  ;; Vertical combos (brackets)
+  ;; Vertical combos
   (i k) S-9 $chord-timeout first-release ()
   (o l) S-0 $chord-timeout first-release ()
   (k ,) [   $chord-timeout first-release ()
   (l .) ]   $chord-timeout first-release ()
   (u j) S-[ $chord-timeout first-release ()
   (j m) S-] $chord-timeout first-release ()
-
-  ;; Diagonal/mixed combos
   (w s) S-1 $chord-timeout first-release ()
-  (w e) S-2 $chord-timeout first-release ()
-  (x s) S-7 $chord-timeout first-release ()
   (p ;) S-\ $chord-timeout first-release ()
   (; /) \   $chord-timeout first-release ()
 )
@@ -74,3 +88,4 @@
   ;rctl (tap-hold $tap-time $hold-time ; rctl)
 )
 
+;; vim:ft=scheme:ts=2:sts

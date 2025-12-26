@@ -182,6 +182,8 @@ If this commit handles other comments, paste the comment's url into the commit
 
 ### Pull Request Description Format
 
+Title: should be the task's name
+
 ```
 ### Task
 

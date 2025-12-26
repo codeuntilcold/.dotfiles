@@ -51,11 +51,11 @@ alias ccal='ncal -y'
 alias pbcopy='xclip -sel c'
 alias pbpaste='xclip -sel c -o'
 alias nr='newsraft'
-alias cr='claude -r'
+alias cr='ENABLE_LSP_TOOL=true claude -r'
 
 function gdiff() {
   branch=${1:-main}
-  git diff $(git merge-base @ $branch) --stat -p
+  git diff -w $(git merge-base @ $branch) --stat -p
 }
 
 # usage: pn [client | api | domain] command

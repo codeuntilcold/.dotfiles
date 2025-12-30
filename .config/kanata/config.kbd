@@ -1,40 +1,36 @@
 (defsrc
-  grv    1      2      3      4      5      6      7      8      9      0      -      =     bspc
-  tab    q      w      e      r      t      y      u      i      o      p      [      ]     \
-  caps   a      s      d      f      g      h      j      k      l      ;      '      ret
+  tab    q      w      e      r      t      y      u      i      o      p      [
+  caps   a      s      d      f      g      h      j      k      l      ;      '
   lsft   z      x      c      v      b      n      m      ,      .      /      rsft
   lctl   lmet   lalt                 spc                  ralt   rctl
 )
 
 (deflayer default
-  _      _      _      _      _      _      _      _       _      _      _      _     _     _
-  @tbl  _      _      _      _      _      _      _       _      _      _      _     _     _
-  lctl   _      _      _      _      _      _      _       _      _      _      _     _
-  _      _      _      _      _      _      _      _       _      _      _      _
+  @tbl   _      _      _      _      _      _      _       _      _     _      _
+  lctl   _      _      _      _      _      _      _       _      _     _      _
+  _      _      _      _      _      _      _      _       _      _     _      _
   _      _      _                    _             _       _
 )
 
 (deflayer arrows
-  _      _      _      _      _      _      _      _      _      _      _    _    _    _
-  _      _      _      _      _      _      _      _      _      _      _    _    _    _
-  _      _      _      _      _      _      left   down   up    right   _    _    _
-  _      _      _      _      _      _      _      _      _      _      _    _
-  _      _      _                    _                    _      _
+  _      _      _      _      _      _      _      _       _      _     _      _
+  _      _      _      _      _      _      left   down    up     right _      _
+  _      _      _      _      _      _      _      _       _      _     _      _
+  _      _      _                    _                     _      _
 )
 
 (deflayer numbers
-  _      _      _      _      _      _      _      _      _      _      _      _      _     _
-  _      _      7      8      9      _      _      _      _      _      _      _      _     _
-  _      _      4      5      6      _      _      _      _      _      _      _      _
-  _      0      1      2      3      _      _      _      _      _      _      _
-  _      _      _                    _                    _      _
+  _      _      7      8      9      _      _      _       _      _     _      _
+  _      _      4      5      6      _      _      _       _      _     _      _
+  _      0      1      2      3      _      _      _       _      _     _      _
+  _      _      _                    _                     _      _
 )
 
 
 (defvar
   tap-time 200
   hold-time 150
-  chord-timeout 30
+  chord-timeout 40
 )
 
 (defcfg
@@ -48,16 +44,17 @@
 
   ;; (N)umber (L)ayer, if I can really grok it
   (n l) (layer-toggle numbers) $chord-timeout first-release ()
-  ;; (A)rrow (V)alue
-  ;; (a v) (layer-toggle arrows)  $chord-timeout first-release ()
 
   ;; Lateral combos
   (j k) -   $chord-timeout first-release ()
   (m ,) =   $chord-timeout first-release ()
+
   (w e) S-2 $chord-timeout first-release ()
+
   (a s) S-4 $chord-timeout first-release ()
   (s d) S-5 $chord-timeout first-release ()
   (d f) S-6 $chord-timeout first-release ()
+
   (x s) S-7 $chord-timeout first-release ()
   (x c) S-8 $chord-timeout first-release ()
 
@@ -74,7 +71,6 @@
 )
 
 (defalias
-  grl (tap-hold $tap-time $hold-time grv (layer-toggle arrows))
   tbl (tap-hold $tap-time $hold-time tab (layer-toggle arrows))
 
   alctl (tap-hold $tap-time $hold-time a lctl)
